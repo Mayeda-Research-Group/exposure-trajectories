@@ -1,4 +1,4 @@
 # exposure-trajectories
-Dataset: HRS biomarkers
-Exposure: Cystatin C
-Outcome: Mortality
+Dataset: HRS biomarkers<br>
+Exposure: Cystatin C<br>
+Outcome: Mortality<br>

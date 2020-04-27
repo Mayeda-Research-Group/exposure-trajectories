@@ -1,0 +1,16 @@
+---
+title: "Exposure Trajectories Preliminary Analyses"
+author: "Crystal Shaw"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    theme: journal
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+

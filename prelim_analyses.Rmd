@@ -17,19 +17,42 @@ knitr::opts_chunk$set(echo = FALSE)
 ```{r load packages}
 if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
-
-p_load("here", "readr", "tidyverse")
 }
+
+p_load("here", "readr", "tidyverse", "magrittr")
 ```
 
 
 ```{r source scripts}
-
+source(here("read_data.R"))
 ```
 
 ```{r read in data}
-read_data("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
-          "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct")
+#2016 tracker file
+hrs_tracker <- 
+  read_data("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
+            "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct")
+
+#2006-2012 biomarker data
+years <- c("06", "08", "10", "12")
+
+for(year in years){
+  assign(paste0("biomarker_", year), 
+         read_data(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
+                          year, "/BIOMK", year, "BL_R.da"),
+                   paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
+                          year, "/BIOMK", year, "BL_R.dct")))
+}
+  
+#2014 early release biomarker data 
+biomarker_14 <- 
+  read_data("/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
+            "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct")
+```
+
+```{r construct analytic dataset}
+#Who participated in the HRS 2014 wave?
+
 ```
 
 ### List of Summary Stats

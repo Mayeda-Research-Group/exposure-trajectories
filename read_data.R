@@ -35,7 +35,7 @@ read_data <- function(data_path, dict_path){
   # Add column labels to headers
   attributes(data)$variable.labels <- df_dict$col.lbl
   
-  data %<>% as.data.frame() 
+  data %<>% as.data.frame() %>% unite("HHIDPN", c("HHID", "PN"), sep = "")
   
   return(data)
 }

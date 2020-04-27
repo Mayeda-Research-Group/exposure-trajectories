@@ -14,3 +14,24 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+```{r load packages}
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+
+p_load("here", "readr", "tidyverse")
+}
+```
+
+
+```{r source scripts}
+
+```
+
+```{r read in data}
+read_data("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
+          "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct")
+```
+
+### List of Summary Stats
+
+- Number of Cystatin C measures per person

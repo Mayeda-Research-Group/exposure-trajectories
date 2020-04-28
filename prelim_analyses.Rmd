@@ -63,10 +63,10 @@ hrs_samp <- hrs_tracker %>%
 
 ```{r DOD}
 #---- Deriving Date of Death (DOD) ----
-#Looking at values for each variable
-table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
-table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
-table(hrs_samp$OALIVE, useNA = "ifany")
+# #Looking at values for each variable
+# table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
+# table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
+# table(hrs_samp$OALIVE, useNA = "ifany")
 
 #Translated from TMM SAS code
 hrs_samp %<>% 

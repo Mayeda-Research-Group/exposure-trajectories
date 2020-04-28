@@ -4,9 +4,9 @@ author: "Crystal Shaw"
 output: 
   html_document:
     toc: true
-    toc_float: true
-    toc_collapsed: true
-    toc_depth: 3
+    toc_float: 
+      collapsed: no
+    toc_depth: 4
     theme: journal
 ---
 
@@ -24,7 +24,7 @@ p_load("here", "readr", "tidyverse", "magrittr", "plyr")
 
 
 ```{r source scripts}
-source(here("read_data.R"))
+source(here::here("read_data.R"))
 ```
 
 ```{r read in data}
@@ -119,9 +119,11 @@ hrs_samp %<>%
 ```
 
 ```{r merge biomarker data}
-hrs_samp <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
+analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
                           biomarker_10, biomarker_12, biomarker_14), 
-                     by = "HHIDPN", type = "left")
+                     by = "HHIDPN", type = "left") %>% 
+  #Select variables of interest
+  dplyr::select(colnames(hrs_samp), contains("CYSC"))
 ```
 
 ### List of Summary Stats
@@ -129,3 +131,6 @@ hrs_samp <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
 - Number of Cystatin C measures per person
 - Average length between measures
 - Types of patterns
+
+#### CYSC measures/person
+I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation. 

@@ -19,7 +19,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr")
 ```
 
 
@@ -118,8 +118,10 @@ hrs_samp %<>%
 # nrow(test_oalive_5) 
 ```
 
-```{r}
-
+```{r merge biomarker data}
+hrs_samp <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
+                          biomarker_10, biomarker_12, biomarker_14), 
+                     by = "HHIDPN", type = "left")
 ```
 
 ### List of Summary Stats

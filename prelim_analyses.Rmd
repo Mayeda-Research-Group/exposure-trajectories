@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
 ```
 
 ```{r load packages}
@@ -50,11 +50,76 @@ biomarker_14 <-
             "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct")
 ```
 
-```{r construct analytic dataset}
-#Who participated in the HRS 2014 wave?
+```{r pulling variables}
+#We also want their age, sex, race/ethnicity, data to fill in mortality
 
+hrs_samp <- hrs_tracker %>% 
+  #participated in HRS 2014 wave (wave "O")
+  filter(OIWWAVE == 1) %>% 
+  select("HHIDPN", "OIWWAVE", "OAGE", "GENDER", "RACE", "HISPANIC", 
+         "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", "EXDEATHMO", "EXDEATHYR", 
+         "OALIVE") 
+```
+
+```{r DOD}
+#---- Deriving Date of Death (DOD) ----
+#Looking at values for each variable
+table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
+table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
+table(hrs_samp$OALIVE, useNA = "ifany")
+
+#Translated from TMM SAS code
+hrs_samp %<>% 
+  mutate("DOD" = 
+           case_when(!(KNOWNDECEASEDMO %in% c(0, 98, NA)) & 
+                       !(KNOWNDECEASEDYR %in% c(0, 98, NA)) ~ 
+                       paste0(KNOWNDECEASEDMO, "1", KNOWNDECEASEDYR), 
+                     TRUE & !is.na(EXDEATHMO) & !is.na(EXDEATHYR) ~ 
+                       paste0(EXDEATHMO, "1", EXDEATHYR), 
+                     TRUE & OALIVE == 5 ~ "612015"))
+
+#---- Sanity Check ----
+#Checking that assignments make sense
+#Checking assignments under first condition: No missing values in this group
+test_1 <- hrs_samp %>% 
+  filter(!(KNOWNDECEASEDMO %in% c(0, 98, NA)) & 
+           !(KNOWNDECEASEDYR %in% c(0, 98, NA))) 
+#There is data in this group
+nrow(test_1) 
+#none of these are empty 
+sum(!is.na(test_1$DOD))
+
+#Checking assignments under second condition: No data in this group
+test_2 <- hrs_samp %>% 
+  filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
+           KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
+  filter(!is.na(EXDEATHMO) & !is.na(EXDEATHYR)) 
+#There is no data in this group
+nrow(test_2) 
+
+#Checking assignments under third condition: 
+test_oalive_1 <- hrs_samp %>% 
+  filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
+           KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
+  filter(is.na(EXDEATHMO) | is.na(EXDEATHYR)) %>%
+  filter(OALIVE == 1) 
+#There is data in this group
+nrow(test_oalive_1) 
+#all of these are empty (OALIVE == 1 --> alive at wave)
+sum(!is.na(test_oalive_1$DOD))
+
+#none of these are empty (OALIVE == 5 --> death reported in wave)
+test_oalive_5 <- hrs_samp %>% 
+  filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
+           KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
+  filter(is.na(EXDEATHMO) | is.na(EXDEATHYR)) %>%
+  filter(OALIVE == 5)
+#There is no data in this group
+nrow(test_oalive_5) 
 ```
 
 ### List of Summary Stats
 
 - Number of Cystatin C measures per person
+- Average length between measures
+- Types of patterns

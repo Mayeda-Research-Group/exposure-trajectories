@@ -31,7 +31,8 @@ source(here::here("read_da_dct.R"))
 #2016 tracker file
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
-              "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct")
+              "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
+              HHIDPN = TRUE)
 
 #2006-2012 biomarker data
 years <- c("06", "08", "10", "12")
@@ -41,14 +42,15 @@ for(year in years){
          read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
                             year, "/BIOMK", year, "BL_R.da"),
                      paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
-                            year, "/BIOMK", year, "BL_R.dct")))
+                            year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE))
 }
 
 #2014 early release biomarker data 
 biomarker_14 <- 
   read_da_dct(
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
-    "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct")
+    "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
+    HHIDPN = TRUE)
 ```
 
 ```{r pulling variables}

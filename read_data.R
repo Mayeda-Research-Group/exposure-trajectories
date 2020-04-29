@@ -21,7 +21,7 @@ if (!require("pacman")){
 p_load("readr")
 
 #---- Function ----
-read_data <- function(data_path, dict_path, HHIDPN = TRUE){
+read_da_dct <- function(data_path, dict_path, HHIDPN = TRUE){
   
   # Read the dictionary file
   df_dict <- read.table(dict_path, skip = 2, fill = TRUE,

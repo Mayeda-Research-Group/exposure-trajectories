@@ -130,8 +130,24 @@ hrs_samp %<>%
 ```
 
 ```{r race-eth}
+#Code any hispanic as 1, else 0
+hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0))
+
 hrs_samp %<>% 
-  mutate("white" = ifelse(GENDER == 2, 1, 0))
+  mutate("black" = ifelse(RACE == 2 & hispanic == 0, 1, 0)) %>% 
+  mutate("other" = ifelse(RACE == 7 & hispanic == 0, 1, 0)) %>% 
+  mutate("unknown_race_eth" = ifelse(RACE == 0 & hispanic == 0, 1, 0))
+
+# #Sanity check
+# table(hrs_samp$hispanic, hrs_samp$HISPANIC)
+# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$black)
+# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$other)
+# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$unknown_race_eth)
+
+#There are 14 people missing race/ethnicity data so I am dropping them
+hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
+  #Drop the HRS HISPANIC variable (recoded as hispanic)
+  dplyr::select(-one_of("HISPANIC"))
 ```
 
 ```{r merge biomarker data}

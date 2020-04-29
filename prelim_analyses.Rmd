@@ -8,6 +8,7 @@ output:
       collapsed: no
     toc_depth: 4
     theme: journal
+    highlight: zenburn
 ---
 
 ```{r setup, include = FALSE}
@@ -21,7 +22,6 @@ if (!require("pacman")){
 
 p_load("here", "readr", "tidyverse", "magrittr", "plyr")
 ```
-
 
 ```{r source scripts}
 source(here::here("read_da_dct.R"))
@@ -129,10 +129,22 @@ analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
   dplyr::select(colnames(hrs_samp), contains("CYSC"))
 ```
 
+### Overview
+Exposure: Cystatin C
+Outcome: Mortality
+
+Question for preliminary analysis:
+Conditional on survival to 2014, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
+
+Brief description of Cystatin C: "Cystatin C is a protein produced by all human cells, used primarily as a marker of kidney function. Levels of Cystatin C appear to rise with healthy aging, but elevated levels can also be indicative of serious cardiovascular disease and impending mortality, perhaps independently of kidney functioning." 
+
+*It's good for this biomarker analysis that Cystatin C is thought to rise with healthy aging (in addition to being an indicator of kidney functioning and CVD).*
+
 ### List of Summary Stats
 
+- Sample characteristics
 - Number of Cystatin C measures per person
-- Average length between measures
+- Distribution of number of years between first and last measure
 - Types of patterns
 
 #### CYSC measures/person

@@ -1,7 +1,27 @@
-#This function reads in and formats data so that we can reads in the 
-#HRS tracker file and HRS biomarker data
+#---- Function Overview ----
+#This function reads in and formats data using a data file (.da) 
+#and a data dictionary file (.dct). 
+#This can be used to read in HRS data files such as the tracker file and 
+#senstive data files
 
-read_data <- function(data_path, dict_path){
+#Package dependencies: readr
+
+#Inputs: 
+# data_path: path to the .da file
+# dict_path: path to the .dct file
+# HHIDPN: defaults to TRUE; merges the HHID and PN variables
+
+#Ouput: formatted dataframe 
+
+#---- Load package ----
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("readr")
+
+#---- Function ----
+read_data <- function(data_path, dict_path, HHIDPN = TRUE){
   
   # Read the dictionary file
   df_dict <- read.table(dict_path, skip = 2, fill = TRUE,
@@ -35,7 +55,12 @@ read_data <- function(data_path, dict_path){
   # Add column labels to headers
   attributes(data)$variable.labels <- df_dict$col.lbl
   
-  data %<>% as.data.frame() %>% unite("HHIDPN", c("HHID", "PN"), sep = "")
+  #Merge HHID and PN
+  if(HHIDPN == TRUE){
+    data %<>% as.data.frame() %>% unite("HHIDPN", c("HHID", "PN"), sep = "")
+  } else{
+    data %<>% as.data.frame()
+  }
   
   return(data)
 }

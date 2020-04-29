@@ -121,8 +121,17 @@ hrs_samp %<>%
 # nrow(test_oalive_5) 
 ```
 
-```{r race-eth}
+```{r gender}
+hrs_samp %<>% 
+  mutate("female" = ifelse(GENDER == 2, 1, 0))
 
+# #Sanity check
+# table(hrs_samp$female, hrs_samp$GENDER)
+```
+
+```{r race-eth}
+hrs_samp %<>% 
+  mutate("white" = ifelse(GENDER == 2, 1, 0))
 ```
 
 ```{r merge biomarker data}

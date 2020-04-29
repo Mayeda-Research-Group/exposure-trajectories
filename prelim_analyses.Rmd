@@ -121,6 +121,10 @@ hrs_samp %<>%
 # nrow(test_oalive_5) 
 ```
 
+```{r race-eth}
+
+```
+
 ```{r merge biomarker data}
 analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
                           biomarker_10, biomarker_12, biomarker_14), 
@@ -130,7 +134,7 @@ analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
 ```
 
 ### Overview
-Exposure: Cystatin C
+Exposure: Cystatin C  
 Outcome: Mortality
 
 Question for preliminary analysis:
@@ -147,5 +151,22 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 - Distribution of number of years between first and last measure
 - Types of patterns
 
+```{r sample characteristics}
+
+```
+#### Sample characteristics
+
 #### CYSC measures/person
 I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation. 
+
+#### FU time
+
+#### CYSC patterns
+
+### Models
+
+#### Mortality on Avg CYSC
+
+#### Mortality on Last CYSC
+
+#### Mortality on First CYSC

@@ -25,6 +25,7 @@ p_load("here", "readr", "tidyverse", "magrittr", "plyr")
 
 ```{r source scripts}
 source(here::here("RScripts", "read_da_dct.R"))
+source(here::here("RScripts", "non_missing.R"))
 ```
 
 ```{r read in data}
@@ -139,9 +140,7 @@ hrs_samp %<>%
 
 ```{r race-eth}
 #Code any hispanic as 1, else 0
-hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0))
-
-hrs_samp %<>% 
+hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0)) %>% 
   mutate("black" = ifelse(RACE == 2 & hispanic == 0, 1, 0)) %>% 
   mutate("other" = ifelse(RACE == 7 & hispanic == 0, 1, 0)) %>% 
   mutate("unknown_race_eth" = ifelse(RACE == 0 & hispanic == 0, 1, 0))
@@ -166,12 +165,32 @@ analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
   dplyr::select(colnames(hrs_samp), contains("CYSC"))
 ```
 
+```{r CYSC measures}
+#average of all available CYSC measures
+analytic_df[, "avg_CYSC"] <- 
+  analytic_df %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% 
+  rowMeans(na.rm = TRUE)
+#change NaN to NA for individuals with no measures of CYSC
+analytic_df$avg_CYSC[is.nan(analytic_df$avg_CYSC)] <- NA
+
+#last CYSC measure
+analytic_df[, "last_CYSC"] <- 
+  analytic_df %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% 
+  apply(., 1, function(x) non_missing(x, first = FALSE))
+
+# #Sanity Check
+# View(analytic_df %>% 
+#        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
+```
+
 ### Overview
 Exposure: Cystatin C  
 Outcome: Mortality
 
 Question for preliminary analysis:
-Conditional on survival to 2014, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
+Conditional on participation in the 2014 HRS core interview, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
 
 Brief description of Cystatin C: "Cystatin C is a protein produced by all human cells, used primarily as a marker of kidney function. Levels of Cystatin C appear to rise with healthy aging, but elevated levels can also be indicative of serious cardiovascular disease and impending mortality, perhaps independently of kidney functioning." 
 
@@ -190,7 +209,7 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 #### Sample characteristics
 
 #### CYSC measures/person
-I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation. 
+I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L.
 
 #### FU time
 

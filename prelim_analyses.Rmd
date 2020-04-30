@@ -24,7 +24,7 @@ p_load("here", "readr", "tidyverse", "magrittr", "plyr")
 ```
 
 ```{r source scripts}
-source(here::here("read_da_dct.R"))
+source(here::here("RScripts", "read_da_dct.R"))
 ```
 
 ```{r read in data}

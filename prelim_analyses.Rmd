@@ -20,8 +20,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom", 
-       "ResourceSelection")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom")
 
 #No scientific notation
 options(scipen = 999)
@@ -223,8 +222,25 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 #### CYSC measures/person
 I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L. Based on my very brief lit review, it looks like Cystatin C is untransformed and used in logistic models in the medical literature so that's what I did for this preliminary analysis.
 
-```{r CysC per person}
-analytic_df
+```{r CysC per person, out.width = "75%", fig.align = "center"}
+analytic_df[, "num_measures"] <- 5 - (
+  analytic_df %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+
+analytic_df$num_measures <- as.factor(analytic_df$num_measures)
+
+# #Sanity Check
+# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "num_measures"))
+
+ggplot(analytic_df, aes(x = num_measures)) + 
+  geom_bar(aes(y = ..count../sum(..count..), fill = factor(..x..)), 
+           stat = "count", width = 0.3) +
+  geom_text(aes(label = scales::percent(round(..count../sum(..count..), 2)),
+                y = ..count../sum(..count..) ), stat = "count", vjust = -.5) +
+  labs(y = "Percent", x = "Number of CysC Measures") +
+  scale_y_continuous(labels = scales::percent) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
 ```
 
 #### FU time

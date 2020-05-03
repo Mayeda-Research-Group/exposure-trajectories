@@ -246,6 +246,12 @@ analytic_df[, "num_measures"] <- 5 - (
 analytic_df$num_measures <- as.factor(analytic_df$num_measures)
 
 # #Sanity Check
+# test_no_measures <- analytic_df %>% 
+#   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums()
+# table(test_no_measures)
+# table(test_no_measures)/sum(table(test_no_measures))
+# hist(analytic_df$KCYSC_ADJ)
+# table(analytic_df$KCYSC_ADJ, useNA = "ifany")
 # View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "num_measures"))
 
 ggplot(analytic_df, aes(x = num_measures)) + 

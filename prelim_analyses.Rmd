@@ -288,6 +288,63 @@ ggplot(analytic_df, aes(x = fu_time)) +
 ```
 
 #### CysC patterns
+Looking at the different patterns and distributions for the CysC measures
+
+```{r wide to long}
+columns_to_pick <- 
+  colnames(analytic_df)[str_detect(colnames(analytic_df), "CYSC_ADJ")]
+  
+analytic_df_long <- pivot_longer(analytic_df, 
+                                 columns_to_pick, names_to = "long_name") %>% 
+  mutate("Wave" = substr(long_name, start = 1, stop = 1))
+
+#Create categorical variables for plotting
+analytic_df_long %<>% 
+  mutate("gender_cat" = ifelse(female == 1, "Women", "Men")) %>%
+  mutate("race_eth_cat" = case_when(black == 1 ~ "Black", 
+                                    hispanic == 1 ~ "Hispanic", 
+                                    other == 1 ~ "Other",
+                                    TRUE ~ "White"))
+
+#Data for plots
+df_plots <- analytic_df_long %>% 
+  #drop anyone without any CysC measures
+  filter(num_measures != 0) %>% 
+  #drop gender variable for waves without measures
+  mutate("gender_cat" = ifelse(is.na(value), NA, gender_cat)) %>%
+  #drop race/ethnicity variable for waves without measures
+  mutate("race_eth_cat" = ifelse(is.na(value), NA, race_eth_cat))
+
+# #Sanity Check
+# table(analytic_df_long$gender_cat, analytic_df_long$female)
+```
+
+##### Sex/Gender distributions
+
+```{r sex dist by wave, out.width = "75%", fig.align = "center"}
+plot_data <- df_plots %>% filter(!is.na(gender_cat))
+ggplot(plot_data, aes(x = gender_cat)) + 
+  geom_bar(aes(y = ..count.., fill = factor(..x..)), 
+           stat = "count", width = 0.3) + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  labs(y = "Count", x = "Sex/Gender") 
+
+# #Sanity Check
+# test_df <- df_plots %>% filter(Wave == "L")
+# table(test_df$gender_cat)
+```
+
+##### Age distributions
+
+```{r age dist by wave}
+
+```
+
+##### Race/Ethnicity distributions
+
+```{r race/eth dist by wave}
+
+```
 
 ### Models
 

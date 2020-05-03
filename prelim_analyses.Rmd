@@ -29,6 +29,7 @@ options(scipen = 999)
 ```{r source scripts}
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
+source(here::here("RScripts", "fu_time.R"))
 ```
 
 ```{r read in data}
@@ -244,6 +245,32 @@ ggplot(analytic_df, aes(x = num_measures)) +
 ```
 
 #### FU time
+What is the distribution of time between first and last Cystatin C measure? 
+
+*Note that those who only have 1 Cystatin C measure have 0 years of follow up
+
+```{r FU time, out.width = "75%", fig.align = "center"}
+analytic_df[, "fu_time"] <-
+  analytic_df %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% 
+  apply(., 1, fu_time)
+
+analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0
+analytic_df$fu_time <- as.factor(analytic_df$fu_time)
+
+# #Sanity Check
+# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
+
+ggplot(analytic_df, aes(x = fu_time)) + 
+  geom_bar(aes(y = ..count../sum(..count..), fill = factor(..x..)), 
+           stat = "count", width = 0.3) +
+  geom_text(aes(label = scales::percent(round(..count../sum(..count..), 2)),
+                y = ..count../sum(..count..) ), stat = "count", vjust = -.5) +
+  labs(y = "Percent", x = "Length of Follow-up") +
+  scale_y_continuous(labels = scales::percent) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+```
 
 #### CYSC patterns
 

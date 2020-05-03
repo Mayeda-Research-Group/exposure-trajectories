@@ -342,8 +342,13 @@ ggplot(plot_data, aes(x = gender_cat)) +
 
 ##### Race/Ethnicity distributions
 
-```{r race/eth dist by wave}
-
+```{r race/eth dist by wave, out.width = "75%", fig.align = "center"}
+plot_data <- df_plots %>% filter(!is.na(race_eth_cat))
+ggplot(plot_data, aes(x = race_eth_cat)) + 
+  geom_bar(aes(y = ..count.., fill = factor(..x..)), 
+           stat = "count", width = 0.3) + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  labs(y = "Count", x = "Race/Ethnicity") 
 ```
 
 ### Models

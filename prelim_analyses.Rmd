@@ -20,7 +20,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom", 
+       "kableExtra")
 
 #No scientific notation
 options(scipen = 999)
@@ -169,8 +170,8 @@ analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
   dplyr::select(colnames(hrs_samp), contains("CYSC"))
 ```
 
-```{r CYSC measures}
-#average of all available CYSC measures
+```{r CysC measures}
+#average of all available CysC measures
 analytic_df[, "avg_CYSC"] <- 
   analytic_df %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
@@ -182,7 +183,7 @@ analytic_df[, "avg_CYSC_zscore"] <-
   (analytic_df$avg_CYSC - mean(analytic_df$avg_CYSC, na.rm = TRUE))/
   sd(analytic_df$avg_CYSC, na.rm = TRUE)
 
-#last CYSC measure
+#last CysC measure
 analytic_df[, "last_CYSC"] <- 
   analytic_df %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
@@ -220,7 +221,21 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 ```
 #### Sample characteristics
 
-#### CYSC measures/person
+#### Number CysC measures
+
+```{r CysC by wave}
+CYSC_bywave <- analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% 
+  apply(2, function(x) !is.na(x)) %>% colSums() %>% as.data.frame() %>% 
+  set_colnames(c("Count")) %>% 
+  mutate("Proportion" = round(Count/nrow(analytic_df), 2)) %>% 
+  rownames_to_column(var = "long_name") %>% 
+  mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
+  dplyr::select("Wave", "Count", "Proportion")
+
+kable(CYSC_bywave, align = "c") %>% kable_styling(full_width = FALSE, )
+```
+
+#### CysC measures/person
 I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L. Based on my very brief lit review, it looks like Cystatin C is untransformed and used in logistic models in the medical literature so that's what I did for this preliminary analysis.
 
 ```{r CysC per person, out.width = "75%", fig.align = "center"}
@@ -272,11 +287,11 @@ ggplot(analytic_df, aes(x = fu_time)) +
   theme(legend.position = "none")
 ```
 
-#### CYSC patterns
+#### CysC patterns
 
 ### Models
 
-#### Mortality on Avg CYSC
+#### Mortality on Avg CysC
 
 $$death \sim OAGE + female + hispanic + black + other + avgCYSC$$
 
@@ -287,8 +302,8 @@ model_avg_cysc <-
   glm(death ~ OAGE + female + hispanic + black + other + avg_CYSC, 
       family = binomial(link = "logit"), data = analytic_df)
 
-kable(tidy(model_avg_cysc, exponentiate = TRUE))
-
+kable(tidy(model_avg_cysc, exponentiate = TRUE)) %>% 
+  kable_styling(full_width = TRUE)
 
 # #Checking model fit
 # pchisq(model_avg_cysc$deviance, df = model_avg_cysc$df.residual, lower.tail = F)
@@ -296,7 +311,7 @@ kable(tidy(model_avg_cysc, exponentiate = TRUE))
 ```
 
 
-#### Mortality on Last CYSC
+#### Mortality on Last CysC
 
 $$death \sim OAGE + female + hispanic + black + other + lastCYSC$$
 
@@ -307,7 +322,8 @@ model_last_cysc <-
   glm(death ~ OAGE + female + hispanic + black + other + last_CYSC, 
       family = binomial(link = "logit"), data = analytic_df)
 
-kable(tidy(model_last_cysc, exponentiate = TRUE))
+kable(tidy(model_last_cysc, exponentiate = TRUE)) %>% 
+  kable_styling(full_width = TRUE)
 
 # #Checking model fit
 # pchisq(model_last_cysc$deviance, df = model_last_cysc$df.residual, 
@@ -316,4 +332,4 @@ kable(tidy(model_last_cysc, exponentiate = TRUE))
 ```
 
 
-#### Mortality on First CYSC
+#### Mortality on First CysC

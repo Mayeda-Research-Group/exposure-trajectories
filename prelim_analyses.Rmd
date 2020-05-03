@@ -20,7 +20,11 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom", 
+       "ResourceSelection")
+
+#No scientific notation
+options(scipen = 999)
 ```
 
 ```{r source scripts}
@@ -173,12 +177,20 @@ analytic_df[, "avg_CYSC"] <-
   rowMeans(na.rm = TRUE)
 #change NaN to NA for individuals with no measures of CYSC
 analytic_df$avg_CYSC[is.nan(analytic_df$avg_CYSC)] <- NA
+#z score the measures
+analytic_df[, "avg_CYSC_zscore"] <- 
+  (analytic_df$avg_CYSC - mean(analytic_df$avg_CYSC, na.rm = TRUE))/
+  sd(analytic_df$avg_CYSC, na.rm = TRUE)
 
 #last CYSC measure
 analytic_df[, "last_CYSC"] <- 
   analytic_df %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(., 1, function(x) non_missing(x, first = FALSE))
+#z score the measures
+analytic_df[, "last_CYSC_zscore"] <- 
+  (analytic_df$last_CYSC - mean(analytic_df$last_CYSC, na.rm = TRUE))/
+  sd(analytic_df$last_CYSC, na.rm = TRUE)
 
 # #Sanity Check
 # View(analytic_df %>% 
@@ -209,7 +221,11 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 #### Sample characteristics
 
 #### CYSC measures/person
-I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L.
+I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L. Based on my very brief lit review, it looks like Cystatin C is untransformed and used in logistic models in the medical literature so that's what I did for this preliminary analysis.
+
+```{r CysC per person}
+analytic_df
+```
 
 #### FU time
 
@@ -219,6 +235,42 @@ I am using the variable [wave]CYSC_ADJ for individuals based on the recommendati
 
 #### Mortality on Avg CYSC
 
+$$death \sim OAGE + female + hispanic + black + other + avgCYSC$$
+
+*Note that the estimates are the ORs from the model. 
+
+```{r avg value model}
+model_avg_cysc <- 
+  glm(death ~ OAGE + female + hispanic + black + other + avg_CYSC, 
+      family = binomial(link = "logit"), data = analytic_df)
+
+kable(tidy(model_avg_cysc, exponentiate = TRUE))
+
+
+# #Checking model fit
+# pchisq(model_avg_cysc$deviance, df = model_avg_cysc$df.residual, lower.tail = F)
+# plot(model_avg_cysc)
+```
+
+
 #### Mortality on Last CYSC
+
+$$death \sim OAGE + female + hispanic + black + other + lastCYSC$$
+
+*Note that the estimates are the ORs from the model.  
+
+```{r last value model}
+model_last_cysc <- 
+  glm(death ~ OAGE + female + hispanic + black + other + last_CYSC, 
+      family = binomial(link = "logit"), data = analytic_df)
+
+kable(tidy(model_last_cysc, exponentiate = TRUE))
+
+# #Checking model fit
+# pchisq(model_last_cysc$deviance, df = model_last_cysc$df.residual, 
+#        lower.tail = F)
+# plot(model_last_cysc)
+```
+
 
 #### Mortality on First CYSC

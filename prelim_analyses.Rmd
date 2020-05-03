@@ -130,9 +130,14 @@ hrs_samp %<>%
 ```
 
 ```{r age}
-# #Sanity Check
-# sum(hrs_samp$OAGE)
-# hist(hrs_samp$OAGE)
+#Sanity Check
+vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
+
+for(var in vars){
+  sum(hrs_samp[, var])
+  hist(hrs_samp[, var])
+}
+
 ```
 
 ```{r gender}
@@ -216,7 +221,7 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 - Distribution of number of years between first and last measure
 - Types of patterns
 
-```{r sample characteristics}
+```{r sample characteristics at wave O}
 
 ```
 #### Sample characteristics
@@ -300,8 +305,8 @@ Looking at the different patterns and distributions for the CysC measures
 columns_to_pick <- 
   colnames(analytic_df)[str_detect(colnames(analytic_df), "CYSC_ADJ")]
   
-analytic_df_long <- pivot_longer(analytic_df, 
-                                 columns_to_pick, names_to = "long_name") %>% 
+analytic_df_long <- pivot_longer(analytic_df, all_of(columns_to_pick), 
+                                 names_to = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1))
 
 #Create categorical variables for plotting
@@ -343,7 +348,17 @@ ggplot(plot_data, aes(x = gender_cat)) +
 ##### Age distributions
 
 ```{r age dist by wave}
+data <- df_plots %>% dplyr::select("HHIDPN", contains("AGE"), "value") %>%
+  filter(!is.na(value)) %>% distinct(., HHIDPN, .keep_all = TRUE)
 
+plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name", 
+                          values_to = "Age") %>% 
+   mutate("Wave" = substr(long_name, start = 1, stop = 1))
+
+ggplot(plot_data, aes(x = Age)) + 
+  geom_histogram() + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  labs(y = "Count", x = "Age")
 ```
 
 ##### Race/Ethnicity distributions

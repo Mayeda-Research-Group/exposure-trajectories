@@ -9,7 +9,6 @@ impute_ages <- function(vector){
   }
   
   return(vector)
-  
 }
 
 # #test vectors

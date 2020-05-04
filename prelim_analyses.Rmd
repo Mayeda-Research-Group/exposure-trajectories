@@ -131,10 +131,10 @@ hrs_samp %<>%
 ```
 
 ```{r age}
-ages <- View(analytic_df %>% dplyr::select(contains("AGE"))) %>% 
-  apply(1, impute_ages)
+ages <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
+  apply(., 1, impute_ages)
 
-analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
+hrs_samp[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
 
 # #Sanity Check
 # vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
@@ -361,7 +361,8 @@ plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name",
    mutate("Wave" = substr(long_name, start = 1, stop = 1))
 
 ggplot(plot_data, aes(x = Age)) + 
-  geom_histogram() + 
+  #This is a trick; you could put any text here to get this color
+  geom_histogram(aes(fill = "coral")) + 
   theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
   labs(y = "Count", x = "Age")
 ```

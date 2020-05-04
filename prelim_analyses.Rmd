@@ -31,6 +31,7 @@ options(scipen = 999)
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
+source(here::here("RScripts", "impute_ages.R"))
 ```
 
 ```{r read in data}
@@ -130,14 +131,18 @@ hrs_samp %<>%
 ```
 
 ```{r age}
-#Sanity Check
-vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
+ages <- View(analytic_df %>% dplyr::select(contains("AGE"))) %>% 
+  apply(1, impute_ages)
 
-for(var in vars){
-  sum(hrs_samp[, var])
-  hist(hrs_samp[, var])
-}
+analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
 
+# #Sanity Check
+# vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
+# 
+# for(var in vars){
+#   sum(hrs_samp[, var])
+#   hist(hrs_samp[, var])
+# }
 ```
 
 ```{r gender}

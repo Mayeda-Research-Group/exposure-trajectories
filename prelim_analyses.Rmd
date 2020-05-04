@@ -276,7 +276,7 @@ ggplot(analytic_df, aes(x = num_measures)) +
 ```
 
 #### FU time
-What is the distribution of time between first and last Cystatin C measure? 
+What is the distribution of time between first and last Cystatin C measure? These values are based on the participant's age during the interview waves (or imputed age if they didn't participate in the wave). I imputed age by subtracting back from their Wave O age since everyone has an age at Wave O.
 
 *Note that those who only have 1 Cystatin C measure have 0 years of follow up
 
@@ -352,13 +352,13 @@ ggplot(plot_data, aes(x = gender_cat)) +
 
 ##### Age distributions
 
-```{r age dist by wave}
+```{r age dist by wave, out.width = "75%", fig.align = "center"}
 data <- df_plots %>% dplyr::select("HHIDPN", contains("AGE"), "value") %>%
   filter(!is.na(value)) %>% distinct(., HHIDPN, .keep_all = TRUE)
 
 plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name", 
                           values_to = "Age") %>% 
-   mutate("Wave" = substr(long_name, start = 1, stop = 1))
+  mutate("Wave" = substr(long_name, start = 1, stop = 1)) 
 
 ggplot(plot_data, aes(x = Age)) + 
   #This is a trick; you could put any text here to get this color

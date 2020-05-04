@@ -283,7 +283,7 @@ What is the distribution of time between first and last Cystatin C measure?
 ```{r FU time, out.width = "75%", fig.align = "center"}
 analytic_df[, "fu_time"] <-
   analytic_df %>% 
-  dplyr::select(contains("CYSC_ADJ")) %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "AGE"))) %>% 
   apply(., 1, fu_time)
 
 analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0

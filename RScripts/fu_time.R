@@ -3,7 +3,7 @@ fu_time <- function(vector){
   ages <- vector[6:10]
   idx <- !is.na(waves) 
   
-  if(any(idx)){
+  if(sum(idx) > 1){
     first_slot <- min(which(idx))
     last_slot <- max(which(idx))
     

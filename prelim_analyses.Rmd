@@ -12,7 +12,7 @@ output:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 ```{r load packages}
@@ -198,10 +198,14 @@ analytic_df[, "last_CYSC"] <-
   analytic_df %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(., 1, function(x) non_missing(x, first = FALSE))
+
 #z score the measures
 analytic_df[, "last_CYSC_zscore"] <- 
   (analytic_df$last_CYSC - mean(analytic_df$last_CYSC, na.rm = TRUE))/
   sd(analytic_df$last_CYSC, na.rm = TRUE)
+
+#age at last CysC measure
+
 
 # #Sanity Check
 # View(analytic_df %>% 
@@ -240,13 +244,16 @@ CYSC_bywave <- analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>%
   mutate("Proportion" = round(Count/nrow(analytic_df), 2)) %>% 
   rownames_to_column(var = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
-  dplyr::select("Wave", "Count", "Proportion")
+  mutate("Year" = c("2006", "2008", "2010", "2012", "2014")) %>%
+  dplyr::select("Wave", "Year", "Count", "Proportion")
 
 kable(CYSC_bywave, align = "c") %>% kable_styling(full_width = FALSE, )
 ```
 
 #### CysC measures/person
-I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L. Based on my very brief lit review, it looks like Cystatin C is untransformed and used in logistic models in the medical literature so that's what I did for this preliminary analysis.
+I am using the variable [wave]CYSC_ADJ for individuals based on the recommendation in the biomarker documentation to use the "NHANES equivalent values". Units for Cystatin C are mg/L. Based on my very brief lit review, it looks like raw Cystatin C data (untransformed) is used as a predictor in regression models in the medical literature so that's what I did for this preliminary analysis.  
+
+In this preliminary analysis, Cystatin C measures are used for those who participated in the 2014 wave of HRS (core interview) only. 
 
 ```{r CysC per person, out.width = "75%", fig.align = "center"}
 analytic_df[, "num_measures"] <- 5 - (
@@ -312,7 +319,12 @@ columns_to_pick <-
   
 analytic_df_long <- pivot_longer(analytic_df, all_of(columns_to_pick), 
                                  names_to = "long_name") %>% 
-  mutate("Wave" = substr(long_name, start = 1, stop = 1))
+  mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
+  mutate("Year" = case_when(Wave == "K" ~ "2006", 
+                            Wave == "L" ~ "2008", 
+                            Wave == "M" ~ "2010", 
+                            Wave == "N" ~ "2012", 
+                            Wave == "O" ~ "2014"))
 
 #Create categorical variables for plotting
 analytic_df_long %<>% 
@@ -342,7 +354,7 @@ plot_data <- df_plots %>% filter(!is.na(gender_cat))
 ggplot(plot_data, aes(x = gender_cat)) + 
   geom_bar(aes(y = ..count.., fill = factor(..x..)), 
            stat = "count", width = 0.3) + 
-  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
   labs(y = "Count", x = "Sex/Gender") 
 
 # #Sanity Check
@@ -358,12 +370,17 @@ data <- df_plots %>% dplyr::select("HHIDPN", contains("AGE"), "value") %>%
 
 plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name", 
                           values_to = "Age") %>% 
-  mutate("Wave" = substr(long_name, start = 1, stop = 1)) 
+  mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
+  mutate("Year" = case_when(Wave == "K" ~ "2006", 
+                            Wave == "L" ~ "2008", 
+                            Wave == "M" ~ "2010", 
+                            Wave == "N" ~ "2012", 
+                            Wave == "O" ~ "2014"))
 
 ggplot(plot_data, aes(x = Age)) + 
   #This is a trick; you could put any text here to get this color
   geom_histogram(aes(fill = "coral")) + 
-  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
   labs(y = "Count", x = "Age")
 ```
 
@@ -374,13 +391,28 @@ plot_data <- df_plots %>% filter(!is.na(race_eth_cat))
 ggplot(plot_data, aes(x = race_eth_cat)) + 
   geom_bar(aes(y = ..count.., fill = factor(..x..)), 
            stat = "count", width = 0.3) + 
-  theme_bw() + theme(legend.position = "none") + facet_wrap("Wave") + 
+  theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
   labs(y = "Count", x = "Race/Ethnicity") 
 ```
 
-### Models
+### Models  
 
-#### Mortality on Avg CysC
+Percent mortality: `r round(mean(analytic_df$death)*100, 2)`%  
+
+Distributions of Cystatin C measures used in each model:
+
+```{r Cystatin C dists, out.width = "75%", fig.align = "center"}
+plot_data <- analytic_df %>% dplyr::select("avg_CYSC", "last_CYSC") %>% 
+  pivot_longer(cols = c("avg_CYSC", "last_CYSC"), names_to = "Measure", 
+               values_to = "Cystatin C")
+plot_data$Measure <- str_remove(plot_data$Measure, "_CYSC")
+  
+ggplot(data = plot_data, aes(x = Measure, y = `Cystatin C`)) + 
+  geom_boxplot(color = "#FF766D") + 
+  theme_minimal()
+```
+
+#### Mortality on Avg CysC  
 
 $$death \sim OAGE + female + hispanic + black + other + avgCYSC$$
 
@@ -421,4 +453,4 @@ kable(tidy(model_last_cysc, exponentiate = TRUE)) %>%
 ```
 
 
-#### Mortality on First CysC
+#### Mortality on CysC at age 54

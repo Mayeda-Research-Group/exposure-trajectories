@@ -229,19 +229,20 @@ analytic_df[, "last_CYSC_zscore"] <-
   (analytic_df$last_CYSC - mean(analytic_df$last_CYSC, na.rm = TRUE))/
   sd(analytic_df$last_CYSC, na.rm = TRUE)
 
-# #age at last CysC measure
-# waves <- paste0(LETTERS[seq( from = 11, to = 15)])
-# analytic_df[, "last_CYSC_wave"] <- 
-#   analytic_df %>% 
-#   dplyr::select(contains("CYSC_ADJ")) %>% 
-#   apply(., 1, function(x) waves[max(which(!is.na(x)))]) 
-# analytic_df %<>% 
-#   mutate("last_CYSC_age" = case_when("last_CYSC_wave" == "K" ~ KAGE, 
-#                                      "last_CYSC_wave" == "L" ~ LAGE, 
-#                                      "last_CSYC_wave" == "M" ~ MAGE, 
-#                                      "last_CYSC_wave" == "N" ~ NAGE, 
-#                                      "last_CSYC_wave" == "O" ~ OAGE))
-#   
+#wave of last CysC measure
+waves <- paste0(LETTERS[seq( from = 11, to = 15)])
+analytic_df[, "last_CYSC_wave"] <-
+  analytic_df %>%
+  dplyr::select(contains("CYSC_ADJ")) %>%
+  apply(., 1, function(x) waves[max(which(!is.na(x)))])
+
+#age at last CysC measure
+analytic_df %<>% 
+  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ KAGE,
+                                     last_CYSC_wave == "L" ~ LAGE, 
+                                     last_CYSC_wave == "M" ~ MAGE,
+                                     last_CYSC_wave == "N" ~ NAGE, 
+                                     last_CYSC_wave == "O" ~ OAGE))
 
 # #Sanity Check
 # View(analytic_df %>% 

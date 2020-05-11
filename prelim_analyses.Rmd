@@ -441,6 +441,35 @@ ggplot(data = plot_data, aes(x = Measure, y = `Cystatin C`)) +
   theme_minimal()
 ```
 
+Correlation between age at 2014 HRS wave and age at last CysC measure (line produced by loess smoothing):
+
+```{r age correlations, out.width = "75%", fig.align = "center"}
+# Loess method
+ggplot(analytic_df, aes(x = last_CYSC_age, y = OAGE)) + 
+  geom_point(colour = "#737C87") +
+  geom_smooth(colour = "#F8766D") + 
+  theme_minimal() + 
+  xlab("Age at last CysC measure") + ylab("Age at 2014 HRS Wave")
+```
+
+#### CysC on Age
+
+```{r CysC on Age, out.width = "75%", fig.align = "center"}
+plot_data <- analytic_df %>% dplyr::select(contains("AGE", ignore.case = FALSE),
+                                           contains("_ADJ")) %>% 
+  set_colnames(c(paste0("x", seq(1:5)), 
+                 paste0("y", seq(1:5)))) %>%
+  pivot_longer(everything(), names_to = c(".value", "set"), 
+               names_pattern = "(.)(.)")
+
+ggplot(plot_data, aes(x, y)) +
+  geom_point(colour = "#737C87") +
+  #Span in the fraction of points used to fit each local regression
+  geom_smooth(colour = "#F8766D", span = 0.001) + 
+  xlab("Age at CysC measure") + ylab("CysC (mg/L)") +
+  theme_minimal()
+```
+
 #### Mortality on Avg CysC  
 
 $$death \sim OAGE + female + hispanic + black + other + avgCYSC$$

@@ -9,11 +9,30 @@ output:
     toc_depth: 4
     theme: journal
     highlight: zenburn
+    code_folding: hide
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
+
+### Overview
+Exposure: Cystatin C  
+Outcome: Mortality
+
+Question for preliminary analysis:
+Conditional on participation in the 2014 HRS core interview, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
+
+Brief description of Cystatin C: "Cystatin C is a protein produced by all human cells, used primarily as a marker of kidney function. Levels of Cystatin C appear to rise with healthy aging, but elevated levels can also be indicative of serious cardiovascular disease and impending mortality, perhaps independently of kidney functioning." 
+
+*It's good for this biomarker analysis that Cystatin C is thought to rise with healthy aging (in addition to being an indicator of kidney functioning and CVD).*
+
+### List of Summary Stats
+
+- Sample characteristics
+- Number of Cystatin C measures per person
+- Distribution of number of years between first and last measure
+- Types of patterns
 
 ```{r load packages}
 if (!require("pacman")){
@@ -130,21 +149,6 @@ hrs_samp %<>%
 # nrow(test_oalive_5) 
 ```
 
-```{r age}
-ages <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
-  apply(., 1, impute_ages)
-
-hrs_samp[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
-
-# #Sanity Check
-# vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
-# 
-# for(var in vars){
-#   sum(hrs_samp[, var])
-#   hist(hrs_samp[, var])
-# }
-```
-
 ```{r gender}
 hrs_samp %<>% 
   mutate("female" = ifelse(GENDER == 2, 1, 0))
@@ -166,10 +170,32 @@ hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0)) %>%
 # table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$other)
 # table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$unknown_race_eth)
 
-#There are 14 people missing race/ethnicity data so I am dropping them
+#There are 13 people missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the HRS HISPANIC variable (recoded as hispanic)
   dplyr::select(-one_of("HISPANIC"))
+```
+
+```{r age}
+#How many people are missing at least one age value?
+people_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
+  apply(., 1, function(x) 999 %in% x) %>% sum()
+
+num_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) 
+num_age_miss <- sum(num_age_miss == 999)
+
+ages <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
+  apply(., 1, impute_ages)
+
+hrs_samp[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
+
+# #Sanity Check
+# vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
+# 
+# for(var in vars){
+#   sum(hrs_samp[, var])
+#   hist(hrs_samp[, var])
+# }
 ```
 
 ```{r merge biomarker data}
@@ -198,37 +224,33 @@ analytic_df[, "last_CYSC"] <-
   analytic_df %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(., 1, function(x) non_missing(x, first = FALSE))
-
 #z score the measures
 analytic_df[, "last_CYSC_zscore"] <- 
   (analytic_df$last_CYSC - mean(analytic_df$last_CYSC, na.rm = TRUE))/
   sd(analytic_df$last_CYSC, na.rm = TRUE)
 
-#age at last CysC measure
-
+# #age at last CysC measure
+# waves <- paste0(LETTERS[seq( from = 11, to = 15)])
+# analytic_df[, "last_CYSC_wave"] <- 
+#   analytic_df %>% 
+#   dplyr::select(contains("CYSC_ADJ")) %>% 
+#   apply(., 1, function(x) waves[max(which(!is.na(x)))]) 
+# analytic_df %<>% 
+#   mutate("last_CYSC_age" = case_when("last_CYSC_wave" == "K" ~ KAGE, 
+#                                      "last_CYSC_wave" == "L" ~ LAGE, 
+#                                      "last_CSYC_wave" == "M" ~ MAGE, 
+#                                      "last_CYSC_wave" == "N" ~ NAGE, 
+#                                      "last_CSYC_wave" == "O" ~ OAGE))
+#   
 
 # #Sanity Check
 # View(analytic_df %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 ```
 
-### Overview
-Exposure: Cystatin C  
-Outcome: Mortality
-
-Question for preliminary analysis:
-Conditional on participation in the 2014 HRS core interview, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
-
-Brief description of Cystatin C: "Cystatin C is a protein produced by all human cells, used primarily as a marker of kidney function. Levels of Cystatin C appear to rise with healthy aging, but elevated levels can also be indicative of serious cardiovascular disease and impending mortality, perhaps independently of kidney functioning." 
-
-*It's good for this biomarker analysis that Cystatin C is thought to rise with healthy aging (in addition to being an indicator of kidney functioning and CVD).*
-
-### List of Summary Stats
-
-- Sample characteristics
-- Number of Cystatin C measures per person
-- Distribution of number of years between first and last measure
-- Types of patterns
+```{r flow diagram, fig.align = "center", out.width = "35%"}
+knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
+```
 
 ```{r sample characteristics at wave O}
 
@@ -362,7 +384,13 @@ ggplot(plot_data, aes(x = gender_cat)) +
 # table(test_df$gender_cat)
 ```
 
-##### Age distributions
+##### Age distributions  
+
+There are `r format(people_age_miss, big.mark = ",")` people with at least one imputed age (`r round(people_age_miss/nrow(analytic_df)*100, 2)`%).  
+
+There are a total of `r format(num_age_miss, big.mark = ",")` imputed ages (`r round(num_age_miss/(nrow(analytic_df)*5)*100, 2)`%).  
+
+I imputed age by subtracting back (2yrs/wave) from participants' Wave O (2014 wave) age since everyone has an age at that wave (this analysis is conditional on participation in the 2014 wave).  This imputation will be done using birth month/year and interview month/year in the future.
 
 ```{r age dist by wave, out.width = "75%", fig.align = "center"}
 data <- df_plots %>% dplyr::select("HHIDPN", contains("AGE"), "value") %>%

@@ -202,3 +202,6 @@ analytic_df %<>%
 # #sanity Check
 # View(analytic_df %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
+
+#---- save analytic dataset ----
+write_csv(analytic_df, here::here("Data", "analytic_df.csv"))

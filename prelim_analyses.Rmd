@@ -6,10 +6,11 @@ output:
     toc: true
     toc_float: 
       collapsed: no
-    toc_depth: 4
+    toc_depth: 5
     theme: journal
     highlight: zenburn
     code_folding: hide
+bibliography: /Users/CrystalShaw/Dropbox/Mendeley Bibtex/Exposure Trajectories.bib
 ---
 
 ```{r setup, include = FALSE}
@@ -264,13 +265,15 @@ knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
 CYSC_bywave <- analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(2, function(x) !is.na(x)) %>% colSums() %>% as.data.frame() %>% 
   set_colnames(c("Count")) %>% 
-  mutate("Proportion" = round(Count/nrow(analytic_df), 2)) %>% 
+  mutate("Proportion of <br>2014 HRS sample" = 
+           round(Count/nrow(analytic_df), 2)) %>% 
   rownames_to_column(var = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = c("2006", "2008", "2010", "2012", "2014")) %>%
-  dplyr::select("Wave", "Year", "Count", "Proportion")
+  dplyr::select("Wave", "Year", "Count", "Proportion of <br>2014 HRS sample")
 
-kable(CYSC_bywave, align = "c") %>% kable_styling(full_width = FALSE, )
+kable(CYSC_bywave, align = "c", escape = FALSE) %>% 
+  kable_styling(full_width = FALSE)
 ```
 
 #### CysC measures/person
@@ -424,7 +427,7 @@ ggplot(plot_data, aes(x = race_eth_cat)) +
   labs(y = "Count", x = "Race/Ethnicity") 
 ```
 
-### Models  
+### Is CysC associated with mortality?  
 
 Percent mortality: `r round(mean(analytic_df$death)*100, 2)`%  
 
@@ -510,5 +513,11 @@ kable(tidy(model_last_cysc, exponentiate = TRUE)) %>%
 # plot(model_last_cysc)
 ```
 
+### Imputation
+In order to impute missing values of Cystatin C, we need predictors of this outcome. According to an analysis by @Knight2004, age, sex/gender, weight, height, cigarette smoking, and C-Reactive Protein (CRP) levels were independently associated with Cystatin C levels after adjusting for creatinine clearance (a biomarker often used to classify poor renal function and one that Cystatin C has been proposed to replace). @Wei2014 found that in elderly populations, BMI, nephritis, kidney neoplasm, and hypertension were associated with levels of Cystatin C.
+
+*Neither of these sources mention race/ethnicity... should I adjust for it anyway?*
 
 #### Mortality on CysC at age 54
+
+### References

@@ -47,6 +47,7 @@ options(scipen = 999)
 ```
 
 ```{r read in data}
+hrs_samp <- read_csv(here::here("Data", "hrs_samp.csv"))
 analytic_df <- read_csv(here::here("Data", "analytic_df.csv"))
 ```
 
@@ -177,7 +178,15 @@ ggplot(plot_data, aes(x = gender_cat)) +
 # table(test_df$gender_cat)
 ```
 
-##### Age distributions  
+##### Age distributions 
+```{r age}
+#How many people are missing at least one age value?
+people_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
+  apply(., 1, function(x) 999 %in% x) %>% sum()
+
+num_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) 
+num_age_miss <- sum(num_age_miss == 999)
+```
 
 There are `r format(people_age_miss, big.mark = ",")` people with at least one imputed age (`r round(people_age_miss/nrow(analytic_df)*100, 2)`%).  
 

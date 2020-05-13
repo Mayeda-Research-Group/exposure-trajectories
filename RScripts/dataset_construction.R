@@ -133,18 +133,18 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   #Drop the HRS HISPANIC variable (recoded as hispanic)
   dplyr::select(-one_of("HISPANIC"))
 
+#---- merge biomarker data ----
+analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
+                             biomarker_10, biomarker_12, biomarker_14), 
+                        by = "HHIDPN", type = "left") %>% 
+  #Select variables of interest
+  dplyr::select(colnames(hrs_samp), contains("CYSC"))
+
 #---- age ----
-#How many people are missing at least one age value?
-people_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
-  apply(., 1, function(x) 999 %in% x) %>% sum()
-
-num_age_miss <- hrs_samp %>% dplyr::select(contains("AGE")) 
-num_age_miss <- sum(num_age_miss == 999)
-
-ages <- hrs_samp %>% dplyr::select(contains("AGE")) %>% 
+ages <- analytic_df %>% dplyr::select(contains("AGE")) %>% 
   apply(., 1, impute_ages)
 
-hrs_samp[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
+analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
 
 # #sanity Check
 # vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
@@ -153,13 +153,6 @@ hrs_samp[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
 #   sum(hrs_samp[, var])
 #   hist(hrs_samp[, var])
 # }
-
-#---- merge biomarker data ----
-analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
-                             biomarker_10, biomarker_12, biomarker_14), 
-                        by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest
-  dplyr::select(colnames(hrs_samp), contains("CYSC"))
 
 #---- CysC measures ----
 #average of all available CysC measures
@@ -215,5 +208,7 @@ analytic_df$fu_time <- as.factor(analytic_df$fu_time)
 # #Sanity Check
 # View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
-#---- save analytic dataset ----
+#---- save datasets ----
 write_csv(analytic_df, here::here("Data", "analytic_df.csv"))
+write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
+

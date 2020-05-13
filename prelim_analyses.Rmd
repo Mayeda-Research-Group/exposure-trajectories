@@ -40,15 +40,14 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "knitr", "broom", 
-       "kableExtra")
+p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra")
 
 #No scientific notation
 options(scipen = 999)
 ```
 
-```{r source scripts}
-source(here::here("RScripts", "dataset_construction.R"))
+```{r read in data}
+analytic_df <- read_csv(here::here("Data", "analytic_df.csv"))
 ```
 
 ```{r flow diagram, fig.align = "center", out.width = "35%"}
@@ -115,17 +114,6 @@ What is the distribution of time between first and last Cystatin C measure? Thes
 *Note that those who only have 1 Cystatin C measure have 0 years of follow up
 
 ```{r FU time, out.width = "75%", fig.align = "center"}
-analytic_df[, "fu_time"] <-
-  analytic_df %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "AGE"))) %>% 
-  apply(., 1, fu_time)
-
-analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0
-analytic_df$fu_time <- as.factor(analytic_df$fu_time)
-
-# #Sanity Check
-# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
-
 ggplot(analytic_df, aes(x = fu_time)) + 
   geom_bar(aes(y = ..count../sum(..count..), fill = factor(..x..)), 
            stat = "count", width = 0.3) +

@@ -203,5 +203,17 @@ analytic_df %<>%
 # View(analytic_df %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
+#---- follow-up time ----
+analytic_df[, "fu_time"] <- 
+  analytic_df %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "AGE"))) %>% 
+  apply(., 1, fu_time)
+
+analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0
+analytic_df$fu_time <- as.factor(analytic_df$fu_time)
+
+# #Sanity Check
+# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
+
 #---- save analytic dataset ----
 write_csv(analytic_df, here::here("Data", "analytic_df.csv"))

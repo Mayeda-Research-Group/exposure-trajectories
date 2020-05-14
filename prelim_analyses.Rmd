@@ -314,9 +314,13 @@ kable(tidy(model_last_cysc, exponentiate = TRUE)) %>%
 ```
 
 ### Imputation
-In order to impute missing values of Cystatin C, we need predictors of this outcome. According to an analysis by @Knight2004, age, sex/gender, weight, height, cigarette smoking, and C-Reactive Protein (CRP) levels were independently associated with Cystatin C levels after adjusting for creatinine clearance (a biomarker often used to classify poor renal function and one that Cystatin C has been proposed to replace). @Wei2014 found that in elderly populations, BMI, nephritis, kidney neoplasm, and hypertension were associated with levels of Cystatin C.
+In order to impute missing values of Cystatin C, we need predictors of this outcome. According to an analysis by @Knight2004, age, sex/gender, weight, height, cigarette smoking, and C-Reactive Protein (CRP) levels were independently associated with Cystatin C levels after adjusting for creatinine clearance (a biomarker often used to classify poor renal function and one that Cystatin C has been proposed to replace). @Wei2014 found that in elderly populations, BMI, nephritis, kidney neoplasm, and hypertension were associated with levels of Cystatin C. Both analyses used the log of CysC. 
 
 *Neither of these sources mention race/ethnicity... should I adjust for it anyway?*
+
+I'm thinking that we don't want a model that controls for CRP even though it's available in the HRS biomarker data.  This is likely to have just as much missing data as Cystatin C.  
+
+I'm going to start with a simple model for Cystatin C that controls for age sex/gender, and race/ethnicity just to see how this works. 
 
 #### Mortality on CysC at age 54
 

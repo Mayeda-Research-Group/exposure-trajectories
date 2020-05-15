@@ -26,11 +26,21 @@ hist(long_df$CYSC)
 boxplot(long_df$CYSC)
 
 #CYSC is really skewed-- take the log of the outcome
-long_df[, "log_CSYC"] <- log(long_df$CYSC)
+long_df[, "log_CYSC"] <- log(long_df$CYSC)
 
 #Look at transformed outcome-- super symmetric!
-hist(long_df$log_CSYC)
-boxplot(long_df$log_CSYC)
+hist(long_df$log_CYSC)
+boxplot(long_df$log_CYSC)
 
 #---- Model ----
+#When we use the untransformed outcome, variance of residuals increases 
 
+#Model with random intercept for HHIDPN
+lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + (1|HHIDPN), 
+             data = long_df)
+
+#Check model assumptions
+plot(lmm1)
+hist(resid(lmm1))
+qqnorm(resid(lmm1))
+qqline(resid(lmm1))

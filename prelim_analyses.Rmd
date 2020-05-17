@@ -384,5 +384,29 @@ qqline(resid(lmm1))
 
 #### Single imputation with LMM 
 
+```{r complete data}
+#Get rid of all missing observations
+complete_data <- long_df %>% na.omit()
+```
+
+```{r induce MCAR}
+#25% missing
+test_ind <- sample(seq(1, nrow(complete_data)), floor(0.25*nrow(complete_data)))
+MCAR_25_train <- complete_data[-test_ind, ]
+MCAR_25_test <- complete_data[test_ind, ]
+
+#50% missing
+test_ind <- sample(seq(1, nrow(complete_data)), floor(0.50*nrow(complete_data)))
+MCAR_50_train <- complete_data[-test_ind, ]
+MCAR_50_test <- complete_data[test_ind, ]
+
+#75% missing
+test_ind <- sample(seq(1, nrow(complete_data)), floor(0.75*nrow(complete_data)))
+MCAR_75_train <- complete_data[-test_ind, ]
+MCAR_75_test <- complete_data[test_ind, ]
+```
+
+
+
 
 ### References

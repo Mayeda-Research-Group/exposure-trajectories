@@ -22,7 +22,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra")
+p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra", "lme4")
 
 #No scientific notation
 options(scipen = 999)
@@ -316,12 +316,73 @@ kable(tidy(model_last_cysc, exponentiate = TRUE)) %>%
 ### Imputation
 In order to impute missing values of Cystatin C, we need predictors of this outcome. According to an analysis by @Knight2004, age, sex/gender, weight, height, cigarette smoking, and C-Reactive Protein (CRP) levels were independently associated with Cystatin C levels after adjusting for creatinine clearance (a biomarker often used to classify poor renal function and one that Cystatin C has been proposed to replace). @Wei2014 found that in elderly populations, BMI, nephritis, kidney neoplasm, and hypertension were associated with levels of Cystatin C. Both analyses used the log of CysC. 
 
-*Neither of these sources mention race/ethnicity... should I adjust for it anyway?*
+*Neither of these sources mention race/ethnicity, but we will adjust for it anyway.*
 
-I'm thinking that we don't want a model that controls for CRP even though it's available in the HRS biomarker data.  This is likely to have just as much missing data as Cystatin C.  
+I'm thinking that we don't want a model that controls for CRP even though it's available in the HRS biomarker data.  This is likely to have just as much missing data as Cystatin C, so we would need an imputation for this biomarker as well.
 
 I'm going to start with a simple model for Cystatin C that controls for age sex/gender, and race/ethnicity just to see how this works. 
 
-#### Mortality on CysC at age 54
+#### Assessing LMM fit
+
+\begin{align*}
+log(CysC) \sim Age &+ female + hispanic + black + other + \\
+&female*Age + hispanic*Age + black*Age + other*Age + (1|HHIDPN)
+\end{align*}
+
+```{r wide --> long}
+long_df <- analytic_df %>% 
+  dplyr::select("HHIDPN", "female", "hispanic", "black", "other", 
+                contains("AGE", ignore.case = FALSE), contains("CYSC_ADJ")) %>% 
+  pivot_longer(cols = c(contains("AGE"), contains("CYSC_ADJ")), 
+               names_to = c("wave", ".value"), 
+               names_pattern = "(.)(.)") %>% 
+  set_colnames(c("HHIDPN", "female", "hispanic", "black", "other", "wave", 
+                 "Age", "CYSC"))
+
+long_df[, "log_CYSC"] <- log(long_df$CYSC)
+```
+
+```{r Cys C dists, out.width = "75%", fig.align = "center"}
+plot_data <- long_df[, c("CYSC", "log_CYSC")] %>% 
+  pivot_longer(everything(), names_to = "Measure", 
+               values_to = "Value")
+  
+ggplot(data = plot_data, aes(x = Measure, y = Value)) + 
+  geom_boxplot(color = "#FF766D") + 
+  theme_minimal()
+```
+
+```{r lmm model}
+#Model with random intercept for HHIDPN
+lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+               female*Age + hispanic*Age + black*Age + other*Age + 
+               (1|HHIDPN), 
+             data = long_df)
+
+kable(tidy(lmm1)) %>% kable_styling(full_width = TRUE)
+```
+
+#### Model Diagnostics {.tabset}
+
+##### Fitted vs. Residuals
+```{r tab1}
+plot(lmm1, xlab = "Fitted values", ylab = "Residuals", col = "#F8766D" )
+```
+
+##### Dist. of Residuals
+```{r tab2}
+hist(resid(lmm1))
+```
+
+##### Q-Q Plot
+```{r tab3}
+qqnorm(resid(lmm1))
+qqline(resid(lmm1))
+```
+
+#### {-}
+
+#### Single imputation with LMM 
+
 
 ### References

@@ -384,7 +384,9 @@ qqline(resid(lmm1))
 
 #### {-}
 
-#### Single imputation with LMM 
+#### Single imputation with LMM-- MCAR
+
+These are not good.
 
 ```{r complete data}
 #Get rid of all missing observations
@@ -399,18 +401,89 @@ for(prop in degree_of_missingness){
                      floor(prop*nrow(complete_data)))
   assign(paste0("MCAR_", prop*100, "_train"), complete_data[-test_ind, ])
   assign(paste0("MCAR_", prop*100, "_test"), complete_data[test_ind, ])
+  assign(paste0("MCAR_", prop*100, "_test"), 
+         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'Missingness', 
+                value = paste0(prop*100, "% Missingness")))
 }
 ```
 
-```{r fit models}
-lmm_MCAR_25 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
-                      female*Age + hispanic*Age + black*Age + other*Age + 
-                      (1|HHIDPN), 
-                    data = MCAR_25_train)
+```{r get predicted values}
+for(prop in degree_of_missingness){
+  model <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+                  female*Age + hispanic*Age + black*Age + other*Age + 
+                  (1|HHIDPN), 
+                data = eval(parse(text = paste0("MCAR_", prop*100, "_train"))))
+  
+  assign(paste0("MCAR_", prop*100, "_test"), 
+         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'pred_log_CYSC', 
+                value = 
+                  predict(model, 
+                          eval(parse(text = 
+                                       paste0("MCAR_", prop*100, "_test"))), 
+                          allow.new.levels = TRUE))) 
+}
+```
 
-MCAR_predict(lmm_MCAR_25, MCAR_25_test, allow.new.levels = TRUE)
+```{r plot predictions, fig.align = "center"}
+slot = 1
+df_list <- list()
+for(prop in degree_of_missingness){
+  df_list[[slot]] <- eval(parse(text = paste0("MCAR_", prop*100, "_test")))
+  slot = slot + 1
+}
 
+plot_data <- do.call("rbind", df_list) %>% 
+  dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
 
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
+  geom_point(colour = "#737C87") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  facet_wrap("Missingness") + 
+  theme_bw()
+```
+
+When predicting values for an individual with no data, LMMs just use fixed effects for these individuals. We would expect that predictions for individuals with data in the model would be better, but they don't look any better. 
+
+```{r sanity check, eval = FALSE}
+#Does it mention new levels if the HHIDPN appears in the testing set?
+test_model <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+                     female*Age + hispanic*Age + black*Age + other*Age + 
+                     (1|HHIDPN), 
+                   data = MCAR_25_train)
+test_predict <- predict(test_model, MCAR_25_seenb4)
+```
+
+```{r seenb4 predictions}
+#And are these predictions better?
+MCAR_25_seenb4 <- 
+  MCAR_25_test[which(MCAR_25_test$HHIDPN %in% MCAR_25_train$HHIDPN), ]
+
+MCAR_50_seenb4 <- 
+  MCAR_50_test[which(MCAR_50_test$HHIDPN %in% MCAR_50_train$HHIDPN), ]
+
+MCAR_75_seenb4 <- 
+  MCAR_75_test[which(MCAR_75_test$HHIDPN %in% MCAR_75_train$HHIDPN), ]
+
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
+         data = MCAR_25_seenb4) + 
+    geom_point(colour = "#737C87") + 
+    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+    ggtitle(paste0("25% Missingness")) + 
+    theme_minimal()
+
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
+         data = MCAR_50_seenb4) + 
+    geom_point(colour = "#737C87") + 
+    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+    ggtitle(paste0("50% Missingness")) + 
+    theme_minimal()
+
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
+         data = MCAR_75_seenb4) + 
+    geom_point(colour = "#737C87") + 
+    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+    ggtitle(paste0("75% Missingness")) + 
+    theme_minimal()
 ```
 
 

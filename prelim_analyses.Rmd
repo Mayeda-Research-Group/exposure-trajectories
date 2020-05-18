@@ -15,6 +15,8 @@ bibliography: /Users/CrystalShaw/Dropbox/Mendeley Bibtex/Exposure Trajectories.b
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+set.seed(20200517)
 ```
 
 ```{r load packages}
@@ -22,7 +24,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra")
+p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra", "lme4")
 
 #No scientific notation
 options(scipen = 999)
@@ -316,12 +318,162 @@ kable(tidy(model_last_cysc, exponentiate = TRUE)) %>%
 ### Imputation
 In order to impute missing values of Cystatin C, we need predictors of this outcome. According to an analysis by @Knight2004, age, sex/gender, weight, height, cigarette smoking, and C-Reactive Protein (CRP) levels were independently associated with Cystatin C levels after adjusting for creatinine clearance (a biomarker often used to classify poor renal function and one that Cystatin C has been proposed to replace). @Wei2014 found that in elderly populations, BMI, nephritis, kidney neoplasm, and hypertension were associated with levels of Cystatin C. Both analyses used the log of CysC. 
 
-*Neither of these sources mention race/ethnicity... should I adjust for it anyway?*
+*Neither of these sources mention race/ethnicity, but we will adjust for it anyway.*
 
-I'm thinking that we don't want a model that controls for CRP even though it's available in the HRS biomarker data.  This is likely to have just as much missing data as Cystatin C.  
+I'm thinking that we don't want a model that controls for CRP even though it's available in the HRS biomarker data.  This is likely to have just as much missing data as Cystatin C, so we would need an imputation for this biomarker as well.
 
 I'm going to start with a simple model for Cystatin C that controls for age sex/gender, and race/ethnicity just to see how this works. 
 
-#### Mortality on CysC at age 54
+#### Assessing LMM fit
+
+\begin{align*}
+log(CysC) \sim Age &+ female + hispanic + black + other + \\
+&female*Age + hispanic*Age + black*Age + other*Age + (1|HHIDPN)
+\end{align*}
+
+```{r wide --> long}
+long_df <- analytic_df %>% 
+  dplyr::select("HHIDPN", "female", "hispanic", "black", "other", 
+                contains("AGE", ignore.case = FALSE), contains("CYSC_ADJ")) %>% 
+  pivot_longer(cols = c(contains("AGE"), contains("CYSC_ADJ")), 
+               names_to = c("wave", ".value"), 
+               names_pattern = "(.)(.)") %>% 
+  set_colnames(c("HHIDPN", "female", "hispanic", "black", "other", "wave", 
+                 "Age", "CYSC"))
+
+long_df[, "log_CYSC"] <- log(long_df$CYSC)
+```
+
+```{r Cys C dists, out.width = "75%", fig.align = "center"}
+plot_data <- long_df[, c("CYSC", "log_CYSC")] %>% 
+  pivot_longer(everything(), names_to = "Measure", 
+               values_to = "Value")
+  
+ggplot(data = plot_data, aes(x = Measure, y = Value)) + 
+  geom_boxplot(color = "#FF766D") + 
+  theme_minimal()
+```
+
+```{r lmm model}
+#Model with random intercept for HHIDPN
+lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+               female*Age + hispanic*Age + black*Age + other*Age + 
+               (1|HHIDPN), 
+             data = long_df)
+
+kable(tidy(lmm1)) %>% kable_styling(full_width = TRUE)
+```
+
+#### Model Diagnostics {.tabset}
+
+##### Fitted vs. Residuals
+```{r tab1, fig.align = "center"}
+plot(lmm1, xlab = "Fitted values", ylab = "Residuals", col = "#F8766D" )
+```
+
+##### Dist. of Residuals
+```{r tab2, fig.align = "center"}
+hist(resid(lmm1))
+```
+
+##### Q-Q Plot
+```{r tab3, fig.align = "center"}
+qqnorm(resid(lmm1))
+qqline(resid(lmm1))
+```
+
+#### {-}
+
+#### Single imputation with LMM-- MCAR
+
+These are not good.
+
+```{r complete data}
+#Get rid of all missing observations
+complete_data <- long_df %>% na.omit()
+```
+
+```{r induce MCAR}
+degree_of_missingness <- c(0.25, 0.50, 0.75)
+
+for(prop in degree_of_missingness){
+  test_ind <- sample(seq(1, nrow(complete_data)), 
+                     floor(prop*nrow(complete_data)))
+  assign(paste0("MCAR_", prop*100, "_train"), complete_data[-test_ind, ])
+  assign(paste0("MCAR_", prop*100, "_test"), complete_data[test_ind, ])
+  assign(paste0("MCAR_", prop*100, "_test"), 
+         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'Missingness', 
+                value = paste0(prop*100, "% Missingness")))
+}
+```
+
+```{r get predicted values}
+for(prop in degree_of_missingness){
+  model <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+                  female*Age + hispanic*Age + black*Age + other*Age + 
+                  (1|HHIDPN), 
+                data = eval(parse(text = paste0("MCAR_", prop*100, "_train"))))
+  
+  assign(paste0("MCAR_", prop*100, "_test"), 
+         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'pred_log_CYSC', 
+                value = 
+                  predict(model, 
+                          eval(parse(text = 
+                                       paste0("MCAR_", prop*100, "_test"))), 
+                          allow.new.levels = TRUE))) 
+}
+```
+
+```{r plot predictions, fig.align = "center"}
+slot = 1
+df_list <- list()
+for(prop in degree_of_missingness){
+  df_list[[slot]] <- eval(parse(text = paste0("MCAR_", prop*100, "_test")))
+  slot = slot + 1
+}
+
+plot_data <- do.call("rbind", df_list) %>% 
+  dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
+
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
+  geom_point(colour = "#737C87") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  facet_wrap("Missingness") + 
+  theme_bw()
+```
+
+When predicting values for an individual with no data, LMMs just use fixed effects for these individuals. We would expect that predictions for individuals with data in the model would be better, but they don't look any better. 
+
+```{r sanity check, eval = FALSE}
+#Does it mention new levels if the HHIDPN appears in the testing set?
+test_model <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+                     female*Age + hispanic*Age + black*Age + other*Age + 
+                     (1|HHIDPN), 
+                   data = MCAR_25_train)
+test_predict <- predict(test_model, MCAR_25_seenb4)
+```
+
+```{r seenb4 predictions, fig.align = "center"}
+#And are these predictions better?
+slot = 1
+df_list <- list()
+for(prop in degree_of_missingness){
+  df_list[[slot]] <- 
+    eval(parse(text = paste0("MCAR_", prop*100, "_test")))[which(
+      eval(parse(text = paste0("MCAR_", prop*100, "_test")))$HHIDPN %in% 
+        eval(parse(text = paste0("MCAR_", prop*100, "_train")))$HHIDPN), ]
+  slot = slot + 1
+}
+
+plot_data <- do.call("rbind", df_list) %>% 
+  dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
+
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
+  geom_point(colour = "#737C87") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  facet_wrap("Missingness") + ggtitle("At least one observation") +
+  theme_bw()
+```
+
 
 ### References

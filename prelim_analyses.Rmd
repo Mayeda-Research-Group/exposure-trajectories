@@ -367,17 +367,17 @@ kable(tidy(lmm1)) %>% kable_styling(full_width = TRUE)
 #### Model Diagnostics {.tabset}
 
 ##### Fitted vs. Residuals
-```{r tab1}
+```{r tab1, fig.align = "center"}
 plot(lmm1, xlab = "Fitted values", ylab = "Residuals", col = "#F8766D" )
 ```
 
 ##### Dist. of Residuals
-```{r tab2}
+```{r tab2, fig.align = "center"}
 hist(resid(lmm1))
 ```
 
 ##### Q-Q Plot
-```{r tab3}
+```{r tab3, fig.align = "center"}
 qqnorm(resid(lmm1))
 qqline(resid(lmm1))
 ```
@@ -453,37 +453,26 @@ test_model <- lmer(log_CYSC ~ female + hispanic + black + other + Age +
 test_predict <- predict(test_model, MCAR_25_seenb4)
 ```
 
-```{r seenb4 predictions}
+```{r seenb4 predictions, fig.align = "center"}
 #And are these predictions better?
-MCAR_25_seenb4 <- 
-  MCAR_25_test[which(MCAR_25_test$HHIDPN %in% MCAR_25_train$HHIDPN), ]
+slot = 1
+df_list <- list()
+for(prop in degree_of_missingness){
+  df_list[[slot]] <- 
+    eval(parse(text = paste0("MCAR_", prop*100, "_test")))[which(
+      eval(parse(text = paste0("MCAR_", prop*100, "_test")))$HHIDPN %in% 
+        eval(parse(text = paste0("MCAR_", prop*100, "_train")))$HHIDPN), ]
+  slot = slot + 1
+}
 
-MCAR_50_seenb4 <- 
-  MCAR_50_test[which(MCAR_50_test$HHIDPN %in% MCAR_50_train$HHIDPN), ]
+plot_data <- do.call("rbind", df_list) %>% 
+  dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
 
-MCAR_75_seenb4 <- 
-  MCAR_75_test[which(MCAR_75_test$HHIDPN %in% MCAR_75_train$HHIDPN), ]
-
-ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
-         data = MCAR_25_seenb4) + 
-    geom_point(colour = "#737C87") + 
-    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
-    ggtitle(paste0("25% Missingness")) + 
-    theme_minimal()
-
-ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
-         data = MCAR_50_seenb4) + 
-    geom_point(colour = "#737C87") + 
-    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
-    ggtitle(paste0("50% Missingness")) + 
-    theme_minimal()
-
-ggplot(aes(x = log_CYSC, y = pred_log_CYSC), 
-         data = MCAR_75_seenb4) + 
-    geom_point(colour = "#737C87") + 
-    geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
-    ggtitle(paste0("75% Missingness")) + 
-    theme_minimal()
+ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
+  geom_point(colour = "#737C87") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  facet_wrap("Missingness") + ggtitle("At least one observation") +
+  theme_bw()
 ```
 
 

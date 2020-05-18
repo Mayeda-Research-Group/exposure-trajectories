@@ -1,5 +1,5 @@
-#Start with a simple model CysC ~ age + sex/gender + race/ethnicity
-#Figure out what the right SD is to add to the predicted values from the lmm
+#Start with a simple model CysC ~ age + sex/gender + race/ethnicity + 
+#                                   sex/gender*age + race/ethnicity*age
 
 #---- Package loading ----
 if (!require("pacman")){
@@ -33,10 +33,14 @@ hist(long_df$log_CYSC)
 boxplot(long_df$log_CYSC)
 
 #---- Model ----
-#When we use the untransformed outcome, variance of residuals increases 
+#When we use the untransformed outcome, variance of residuals has fanning 
+#behavior; violation of assumptions
 
 #Model with random intercept for HHIDPN
-lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + (1 + Age|HHIDPN), 
+
+lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + 
+               female*Age + hispanic*Age + black*Age + other*Age + 
+               (1|HHIDPN), 
              data = long_df)
 
 #Check model assumptions

@@ -36,7 +36,7 @@ boxplot(long_df$log_CYSC)
 #When we use the untransformed outcome, variance of residuals increases 
 
 #Model with random intercept for HHIDPN
-lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + (1|HHIDPN), 
+lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age + (1 + Age|HHIDPN), 
              data = long_df)
 
 #Check model assumptions
@@ -44,3 +44,11 @@ plot(lmm1)
 hist(resid(lmm1))
 qqnorm(resid(lmm1))
 qqline(resid(lmm1))
+
+summary(long_df$log_CYSC)
+
+#Number of people
+#I think it's this: 15,653
+#Try running model with random slope in people with 3
+length(which(analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% rowSums(., na.rm = TRUE) != 0))
+

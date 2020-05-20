@@ -54,5 +54,14 @@ summary(long_df$log_CYSC)
 #Number of people
 #I think it's this: 15,653
 #Try running model with random slope in people with 3
-length(which(analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% rowSums(., na.rm = TRUE) != 0))
+length(which(analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% 
+               rowSums(., na.rm = TRUE) != 0))
+
+#---- Sanity check ----
+#Does a model with random slopes run if we fit it on people with three 
+#observations?
+
+max_obs <- 
+  
+
 

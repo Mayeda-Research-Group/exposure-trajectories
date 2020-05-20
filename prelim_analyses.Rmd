@@ -24,7 +24,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra", "lme4")
+p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra", "lme4", 
+       "sjstats")
 
 #No scientific notation
 options(scipen = 999)
@@ -362,7 +363,10 @@ lmm1 <- lmer(log_CYSC ~ female + hispanic + black + other + Age +
              data = long_df)
 
 kable(tidy(lmm1)) %>% kable_styling(full_width = TRUE)
+
+sjstats::r2(lmm1)
 ```
+
 
 #### Model Diagnostics {.tabset}
 

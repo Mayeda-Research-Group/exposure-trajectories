@@ -34,10 +34,19 @@ complete_data <- long_df %>% na.omit()
 test <- sample_frac(complete_data, size = 0.10)
 
 #---- Identify first observation for individuals ----
-id_first <- test %>% distinct(HHIDPN, .keep_all = TRUE) %>% 
-  mutate("first" = 1)
+id_first <- test %>% distinct(HHIDPN, .keep_all = TRUE) %>%
+  mutate("first" = TRUE)
 
-test %<>% left_join(., id_first, by = NULL) %>% arrange(HHIDPN)
+test %<>% left_join(., id_first, by = NULL) %>% arrange(HHIDPN) %>% 
+  #Create a column for the imputation-- will induce missingness here
+  mutate("pred_log_CYSC" = log_CYSC)
+
+#---- Induce 25% missingness ----
+#Specify that this only happens when the observation isn't "first"
+not_first <- which(is.na(test$first))
+missing <- sample(not_first, size = 0.25*length(not_first))
+
+test[missing, "pred_log_CYSC"] <- NA
 
 #---- Imputation model ----
 youngest <- min(MCAR_25_train$Age)
@@ -65,6 +74,5 @@ maxage <- max(warped.knots)
 Age2  <- predict(warp.model, newdata = test)
 test <- cbind(test, Age2 = Age2)
 
-id <- unique(test$HHIDPN)
 
 

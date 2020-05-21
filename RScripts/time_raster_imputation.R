@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here")
+p_load("here", "tidyverse", "magrittr")
 
 set.seed(20200520)
 

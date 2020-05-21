@@ -27,5 +27,16 @@ long_df[, "log_CYSC"] <- log(long_df$CYSC)
 complete_data <- long_df %>% na.omit()
 #length(unique(complete_data$HHIDPN))
 
-#
+#---- Induce MCAR missingness ----
+degree_of_missingness <- c(0.25)
+
+for(prop in degree_of_missingness){
+  test_ind <- sample(seq(1, nrow(complete_data)), 
+                     floor(prop*nrow(complete_data)))
+  assign(paste0("MCAR_", prop*100, "_train"), complete_data[-test_ind, ])
+  assign(paste0("MCAR_", prop*100, "_test"), complete_data[test_ind, ])
+  assign(paste0("MCAR_", prop*100, "_test"), 
+         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'Missingness', 
+                value = paste0(prop*100, "% Missingness")))
+}
 

@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "splines")
+p_load("here", "tidyverse", "magrittr", "splines", "mice")
 
 set.seed(20200520)
 
@@ -22,38 +22,37 @@ long_df <- analytic_df %>%
 
 long_df[, "log_CYSC"] <- log(long_df$CYSC)
 
+#Only consider those who are "age eligible" (50 or older)
+long_df %<>% filter(Age >= 50)
+
 #Get rid of all of the missing observations 
-#We have 15,653 people with at least one measure
+#We have 15,404 people with at least one measure
 complete_data <- long_df %>% na.omit()
 #length(unique(complete_data$HHIDPN))
 
-#---- Induce MCAR missingness ----
-degree_of_missingness <- c(0.25)
-
-for(prop in degree_of_missingness){
-  test_ind <- sample(seq(1, nrow(complete_data)), 
-                     floor(prop*nrow(complete_data)))
-  assign(paste0("MCAR_", prop*100, "_train"), complete_data[-test_ind, ])
-  assign(paste0("MCAR_", prop*100, "_test"), complete_data[test_ind, ])
-  assign(paste0("MCAR_", prop*100, "_test"), 
-         `[[<-`(get(paste0("MCAR_", prop*100, "_test")), 'Missingness', 
-                value = paste0(prop*100, "% Missingness")))
-}
-
-#Make sure that individuals have at least one observation in training set
-slot = 1
-df_list <- list()
-for(prop in degree_of_missingness){
-  df_list[[slot]] <- 
-    eval(parse(text = paste0("MCAR_", prop*100, "_test")))[which(
-      eval(parse(text = paste0("MCAR_", prop*100, "_test")))$HHIDPN %in% 
-        eval(parse(text = paste0("MCAR_", prop*100, "_train")))$HHIDPN), ]
-  slot = slot + 1
-}
+#---- Take 10% of the data ----
+test <- sample_frac(complete_data, size = 0.10)
 
 #---- Imputation model ----
 youngest <- min(MCAR_25_train$Age)
 oldest <- max(MCAR_25_train$Age)
 
-brk <- 
+#Define break points
+brk <- seq(45, oldest, by = 5)
+k <- length(brk)
+
+#Time warping
+warp.setup <- data.frame(Age = brk,
+                         Age2 = seq(45, oldest, length.out = k))
+warp.model <- lm(Age2 ~ bs(Age, knots = brk[c(-1, -k)], degree = 1) - 1,
+                 data = warp.setup, x = TRUE, y = TRUE)
+warped.knots <- warp.model$y
+maxage <- max(warped.knots)
+Age2  <- predict(warp.model, newdata = MCAR_25_train)
+MCAR_25_train <- cbind(MCAR_25_train, Age2 = Age2)
+
+id <- unique(MCAR_25_train$HHIDPN)
+MCAR_25_train2 <- appendbreak(MCAR_25_train, brk, id = id, 
+                              warp.model = warp.model, typ = "sup")
+table(data2$typ)
 

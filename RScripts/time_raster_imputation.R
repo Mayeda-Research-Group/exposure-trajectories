@@ -40,3 +40,15 @@ for(prop in degree_of_missingness){
                 value = paste0(prop*100, "% Missingness")))
 }
 
+#Make sure that individuals have at least one observation in training set
+slot = 1
+df_list <- list()
+for(prop in degree_of_missingness){
+  df_list[[slot]] <- 
+    eval(parse(text = paste0("MCAR_", prop*100, "_test")))[which(
+      eval(parse(text = paste0("MCAR_", prop*100, "_test")))$HHIDPN %in% 
+        eval(parse(text = paste0("MCAR_", prop*100, "_train")))$HHIDPN), ]
+  slot = slot + 1
+}
+
+

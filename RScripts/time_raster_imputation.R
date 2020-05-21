@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr")
+p_load("here", "tidyverse", "magrittr", "splines")
 
 set.seed(20200520)
 
@@ -51,4 +51,9 @@ for(prop in degree_of_missingness){
   slot = slot + 1
 }
 
+#---- Imputation model ----
+youngest <- min(MCAR_25_train$Age)
+oldest <- max(MCAR_25_train$Age)
+
+brk <- 
 

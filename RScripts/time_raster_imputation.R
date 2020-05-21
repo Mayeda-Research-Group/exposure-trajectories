@@ -37,9 +37,17 @@ test <- sample_frac(complete_data, size = 0.10)
 youngest <- min(MCAR_25_train$Age)
 oldest <- max(MCAR_25_train$Age)
 
-#Define break points
-brk <- seq(45, oldest, by = 5)
+#Specify break ages-- the assumption is linearity trend between break points
+brk <- seq(45, oldest, by = 1)
 k <- length(brk)
+
+#Calculate B-spline
+#Add a little noise before 45 because we eventually want a prediction there
+X <- bs(test$Age, knots = brk, B = c(brk[1] - 0.0001, brk[k]),
+        degree = 1)
+X <- X[, -(k + 1)]
+dimnames(X)[[2]] <- paste("x", 1:ncol(X), sep = "")
+test <- cbind(test, X)
 
 #Time warping
 warp.setup <- data.frame(Age = brk,
@@ -48,11 +56,9 @@ warp.model <- lm(Age2 ~ bs(Age, knots = brk[c(-1, -k)], degree = 1) - 1,
                  data = warp.setup, x = TRUE, y = TRUE)
 warped.knots <- warp.model$y
 maxage <- max(warped.knots)
-Age2  <- predict(warp.model, newdata = MCAR_25_train)
-MCAR_25_train <- cbind(MCAR_25_train, Age2 = Age2)
+Age2  <- predict(warp.model, newdata = test)
+test <- cbind(test, Age2 = Age2)
 
-id <- unique(MCAR_25_train$HHIDPN)
-MCAR_25_train2 <- appendbreak(MCAR_25_train, brk, id = id, 
-                              warp.model = warp.model, typ = "sup")
-table(data2$typ)
+id <- unique(test$HHIDPN)
+
 

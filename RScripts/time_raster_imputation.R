@@ -33,6 +33,12 @@ complete_data <- long_df %>% na.omit()
 #---- Take 10% of the data ----
 test <- sample_frac(complete_data, size = 0.10)
 
+#---- Identify first observation for individuals ----
+id_first <- test %>% distinct(HHIDPN, .keep_all = TRUE) %>% 
+  mutate("first" = 1)
+
+test %<>% left_join(., id_first, by = NULL) %>% arrange(HHIDPN)
+
 #---- Imputation model ----
 youngest <- min(MCAR_25_train$Age)
 oldest <- max(MCAR_25_train$Age)

@@ -48,9 +48,9 @@ missing <- sample(not_first, size = 0.25*length(not_first))
 
 test[missing, "pred_log_CYSC"] <- NA
 
-#---- Imputation model ----
-youngest <- min(MCAR_25_train$Age)
-oldest <- max(MCAR_25_train$Age)
+#---- Creating break points ----
+youngest <- min(test$Age)
+oldest <- max(test$Age)
 
 #Specify break ages-- the assumption is linearity trend between break points
 brk <- seq(45, oldest, by = 1)
@@ -74,5 +74,6 @@ maxage <- max(warped.knots)
 Age2  <- predict(warp.model, newdata = test)
 test <- cbind(test, Age2 = Age2)
 
+#---- Imputation model ----
 
 

@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven")
 
 #No scientific notation
 options(scipen = 999)
@@ -38,6 +38,9 @@ biomarker_14 <-
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
     HHIDPN = TRUE)
+
+#RAND longitudinal file-- only read in variables of interest
+RAND <- 
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

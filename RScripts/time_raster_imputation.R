@@ -18,7 +18,7 @@ long_df <- analytic_df %>%
                names_to = c("wave", ".value"), 
                names_pattern = "(.)(.)") %>% 
   set_colnames(c("HHIDPN", "female", "hispanic", "black", "other", "wave", 
-                 "Age", "CYSC"))
+                 "Age", "CYSC")) %>% mutate_at("HHIDPN", as.numeric)
 
 long_df[, "log_CYSC"] <- log(long_df$CYSC)
 
@@ -75,5 +75,22 @@ Age2  <- predict(warp.model, newdata = test)
 test <- cbind(test, Age2 = Age2)
 
 #---- Imputation model ----
+Y <- "pred_log_CYSC"
+meth <- make.method(test)
+meth[1:length(meth)] <- ""
+meth[Y] <- "2l.pan" #Requesting 2-level imputation (for repeated measure)
 
+pred <- make.predictorMatrix(test)
+pred[1:nrow(pred), 1:ncol(pred)] <- 0
 
+#Set HHIDPN as the class variable
+pred[Y, "HHIDPN"] <- (-2)
+
+#Set the fixed effects
+pred[Y, c("female", "hispanic", "black", "other", "Age")] <- 1
+
+#Set B-spline bases as random effect
+pred[Y, paste("x", 1:60, sep = "")] <- 2
+
+test_impute <- mice(test, meth = meth, pred = pred, m = 2, 
+                    maxit = 10, seed = 52711, print = FALSE)

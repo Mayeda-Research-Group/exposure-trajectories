@@ -36,7 +36,7 @@ Exposure: Cystatin C
 Outcome: Mortality
 
 Question for preliminary analysis:
-Conditional on participation in the 2014 HRS core interview, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
+Conditional on participation in the 2016 HRS core interview, what is the association between Cystatin C and mortality after adjusting for age, gender, race/ethnicity?
 
 Brief description of Cystatin C: "Cystatin C is a protein produced by all human cells, used primarily as a marker of kidney function. Levels of Cystatin C appear to rise with healthy aging, but elevated levels can also be indicative of serious cardiovascular disease and impending mortality, perhaps independently of kidney functioning." 
 
@@ -54,13 +54,11 @@ analytic_df <- read_csv(here::here("Data", "analytic_df.csv"))
 - Distribution of number of years between first and last measure
 - Types of patterns
 
+**This flow diagram needs to be updated**
 ```{r flow diagram, fig.align = "center", out.width = "35%"}
 knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
 ```
 
-```{r sample characteristics at wave O}
-
-```
 #### Sample characteristics
 
 #### Number CysC measures
@@ -69,12 +67,12 @@ knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
 CYSC_bywave <- analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(2, function(x) !is.na(x)) %>% colSums() %>% as.data.frame() %>% 
   set_colnames(c("Count")) %>% 
-  mutate("Proportion of <br>2014 HRS sample" = 
+  mutate("Proportion of <br>2016 HRS sample" = 
            round(Count/nrow(analytic_df), 2)) %>% 
   rownames_to_column(var = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = c("2006", "2008", "2010", "2012", "2014")) %>%
-  dplyr::select("Wave", "Year", "Count", "Proportion of <br>2014 HRS sample")
+  dplyr::select("Wave", "Year", "Count", "Proportion of <br>2016 HRS sample")
 
 kable(CYSC_bywave, align = "c", escape = FALSE) %>% 
   kable_styling(full_width = FALSE)
@@ -232,7 +230,9 @@ ggplot(plot_data, aes(x = race_eth_cat)) +
 
 ### Is CysC associated with mortality?  
 
-Percent mortality: `r round(mean(analytic_df$death)*100, 2)`%  
+Number of people: `r nrow(analytic_df)`
+Number of observations: `r sum(as.numeric(analytic_df$num_measures))`
+Percent mortality: `r round(mean(analytic_df$death)*100, 2)`% 
 
 Distributions of Cystatin C measures used in each model:
 

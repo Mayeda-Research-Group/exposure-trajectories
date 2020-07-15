@@ -205,6 +205,9 @@ analytic_df %<>%
 # View(analytic_df %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
+#---- restrict to those with Cystatin C measures ----
+analytic_df %<>% filter(!is.na(last_CYSC_age))
+
 #---- follow-up time ----
 analytic_df[, "fu_time"] <- 
   analytic_df %>% 

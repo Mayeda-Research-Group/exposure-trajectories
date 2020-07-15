@@ -67,7 +67,7 @@ hrs_samp %<>%
                        paste0(KNOWNDECEASEDMO, "1", KNOWNDECEASEDYR), 
                      TRUE & !is.na(EXDEATHMO) & !is.na(EXDEATHYR) ~ 
                        paste0(EXDEATHMO, "1", EXDEATHYR), 
-                     TRUE & OALIVE == 5 ~ "612015")) %>% 
+                     TRUE & PALIVE == 5 ~ "612015")) %>% 
   #died within wave
   mutate("death" = ifelse(is.na(DOD), 0, 1))
 

@@ -46,11 +46,11 @@ RAND <-
 #We also want their age, sex, race/ethnicity, data to fill in mortality
 
 hrs_samp <- hrs_tracker %>% 
-  #participated in HRS 2014 wave (wave "O")
-  filter(OIWTYPE == 1) %>% 
-  select("HHIDPN", "OIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
+  #participated in HRS 2016 wave (wave "P")
+  filter(PIWTYPE == 1) %>% 
+  select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
          "GENDER", "RACE", "HISPANIC", "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", 
-         "EXDEATHMO", "EXDEATHYR", "OALIVE") 
+         "EXDEATHMO", "EXDEATHYR", "PALIVE") 
 
 #---- DOD ----
 #Deriving Date of Death (DOD)

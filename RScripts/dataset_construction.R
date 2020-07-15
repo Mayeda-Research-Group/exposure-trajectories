@@ -40,24 +40,30 @@ biomarker_14 <-
     HHIDPN = TRUE)
 
 #RAND longitudinal file-- only read in variables of interest
-RAND <- 
+#RAND <- 
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality
 
 hrs_samp <- hrs_tracker %>% 
   #participated in HRS 2016 wave (wave "P")
-  filter(PIWTYPE == 1) %>% 
+  filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+  filter(PALIVE %in% c(1, 5)) %>%
   select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
          "GENDER", "RACE", "HISPANIC", "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", 
-         "EXDEATHMO", "EXDEATHYR", "PALIVE") 
+         "EXDEATHMO", "EXDEATHYR", "PALIVE") %>% 
+  #people alive at the beginning of 2014 HRS interview wave
+  filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
+  filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
+  
 
 #---- DOD ----
 #Deriving Date of Death (DOD)
-# #Looking at values for each variable
-# table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
-# table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
-# table(hrs_samp$OALIVE, useNA = "ifany")
+#Looking at values for each variable
+table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
+table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
+table(hrs_samp$EXDEATHYR, useNA = "ifany")
+table(hrs_samp$PALIVE, useNA = "ifany")
 
 #Translated from TMM SAS code
 hrs_samp %<>% 
@@ -67,7 +73,7 @@ hrs_samp %<>%
                        paste0(KNOWNDECEASEDMO, "1", KNOWNDECEASEDYR), 
                      TRUE & !is.na(EXDEATHMO) & !is.na(EXDEATHYR) ~ 
                        paste0(EXDEATHMO, "1", EXDEATHYR), 
-                     TRUE & PALIVE == 5 ~ "612015")) %>% 
+                     TRUE & PALIVE == 5 ~ "612017")) %>% 
   #died within wave
   mutate("death" = ifelse(is.na(DOD), 0, 1))
 

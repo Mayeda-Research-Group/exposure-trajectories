@@ -14,8 +14,25 @@ source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 
+#---- Wave mapping between HRS and RAND ----
+#Wave Year | HRS Core Data | RAND
+# 1992 | V | 1
+# 1994 | W | 2
+# 1996 | E | 3
+# 1998 | F | 4
+# 2000 | G | 5
+# 2002 | H | 6
+# 2004 | J | 7
+# 2006 | K | 8
+# 2008 | L | 9
+# 2010 | M | 10
+# 2012 | N | 11
+# 2014 | O | 12
+# 2016 | P | 13
+
 #---- read in data ----
-#2016 tracker file
+#2016 tracker file-- for demographics and mortality
+#We might want to consider condensing this to only using the RAND file if possible
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
               "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
@@ -39,12 +56,11 @@ biomarker_14 <-
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
     HHIDPN = TRUE)
 
-#RAND longitudinal file-- only read in variables of interest
+#RAND longitudinal file-- for health variables
 #RAND <- 
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality
-
 hrs_samp <- hrs_tracker %>% 
   #participated in HRS 2016 wave (wave "P")
   filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 

@@ -40,7 +40,7 @@ biomarker_14 <-
     HHIDPN = TRUE)
 
 #RAND longitudinal file-- only read in variables of interest
-RAND <- 
+RAND <- read_sas(paste0("/Users/CrystalShaw/Box/RAND_longitudinal/"))
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

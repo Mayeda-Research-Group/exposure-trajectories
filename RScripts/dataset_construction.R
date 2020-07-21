@@ -14,8 +14,25 @@ source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 
+#---- Wave mapping between HRS and RAND ----
+#Wave Year | HRS Core Data | RAND
+# 1992 | V | 1
+# 1994 | W | 2
+# 1996 | E | 3
+# 1998 | F | 4
+# 2000 | G | 5
+# 2002 | H | 6
+# 2004 | J | 7
+# 2006 | K | 8
+# 2008 | L | 9
+# 2010 | M | 10
+# 2012 | N | 11
+# 2014 | O | 12
+# 2016 | P | 13
+
 #---- read in data ----
-#2016 tracker file
+#2016 tracker file-- for demographics and mortality
+#We might want to consider condensing this to only using the RAND file if possible
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
               "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
@@ -39,25 +56,37 @@ biomarker_14 <-
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
     HHIDPN = TRUE)
 
-#RAND longitudinal file-- only read in variables of interest
-RAND <- read_sas(paste0("/Users/CrystalShaw/Box/RAND_longitudinal/"))
+#RAND longitudinal file-- for health variables
+# RAND <- read_csv(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
+#                         "rndhrs_p.csv")) 
+start <- Sys.time()
+RAND <- haven::read_sas(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
+                               "randhrs1992_2016v2.sas7bdat"))
+end <- Sys.time() - start
+
+
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality
-
 hrs_samp <- hrs_tracker %>% 
-  #participated in HRS 2014 wave (wave "O")
-  filter(OIWTYPE == 1) %>% 
-  select("HHIDPN", "OIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
+  #participated in HRS 2016 wave (wave "P")
+  filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+  filter(PALIVE %in% c(1, 5)) %>%
+  select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
          "GENDER", "RACE", "HISPANIC", "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", 
-         "EXDEATHMO", "EXDEATHYR", "OALIVE") 
+         "EXDEATHMO", "EXDEATHYR", "PALIVE") %>% 
+  #people alive at the beginning of 2014 HRS interview wave
+  filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
+  filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
+  
 
 #---- DOD ----
 #Deriving Date of Death (DOD)
-# #Looking at values for each variable
-# table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
-# table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
-# table(hrs_samp$OALIVE, useNA = "ifany")
+#Looking at values for each variable
+table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
+table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
+table(hrs_samp$EXDEATHYR, useNA = "ifany")
+table(hrs_samp$PALIVE, useNA = "ifany")
 
 #Translated from TMM SAS code
 hrs_samp %<>% 
@@ -67,7 +96,7 @@ hrs_samp %<>%
                        paste0(KNOWNDECEASEDMO, "1", KNOWNDECEASEDYR), 
                      TRUE & !is.na(EXDEATHMO) & !is.na(EXDEATHYR) ~ 
                        paste0(EXDEATHMO, "1", EXDEATHYR), 
-                     TRUE & OALIVE == 5 ~ "612015")) %>% 
+                     TRUE & PALIVE == 5 ~ "612017")) %>% 
   #died within wave
   mutate("death" = ifelse(is.na(DOD), 0, 1))
 
@@ -198,6 +227,9 @@ analytic_df %<>%
 # #sanity Check
 # View(analytic_df %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
+
+#---- restrict to those with Cystatin C measures ----
+analytic_df %<>% filter(!is.na(last_CYSC_age))
 
 #---- follow-up time ----
 analytic_df[, "fu_time"] <- 

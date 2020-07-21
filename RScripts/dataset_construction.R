@@ -57,7 +57,14 @@ biomarker_14 <-
     HHIDPN = TRUE)
 
 #RAND longitudinal file-- for health variables
-#RAND <- 
+# RAND <- read_csv(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
+#                         "rndhrs_p.csv")) 
+start <- Sys.time()
+RAND <- haven::read_sas(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
+                               "randhrs1992_2016v2.sas7bdat"))
+end <- Sys.time() - start
+
+
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

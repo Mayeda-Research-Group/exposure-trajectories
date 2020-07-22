@@ -45,6 +45,10 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 ```{r read in data}
 hrs_samp <- read_csv(here::here("Data", "hrs_samp.csv"))
 analytic_df <- read_csv(here::here("Data", "analytic_df.csv"))
+analytic_df_birth_cohort <- 
+  read_csv(here::here("Data", "analytic_df_1931-1941_cohort.csv"))
+analytic_df_alive_70 <- 
+  read_csv(here::here("Data", "analytic_df_alive_70.csv"))
 ```
 
 ### List of Summary Stats
@@ -89,6 +93,20 @@ analytic_df[, "num_measures"] <- 5 - (
   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
 
 analytic_df$num_measures <- as.factor(analytic_df$num_measures)
+
+analytic_df_birth_cohort[, "num_measures"] <- 5 - (
+  analytic_df_birth_cohort %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+
+analytic_df_birth_cohort$num_measures <- 
+  as.factor(analytic_df_birth_cohort$num_measures)
+
+analytic_df_alive_70[, "num_measures"] <- 5 - (
+  analytic_df_alive_70 %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+
+analytic_df_alive_70$num_measures <- 
+  as.factor(analytic_df_alive_70$num_measures)
 
 # #Sanity Check
 # test_no_measures <- analytic_df %>% 
@@ -228,11 +246,22 @@ ggplot(plot_data, aes(x = race_eth_cat)) +
   labs(y = "Count", x = "Race/Ethnicity") 
 ```
 
-### Is CysC associated with mortality?  
+### Is CysC associated with mortality?
 
+**Based on mortality between 2014-2016 for everyone**
 Number of people: `r nrow(analytic_df)`
 Number of observations: `r sum(as.numeric(analytic_df$num_measures))`
 Percent mortality: `r round(mean(analytic_df$death)*100, 2)`% 
+
+**Based on mortality between 2014-2016 for 1931-1941 birth cohort**
+Number of people: `r nrow(analytic_df_birth_cohort)`
+Number of observations: `r sum(as.numeric(analytic_df_birth_cohort$num_measures))`
+Percent mortality: `r round(mean(analytic_df_birth_cohort$death)*100, 2)`% 
+
+**Based on survival through age 70**
+Number of people: `r nrow(analytic_df_alive_70)`
+Number of observations: `r sum(as.numeric(analytic_df_alive_70$num_measures))`
+Percent mortality: `r round(mean(analytic_df_alive_70$death)*100, 2)`%
 
 Distributions of Cystatin C measures used in each model:
 

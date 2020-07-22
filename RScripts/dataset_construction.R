@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "sas7bdat")
 
 #No scientific notation
 options(scipen = 999)
@@ -56,28 +56,26 @@ biomarker_14 <-
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
     HHIDPN = TRUE)
 
-#RAND longitudinal file-- for health variables
-# RAND <- read_csv(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
-#                         "rndhrs_p.csv")) 
-start <- Sys.time()
-RAND <- haven::read_sas(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
-                               "randhrs1992_2016v2.sas7bdat"))
-end <- Sys.time() - start
-
-
+# #RAND longitudinal file-- for health variables
+# RAND <- read_csv(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/",
+#                         "rndhrs_p.csv"))
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality
 hrs_samp <- hrs_tracker %>% 
-  #participated in HRS 2016 wave (wave "P")
-  filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
-  filter(PALIVE %in% c(1, 5)) %>%
+  #Don't use this when trying to figure out survival through age 70
+  # #participated in HRS 2016 wave (wave "P")
+  # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+  # filter(PALIVE %in% c(1, 5)) %>%
   select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
          "GENDER", "RACE", "HISPANIC", "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", 
-         "EXDEATHMO", "EXDEATHYR", "PALIVE") %>% 
-  #people alive at the beginning of 2014 HRS interview wave
-  filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
-  filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
+         "EXDEATHMO", "EXDEATHYR", "PALIVE", "BIRTHYR") 
+
+#Don't use this when trying to figure out survival through age 70
+# %>% 
+#   #people alive at the beginning of 2014 HRS interview wave
+#   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
+#   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
   
 
 #---- DOD ----
@@ -175,8 +173,14 @@ analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08,
 #---- age ----
 ages <- analytic_df %>% dplyr::select(contains("AGE")) %>% 
   apply(., 1, impute_ages)
+ages[ages > 900] <- NA
 
 analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
+
+#Flag observations with observed ages at least 70yo
+analytic_df %<>% 
+  mutate("alive_70" = analytic_df %>% dplyr::select(contains("AGE")) %>% 
+  apply(., 1, detect_70))
 
 # #sanity Check
 # vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
@@ -243,6 +247,18 @@ analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0
 # View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
 #---- save datasets ----
+#For mortality between 2014-2016
 write_csv(analytic_df, here::here("Data", "analytic_df.csv"))
 write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
+
+#For 1931-1941 birth cohort
+write_csv(analytic_df %>% 
+            filter(BIRTHYR %in% seq(1931, 1941, by = 1)), 
+          here::here("Data", "analytic_df_1931-1941_cohort.csv"))
+
+#Survival through age 70
+write_csv(analytic_df %>% 
+            filter(alive_70 == 1), 
+          here::here("Data", "analytic_df_alive_70.csv"))
+
 

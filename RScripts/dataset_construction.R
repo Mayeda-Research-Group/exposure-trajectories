@@ -31,6 +31,11 @@ source(here::here("RScripts", "impute_ages.R"))
 # 2016 | P | 13
 
 #---- read in data ----
+hrs_tracker <- 
+  read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
+            "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
+            HHIDPN = TRUE)
+
 #2006-2012 biomarker data
 years <- c("06", "08", "10", "12")
 
@@ -51,23 +56,23 @@ biomarker_14 <-
 
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
 #Variables of interest: 
-## Demographics: HHIDPN, Gender, Race, Hispanic, Birth data, Death data
+## Demographics: HHIDPN, gender, race, hispanic, birth data, death data, 
+##               age data in years for biomarker waves (at end of interview 
+##               recommended by RAND)
+##               
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
-                    "rabyear", "rabdate", "radmonth", "radyear", "raddate")
+                    "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
+                    paste0("r", seq(8, 12, by = 1), "agey_e"))
+
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
-                 col_select = all_of(rand_variables)) 
+                 col_select = all_of(rand_variables)) %>% 
+  mutate_at("hhidpn", as.factor)
 
 #Remove labeled data format
 val_labels(RAND) <- NULL
-
-#For searching column names
-rand_columns <- colnames(RAND) %>% t() %>% as.data.frame %>% 
-  set_colnames(colnames(RAND))
-
-rand_columns %>% select(contains("rad"))
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

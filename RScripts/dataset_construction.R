@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "sas7bdat")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled")
 
 #No scientific notation
 options(scipen = 999)
@@ -57,12 +57,24 @@ biomarker_14 <-
     HHIDPN = TRUE)
 
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
-rand_variables <- c("hhidpn", )
-RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta")
+#Variables of interest: 
+## Demographics: HHIDPN, Gender, Race, Hispanic, Birth data, Death data
+## 
+# Note: Dates are formatted as SAS dates (days from January 1, 1960)
+
+rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
+                    "rabyear", "rabdate", "radmonth", "radyear", "raddate")
+RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
+                 col_select = all_of(rand_variables)) 
+
+#Remove labeled data format
+val_labels(RAND) <- NULL
 
 #For searching column names
 rand_columns <- colnames(RAND) %>% t() %>% as.data.frame %>% 
   set_colnames(colnames(RAND))
+
+rand_columns %>% select(contains("rad"))
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

@@ -56,9 +56,13 @@ biomarker_14 <-
     "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
     HHIDPN = TRUE)
 
-# #RAND longitudinal file-- for health variables
-# RAND <- read_csv(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/",
-#                         "rndhrs_p.csv"))
+#RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
+rand_variables <- c("hhidpn", )
+RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta")
+
+#For searching column names
+rand_columns <- colnames(RAND) %>% t() %>% as.data.frame %>% 
+  set_colnames(colnames(RAND))
 
 #---- pulling variables ----
 #We also want their age, sex, race/ethnicity, data to fill in mortality

@@ -31,13 +31,6 @@ source(here::here("RScripts", "impute_ages.R"))
 # 2016 | P | 13
 
 #---- read in data ----
-#2016 tracker file-- for demographics and mortality
-#We might want to consider condensing this to only using the RAND file if possible
-hrs_tracker <- 
-  read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
-              "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
-              HHIDPN = TRUE)
-
 #2006-2012 biomarker data
 years <- c("06", "08", "10", "12")
 

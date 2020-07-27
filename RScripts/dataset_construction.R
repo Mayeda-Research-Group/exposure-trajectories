@@ -62,14 +62,17 @@ for(i in 1:length(years)){
 #Variables of interest: 
 ## Demographics: HHIDPN, gender, race, hispanic, birth month, 
 ##               birth year, birth date, death month, death year, death date, 
-##               age data in months (biomarker waves),  
-##               
+##               age data in months (biomarker waves), years of education, 
+##               highest degree (masked)
+## Health Behaviors: current smoker
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
-                    paste0("r", seq(8, 12, by = 1), "agem_e"), )
+                    paste0("r", seq(8, 12, by = 1), "agem_e"), "raedyrs",
+                    "raedegrm",
+                    paste0("r", seq(8, 12, by = 1), "smoken"))
 
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
@@ -79,7 +82,6 @@ RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta",
 val_labels(RAND) <- NULL
 
 #HRS Core files-- Need for physical measures
-
 #2006-2014 core files
 core_list <- vector(mode = "list", length = length(years))
 
@@ -95,14 +97,24 @@ for(i in 1:length(years)){
 
 #---- merge data across waves ----
 core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest: ID, Weight (pounds), Height (inches)
-  dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
+  #Select variables of interest: ID, Weight (pounds), Height (inches), 
+  #                              systolic bp (3 times), 
+  #                              diastolic bp (3 times)
+  dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
+                contains("I859"), contains("I864"), contains("I869"), 
+                contains("I860"), contains("I865"), contains("I870")) %>% 
   set_colnames(c("HHIDPN", paste0(LETTERS[seq(from = 11, to = 15)], "wt"), 
-               paste0(LETTERS[seq(from = 11, to = 15)], "ht")))
+               paste0(LETTERS[seq(from = 11, to = 15)], "ht"), 
+               paste0(LETTERS[seq(from = 11, to = 15)], "sbp", 
+                      rep(seq(1, 3), each = 5)), 
+               paste0(LETTERS[seq(from = 11, to = 15)], "dbp", 
+                      rep(seq(1, 3), each = 5))))
 
 biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest: ID, Cystatin C relevant measures
-  dplyr::select(HHIDPN, contains("CYSC"))
+  #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
+  #                              adjusted total cholesterol, adjusted HDL
+  dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
+                contains("TC_ADJ"), contains("HDL_ADJ"))
 
 #---- pulling variables ----
 #Use this to subset RAND data

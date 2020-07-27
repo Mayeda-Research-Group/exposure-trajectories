@@ -56,16 +56,16 @@ biomarker_14 <-
 
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
 #Variables of interest: 
-## Demographics: HHIDPN, gender, race, hispanic, birth data, death data, 
-##               age data in years for biomarker waves (at end of interview 
-##               recommended by RAND)
+## Demographics: HHIDPN, gender, race, hispanic, birth month, 
+##               birth year, birth date, death month, death year, death date, 
+##               age data in months (biomarker waves),  
 ##               
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
-                    paste0("r", seq(8, 12, by = 1), "agem_e"))
+                    paste0("r", seq(8, 12, by = 1), "agem_e"), )
 
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
@@ -73,6 +73,29 @@ RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta",
 
 #Remove labeled data format
 val_labels(RAND) <- NULL
+
+#HRS Core files-- Need for physical measures
+#Variables of interest:
+## Weight, Height
+
+#2006-2014 core files
+years <- c("06", "08", "10", "12", "14")
+core_list <- vector(mode = "list", length = length(years))
+
+for(i in 1:length(years)){
+  year <- years[i]
+  core_list[[i]] <- 
+    read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
+                       "core/h", year, "da/H", year, "I_R.da"),
+                paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
+                       "core/h", year, "sta/H", year, "I_R.dct"), 
+                HHIDPN = TRUE)
+}
+
+#---- merge HRS core files ----
+core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
+  #Select variables of interest
+  dplyr::select(HHIDPN)
 
 #---- pulling variables ----
 #Use this to subset RAND data
@@ -89,7 +112,7 @@ hrs_samp <- hrs_tracker %>%
 #   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
 #   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
   
-
+hrs_core <- 
 #---- DOD ----
 #Deriving Date of Death (DOD)
 #Looking at values for each variable

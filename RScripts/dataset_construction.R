@@ -30,14 +30,28 @@ source(here::here("RScripts", "impute_ages.R"))
 # 2014 | O | 12
 # 2016 | P | 13
 
+years <- c("06", "08", "10", "12", "14")
+letter_waves <- LETTERS[seq(from = 11, to = 15)]
+number_waves <- seq(8, 12, by = 1)
+
 #---- read in data ----
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
-            "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
-            HHIDPN = TRUE)
+              "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
+              HHIDPN = TRUE) %>% 
+  #Don't use this when trying to figure out survival through age 70
+  # #participated in HRS 2016 wave (wave "P")
+  # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+  # filter(PALIVE %in% c(1, 5)) %>%
+  select("HHIDPN", "PIWTYPE")  
+
+#Don't use this when trying to figure out survival through age 70
+# %>% 
+#   #people alive at the beginning of 2014 HRS interview wave
+#   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
+#   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
 
 #2006-2012 biomarker data
-years <- c("06", "08", "10", "12", "14")
 biomarker_list <- vector(mode = "list", length = length(years))
 
 for(i in 1:length(years)){
@@ -70,9 +84,9 @@ for(i in 1:length(years)){
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
-                    paste0("r", seq(8, 12, by = 1), "agem_e"), "raedyrs",
+                    paste0("r", number_waves, "agem_e"), "raedyrs",
                     "raedegrm",
-                    paste0("r", seq(8, 12, by = 1), "smoken"))
+                    paste0("r", number_waves, "smoken"))
 
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
@@ -95,7 +109,7 @@ for(i in 1:length(years)){
                 HHIDPN = TRUE)
 }
 
-#---- merge data across waves ----
+#---- merge core and biomarker data across waves ----
 core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
   #Select variables of interest: ID, Weight (pounds), Height (inches), 
   #                              systolic bp (3 times), 
@@ -103,12 +117,10 @@ core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>%
   dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
                 contains("I859"), contains("I864"), contains("I869"), 
                 contains("I860"), contains("I865"), contains("I870")) %>% 
-  set_colnames(c("HHIDPN", paste0(LETTERS[seq(from = 11, to = 15)], "wt"), 
-               paste0(LETTERS[seq(from = 11, to = 15)], "ht"), 
-               paste0(LETTERS[seq(from = 11, to = 15)], "sbp", 
-                      rep(seq(1, 3), each = 5)), 
-               paste0(LETTERS[seq(from = 11, to = 15)], "dbp", 
-                      rep(seq(1, 3), each = 5))))
+  set_colnames(c("HHIDPN", paste0(letter_waves, "wt"), 
+                 paste0(letter_waves, "ht"), 
+                 paste0(letter_waves, "sbp", rep(seq(1, 3), each = 5)), 
+                 paste0(letter_waves, "dbp", rep(seq(1, 3), each = 5))))
 
 biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
   #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
@@ -116,20 +128,10 @@ biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>%
   dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
                 contains("TC_ADJ"), contains("HDL_ADJ"))
 
-#---- pulling variables ----
+#---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- hrs_tracker %>% 
-  #Don't use this when trying to figure out survival through age 70
-  # #participated in HRS 2016 wave (wave "P")
-  # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
-  # filter(PALIVE %in% c(1, 5)) %>%
-  select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq(from = 11, to = 15)])) 
-
-#Don't use this when trying to figure out survival through age 70
-# %>% 
-#   #people alive at the beginning of 2014 HRS interview wave
-#   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
-#   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
+hrs_samp <- join_all(list(hrs_tracker, core_merge, biomarker_merge), 
+                     by = "HHIDPN", type = "left")
   
 #---- DOD ----
 #Deriving Date of Death (DOD)

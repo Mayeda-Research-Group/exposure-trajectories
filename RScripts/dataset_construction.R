@@ -65,7 +65,7 @@ biomarker_14 <-
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
-                    paste0("r", seq(8, 12, by = 1), "agey_e"))
+                    paste0("r", seq(8, 12, by = 1), "agem_e"))
 
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
@@ -75,15 +75,13 @@ RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta",
 val_labels(RAND) <- NULL
 
 #---- pulling variables ----
-#We also want their age, sex, race/ethnicity, data to fill in mortality
+#Use this to subset RAND data
 hrs_samp <- hrs_tracker %>% 
   #Don't use this when trying to figure out survival through age 70
   # #participated in HRS 2016 wave (wave "P")
   # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
   # filter(PALIVE %in% c(1, 5)) %>%
-  select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq( from = 11, to = 15)], "AGE"), 
-         "GENDER", "RACE", "HISPANIC", "KNOWNDECEASEDMO", "KNOWNDECEASEDYR", 
-         "EXDEATHMO", "EXDEATHYR", "PALIVE", "BIRTHYR") 
+  select("HHIDPN", "PIWTYPE", paste0(LETTERS[seq(from = 11, to = 15)])) 
 
 #Don't use this when trying to figure out survival through age 70
 # %>% 

@@ -3,7 +3,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled", 
+       "lubridate")
 
 #No scientific notation
 options(scipen = 999)
@@ -91,6 +92,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
   mutate_at("hhidpn", as.factor)
+
 colnames(RAND)[1] <- "HHIDPN" #For merging
 
 #Remove labeled data format
@@ -134,72 +136,31 @@ biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>%
 hrs_samp <- join_all(list(hrs_tracker, core_merge, RAND, biomarker_merge), 
                      by = "HHIDPN", type = "left")
   
-#---- DOD ----
-#Deriving Date of Death (DOD)
-#Looking at values for each variable
-table(hrs_samp$KNOWNDECEASEDMO, useNA = "ifany")
-table(hrs_samp$KNOWNDECEASEDYR, useNA = "ifany")
-table(hrs_samp$EXDEATHYR, useNA = "ifany")
-table(hrs_samp$PALIVE, useNA = "ifany")
+#---- death ----
+#death indicator
+hrs_samp %<>% mutate("death" = ifelse(is.na(raddate), 0, 1))
 
-#Translated from TMM SAS code
+#format RAND dates with lubridate
+hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"), 
+                     "Bday" = as.Date(hrs_samp$rabdate, origin = "1960-01-01"))
+
+# #Sanity check
+# View(hrs_samp[, c("Bday", "rabmonth", "rabyear")] %>% na.omit())
+
+#age at death
 hrs_samp %<>% 
-  mutate("DOD" = 
-           case_when(!(KNOWNDECEASEDMO %in% c(0, 98, NA)) & 
-                       !(KNOWNDECEASEDYR %in% c(0, 98, NA)) ~ 
-                       paste0(KNOWNDECEASEDMO, "1", KNOWNDECEASEDYR), 
-                     TRUE & !is.na(EXDEATHMO) & !is.na(EXDEATHYR) ~ 
-                       paste0(EXDEATHMO, "1", EXDEATHYR), 
-                     TRUE & PALIVE == 5 ~ "612017")) %>% 
-  #died within wave
-  mutate("death" = ifelse(is.na(DOD), 0, 1))
+  mutate("age_death_d" = difftime(DOD, Bday, units = "days"), 
+         "age_death_y" = as.numeric(age_death_d/365.25))
 
-# #sanity check 
-# #Checking that assignments make sense
-# #Checking assignments under first condition: No missing values in this group
-# test_1 <- hrs_samp %>% 
-#   filter(!(KNOWNDECEASEDMO %in% c(0, 98, NA)) & 
-#            !(KNOWNDECEASEDYR %in% c(0, 98, NA))) 
-# #There is data in this group
-# nrow(test_1) 
-# #none of these are empty 
-# sum(!is.na(test_1$DOD))
-# 
-# #Checking assignments under second condition: No data in this group
-# test_2 <- hrs_samp %>% 
-#   filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
-#            KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
-#   filter(!is.na(EXDEATHMO) & !is.na(EXDEATHYR)) 
-# #There is no data in this group
-# nrow(test_2) 
-# 
-# #Checking assignments under third condition: 
-# test_oalive_1 <- hrs_samp %>% 
-#   filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
-#            KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
-#   filter(is.na(EXDEATHMO) | is.na(EXDEATHYR)) %>%
-#   filter(OALIVE == 1) 
-# #There is data in this group
-# nrow(test_oalive_1) 
-# #all of these are empty (OALIVE == 1 --> alive at wave)
-# sum(!is.na(test_oalive_1$DOD))
-# 
-# #none of these are empty (OALIVE == 5 --> death reported in wave)
-# test_oalive_5 <- hrs_samp %>% 
-#   filter(KNOWNDECEASEDMO %in% c(0, 98, NA) & 
-#            KNOWNDECEASEDYR %in% c(0, 98, NA)) %>%
-#   filter(is.na(EXDEATHMO) | is.na(EXDEATHYR)) %>%
-#   filter(OALIVE == 5)
-# #There is no data in this group
-# nrow(test_oalive_5) 
-
+# #Sanity check
+# View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
 
 #---- gender ----
 hrs_samp %<>% 
-  mutate("female" = ifelse(GENDER == 2, 1, 0))
+  mutate("female" = ifelse(ragender == 2, 1, 0))
 
 # #sanity check
-# table(hrs_samp$female, hrs_samp$GENDER)
+# table(hrs_samp$female, hrs_samp$ragender)
 
 #---- race-eth ----
 #Code any hispanic as 1, else 0

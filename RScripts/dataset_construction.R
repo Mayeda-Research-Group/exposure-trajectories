@@ -91,6 +91,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
                  col_select = all_of(rand_variables)) %>% 
   mutate_at("hhidpn", as.factor)
+colnames(RAND)[1] <- "HHIDPN" #For merging
 
 #Remove labeled data format
 val_labels(RAND) <- NULL
@@ -130,7 +131,7 @@ biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>%
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(list(hrs_tracker, core_merge, biomarker_merge), 
+hrs_samp <- join_all(list(hrs_tracker, core_merge, RAND, biomarker_merge), 
                      by = "HHIDPN", type = "left")
   
 #---- DOD ----

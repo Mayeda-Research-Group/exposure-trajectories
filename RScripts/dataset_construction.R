@@ -58,8 +58,6 @@ for(i in 1:length(years)){
   }
 }
 
-
-
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
 #Variables of interest: 
 ## Demographics: HHIDPN, gender, race, hispanic, birth month, 
@@ -81,11 +79,8 @@ RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta",
 val_labels(RAND) <- NULL
 
 #HRS Core files-- Need for physical measures
-#Variables of interest:
-## Weight, Height
 
 #2006-2014 core files
-years <- c("06", "08", "10", "12", "14")
 core_list <- vector(mode = "list", length = length(years))
 
 for(i in 1:length(years)){
@@ -100,11 +95,13 @@ for(i in 1:length(years)){
 
 #---- merge data across waves ----
 core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest
-  dplyr::select(HHIDPN)
+  #Select variables of interest: ID, Weight (pounds), Height (inches)
+  dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
+  set_colnames(c("HHIDPN", paste0(LETTERS[seq(from = 11, to = 15)], "wt"), 
+               paste0(LETTERS[seq(from = 11, to = 15)], "ht")))
 
 biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest
+  #Select variables of interest: ID, Cystatin C relevant measures
   dplyr::select(HHIDPN, contains("CYSC"))
 
 #---- pulling variables ----

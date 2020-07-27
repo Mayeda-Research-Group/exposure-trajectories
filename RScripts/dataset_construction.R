@@ -14,7 +14,7 @@ source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 
-#---- Wave mapping between HRS and RAND ----
+#---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
 # 1992 | V | 1
 # 1994 | W | 2
@@ -37,22 +37,28 @@ hrs_tracker <-
             HHIDPN = TRUE)
 
 #2006-2012 biomarker data
-years <- c("06", "08", "10", "12")
+years <- c("06", "08", "10", "12", "14")
+biomarker_list <- vector(mode = "list", length = length(years))
 
-for(year in years){
-  assign(paste0("biomarker_", year), 
-         read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
-                            year, "/BIOMK", year, "BL_R.da"),
-                     paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
-                            year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE))
+for(i in 1:length(years)){
+  year <- years[i]
+  
+  if(i != length(years)){
+    biomarker_list[[i]] <-  
+      read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
+                         year, "/BIOMK", year, "BL_R.da"),
+                  paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
+                         year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE)
+  } else{
+    #2014 early release biomarker data
+    biomarker_list[[i]] <-  read_da_dct(
+      "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
+      "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
+      HHIDPN = TRUE)
+  }
 }
 
-#2014 early release biomarker data 
-biomarker_14 <- 
-  read_da_dct(
-    "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
-    "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
-    HHIDPN = TRUE)
+
 
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
 #Variables of interest: 
@@ -92,10 +98,14 @@ for(i in 1:length(years)){
                 HHIDPN = TRUE)
 }
 
-#---- merge HRS core files ----
+#---- merge data across waves ----
 core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
   #Select variables of interest
   dplyr::select(HHIDPN)
+
+biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
+  #Select variables of interest
+  dplyr::select(HHIDPN, contains("CYSC"))
 
 #---- pulling variables ----
 #Use this to subset RAND data
@@ -112,7 +122,6 @@ hrs_samp <- hrs_tracker %>%
 #   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
 #   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
   
-hrs_core <- 
 #---- DOD ----
 #Deriving Date of Death (DOD)
 #Looking at values for each variable
@@ -197,13 +206,6 @@ hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0)) %>%
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the HRS HISPANIC variable (recoded as hispanic)
   dplyr::select(-one_of("HISPANIC"))
-
-#---- merge biomarker data ----
-analytic_df <- join_all(list(hrs_samp, biomarker_06, biomarker_08, 
-                             biomarker_10, biomarker_12, biomarker_14), 
-                        by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest
-  dplyr::select(colnames(hrs_samp), contains("CYSC"))
 
 #---- age ----
 ages <- analytic_df %>% dplyr::select(contains("AGE")) %>% 

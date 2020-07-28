@@ -44,7 +44,8 @@ hrs_tracker <-
   # #participated in HRS 2016 wave (wave "P")
   # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
   # filter(PALIVE %in% c(1, 5)) %>%
-  select("HHIDPN", "PIWTYPE")  
+  select("HHIDPN", "PIWTYPE") %>% 
+  mutate_at("HHIDPN", as.numeric)
 
 #Don't use this when trying to figure out survival through age 70
 # %>% 
@@ -52,21 +53,21 @@ hrs_tracker <-
 #   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
 #   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
 
-#2006-2012 biomarker data
-biomarker_list <- vector(mode = "list", length = length(years))
+#2006-2012 biomarker data and core data 
+dataframes_list <- vector(mode = "list", length = 2*length(years))
 
 for(i in 1:length(years)){
   year <- years[i]
   
   if(i != length(years)){
-    biomarker_list[[i]] <-  
+    dataframes_list[[i]] <-  
       read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
                          year, "/BIOMK", year, "BL_R.da"),
                   paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
                          year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE)
   } else{
     #2014 early release biomarker data
-    biomarker_list[[i]] <-  read_da_dct(
+    dataframes_list[[i]] <-  read_da_dct(
       "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
       "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
       HHIDPN = TRUE)
@@ -99,18 +100,21 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 val_labels(RAND) <- NULL
 
 #HRS Core files-- Need for physical measures
-#2006-2014 core files
-core_list <- vector(mode = "list", length = length(years))
-
-for(i in 1:length(years)){
-  year <- years[i]
-  core_list[[i]] <- 
+#count continues from biomarker data pull
+for(i in (length(years) + 1):length(dataframes_list)){
+  year <- years[i - length(years)]
+  dataframes_list[[i]] <- 
     read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
                        "core/h", year, "da/H", year, "I_R.da"),
                 paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
                        "core/h", year, "sta/H", year, "I_R.dct"), 
                 HHIDPN = TRUE)
 }
+
+#---- merge datasets ----
+#Use this to subset RAND data
+hrs_samp <- join_all(c(list(hrs_tracker, RAND), dataframes_list), 
+                     by = "HHIDPN", type = "left")
 
 #---- merge core and biomarker data across waves ----
 core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
@@ -131,11 +135,11 @@ biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>%
   dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
                 contains("TC_ADJ"), contains("HDL_ADJ"))
 
-#---- merge datasets ----
-#Use this to subset RAND data
-hrs_samp <- join_all(list(hrs_tracker, core_merge, RAND, biomarker_merge), 
-                     by = "HHIDPN", type = "left")
-  
+#---- at least one CysC measure ----
+hrs_samp %<>% 
+  mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
+  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
+
 #---- death ----
 #death indicator
 hrs_samp %<>% mutate("death" = ifelse(is.na(raddate), 0, 1))
@@ -160,25 +164,28 @@ hrs_samp %<>%
   mutate("female" = ifelse(ragender == 2, 1, 0))
 
 # #sanity check
-# table(hrs_samp$female, hrs_samp$ragender)
+# table(hrs_samp$female, hrs_samp$ragender, useNA = "ifany")
 
 #---- race-eth ----
 #Code any hispanic as 1, else 0
-hrs_samp %<>% mutate("hispanic" = ifelse(HISPANIC %in% c(1, 2, 3), 1, 0)) %>% 
-  mutate("black" = ifelse(RACE == 2 & hispanic == 0, 1, 0)) %>% 
-  mutate("other" = ifelse(RACE == 7 & hispanic == 0, 1, 0)) %>% 
-  mutate("unknown_race_eth" = ifelse(RACE == 0 & hispanic == 0, 1, 0))
+hrs_samp %<>% 
+  mutate("hispanic" = ifelse(rahispan == 0 | is.na(rahispan), 0, 1)) %>% 
+  mutate("white" = ifelse(raracem == 1 & hispanic == 0, 1, 0)) %>%
+  mutate("black" = ifelse(raracem == 2 & hispanic == 0, 1, 0)) %>% 
+  mutate("other" = ifelse(raracem == 3 & hispanic == 0, 1, 0)) %>% 
+  mutate("unknown_race_eth" = ifelse(is.na(raracem) & hispanic == 0, 1, 0))
 
 # #sanity check
-# table(hrs_samp$hispanic, hrs_samp$HISPANIC)
-# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$black)
-# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$other)
-# table(hrs_samp$hispanic, hrs_samp$RACE, hrs_samp$unknown_race_eth)
+# table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
+#       useNA = "ifany")
 
-#There are 13 people missing race/ethnicity data so I am dropping them
+#There are 14798 people missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
-  #Drop the HRS HISPANIC variable (recoded as hispanic)
-  dplyr::select(-one_of("HISPANIC"))
+  #Drop the RAND rahispan variable (recoded as hispanic)
+  dplyr::select(-one_of("rahispan"))
 
 #---- age ----
 ages <- analytic_df %>% dplyr::select(contains("AGE")) %>% 

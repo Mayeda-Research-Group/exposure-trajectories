@@ -44,12 +44,6 @@ hrs_tracker <-
               HHIDPN = TRUE) %>% select("HHIDPN", "PIWTYPE", "PALIVE") %>% 
   mutate_at("HHIDPN", as.numeric)
 
-#Don't use this when trying to figure out survival through age 70
-# %>% 
-#   #people alive at the beginning of 2014 HRS interview wave
-#   filter(KNOWNDECEASEDYR >= 2014 | is.na(KNOWNDECEASEDYR)) %>% 
-#   filter(EXDEATHYR >= 2014 | is.na(EXDEATHYR))
-
 #2006-2012 biomarker data and core data 
 dataframes_list <- vector(mode = "list", length = 2*length(years))
 

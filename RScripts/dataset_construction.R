@@ -270,4 +270,3 @@ write_csv(hrs_samp %>%
             filter(alive_70 == 1 & cysc_before_70 == 1), 
           here::here("Data", "hrs_samp_alive_70.csv"))
 
-

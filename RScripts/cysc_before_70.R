@@ -11,7 +11,7 @@ cysc_before_70 <- function(vector){
   }
 }
 
-#Test df
-test <- hrs_samp %>%
-  dplyr::select(contains(c("CYSC_ADJ", "age_y")))
-vector <- test[2, ]
+# #Test df
+# test <- hrs_samp %>%
+#   dplyr::select(contains(c("CYSC_ADJ", "age_y")))
+# vector <- test[2, ]

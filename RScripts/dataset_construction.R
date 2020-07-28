@@ -260,12 +260,14 @@ write_csv(hrs_samp %>%
 
 #For 1931-1941 birth cohort
 write_csv(hrs_samp %>% 
-            filter(BIRTHYR %in% seq(1931, 1941, by = 1)), 
+            filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+            filter(PALIVE %in% c(1, 5)) %>%
+            filter(rabyear %in% seq(1931, 1941, by = 1)), 
           here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
 
-#Survival through age 70
+#Survival through age 70 and at least one cystatin c measure before 70
 write_csv(hrs_samp %>% 
-            filter(alive_70 == 1), 
+            filter(alive_70 == 1 & cysc_before_70 == 1), 
           here::here("Data", "hrs_samp_alive_70.csv"))
 
 

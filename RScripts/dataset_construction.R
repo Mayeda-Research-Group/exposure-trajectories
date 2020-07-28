@@ -14,6 +14,7 @@ source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
+source(here::here("RScripts", "detect_70.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -195,8 +196,8 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
 hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
 
 #Flag observations with observed ages at least 70yo
-analytic_df %<>% 
-  mutate("alive_70" = analytic_df %>% dplyr::select(contains("AGE")) %>% 
+hrs_samp %<>% 
+  mutate("alive_70" = hrs_samp %>% dplyr::select(contains("age_y")) %>% 
   apply(., 1, detect_70))
 
 # #sanity Check

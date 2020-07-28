@@ -115,32 +115,17 @@ for(i in (length(years) + 1):length(dataframes_list)){
     #                              diastolic bp (3 times)
     dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
                   contains("I859"), contains("I864"), contains("I869"), 
-                  contains("I860"), contains("I865"), contains("I870")) 
+                  contains("I860"), contains("I865"), contains("I870")) %>% 
+    set_colnames(c("HHIDPN", paste0(letter_waves[i - length(years)], "wt"), 
+                   paste0(letter_waves[i - length(years)], "ht"), 
+                   paste0(letter_waves[i - length(years)], "sbp", seq(1, 3)), 
+                   paste0(letter_waves[i - length(years)], "dbp", seq(1, 3))))
 }
 
 #---- merge datasets ----
 #Use this to subset RAND data
 hrs_samp <- join_all(c(list(hrs_tracker, RAND), dataframes_list), 
                      by = "HHIDPN", type = "left") 
-  
-# #---- merge core and biomarker data across waves ----
-# core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
-#   #Select variables of interest: ID, Weight (pounds), Height (inches), 
-#   #                              systolic bp (3 times), 
-#   #                              diastolic bp (3 times)
-#   dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
-#                 contains("I859"), contains("I864"), contains("I869"), 
-#                 contains("I860"), contains("I865"), contains("I870")) %>% 
-#   set_colnames(c("HHIDPN", paste0(letter_waves, "wt"), 
-#                  paste0(letter_waves, "ht"), 
-#                  paste0(letter_waves, "sbp", rep(seq(1, 3), each = 5)), 
-#                  paste0(letter_waves, "dbp", rep(seq(1, 3), each = 5))))
-# 
-# biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
-#   #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
-#   #                              adjusted total cholesterol, adjusted HDL
-#   dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
-#                 contains("TC_ADJ"), contains("HDL_ADJ"))
 
 #---- at least one CysC measure ----
 hrs_samp %<>% 

@@ -202,36 +202,36 @@ hrs_samp %<>%
 
 #---- CysC measures ----
 #average of all available CysC measures
-analytic_df[, "avg_CYSC"] <- 
-  analytic_df %>% 
+hrs_samp[, "avg_CYSC"] <- 
+  hrs_samp %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   rowMeans(na.rm = TRUE)
 #change NaN to NA for individuals with no measures of CYSC
-analytic_df$avg_CYSC[is.nan(analytic_df$avg_CYSC)] <- NA
+hrs_samp$avg_CYSC[is.nan(hrs_samp$avg_CYSC)] <- NA
 #z score the measures
-analytic_df[, "avg_CYSC_zscore"] <- 
-  (analytic_df$avg_CYSC - mean(analytic_df$avg_CYSC, na.rm = TRUE))/
-  sd(analytic_df$avg_CYSC, na.rm = TRUE)
+hrs_samp[, "avg_CYSC_zscore"] <- 
+  (hrs_samp$avg_CYSC - mean(hrs_samp$avg_CYSC, na.rm = TRUE))/
+  sd(hrs_samp$avg_CYSC, na.rm = TRUE)
 
 #last CysC measure
-analytic_df[, "last_CYSC"] <- 
-  analytic_df %>% 
+hrs_samp[, "last_CYSC"] <- 
+  hrs_samp %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(., 1, function(x) non_missing(x, first = FALSE))
 #z score the measures
-analytic_df[, "last_CYSC_zscore"] <- 
-  (analytic_df$last_CYSC - mean(analytic_df$last_CYSC, na.rm = TRUE))/
-  sd(analytic_df$last_CYSC, na.rm = TRUE)
+hrs_samp[, "last_CYSC_zscore"] <- 
+  (hrs_samp$last_CYSC - mean(hrs_samp$last_CYSC, na.rm = TRUE))/
+  sd(hrs_samp$last_CYSC, na.rm = TRUE)
 
 #wave of last CysC measure
 waves <- paste0(LETTERS[seq( from = 11, to = 15)])
-analytic_df[, "last_CYSC_wave"] <-
-  analytic_df %>%
+hrs_samp[, "last_CYSC_wave"] <-
+  hrs_samp %>%
   dplyr::select(contains("CYSC_ADJ")) %>%
   apply(., 1, function(x) waves[max(which(!is.na(x)))])
 
 #age at last CysC measure
-analytic_df %<>% 
+hrs_samp %<>% 
   mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ KAGE,
                                      last_CYSC_wave == "L" ~ LAGE, 
                                      last_CYSC_wave == "M" ~ MAGE,
@@ -239,36 +239,36 @@ analytic_df %<>%
                                      last_CYSC_wave == "O" ~ OAGE))
 
 # #sanity Check
-# View(analytic_df %>% 
+# View(hrs_samp %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
 #---- restrict to those with Cystatin C measures ----
-analytic_df %<>% filter(!is.na(last_CYSC_age))
+hrs_samp %<>% filter(!is.na(last_CYSC_age))
 
 #---- follow-up time ----
-analytic_df[, "fu_time"] <- 
-  analytic_df %>% 
+hrs_samp[, "fu_time"] <- 
+  hrs_samp %>% 
   dplyr::select(contains(c("CYSC_ADJ", "AGE"))) %>% 
   apply(., 1, fu_time)
 
-analytic_df$fu_time[is.na(analytic_df$fu_time)] <- 0
+hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 
 # #Sanity Check
-# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
+# View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
 #---- save datasets ----
 #For mortality between 2014-2016
-write_csv(analytic_df, here::here("Data", "analytic_df.csv"))
+write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
 write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
 
 #For 1931-1941 birth cohort
-write_csv(analytic_df %>% 
+write_csv(hrs_samp %>% 
             filter(BIRTHYR %in% seq(1931, 1941, by = 1)), 
-          here::here("Data", "analytic_df_1931-1941_cohort.csv"))
+          here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
 
 #Survival through age 70
-write_csv(analytic_df %>% 
+write_csv(hrs_samp %>% 
             filter(alive_70 == 1), 
-          here::here("Data", "analytic_df_alive_70.csv"))
+          here::here("Data", "hrs_samp_alive_70.csv"))
 
 

@@ -14,6 +14,6 @@ fu_time <- function(vector){
 }
 
 # #Test df
-# test <- analytic_df %>% 
-#   dplyr::select(contains(c("CYSC_ADJ", "AGE")))
-# vector <- test[1, ]
+# test <- hrs_samp %>%
+#   dplyr::select(contains(c("CYSC_ADJ", "age_y")))
+# vector <- test[2, ]

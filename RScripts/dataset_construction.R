@@ -189,9 +189,10 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   dplyr::select(-one_of("rahispan"))
 
 #---- age ----
-age_y <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%  
+age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
+  apply(., 1, impute_ages) %>% t() 
 
-analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
+hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
 
 #Flag observations with observed ages at least 70yo
 analytic_df %<>% 

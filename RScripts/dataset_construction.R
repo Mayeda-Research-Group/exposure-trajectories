@@ -196,7 +196,6 @@ hrs_samp[, "cysc_before_70"] <-
   dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
   apply(., 1, cysc_before_70)
 
-
 #---- CysC measures ----
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 

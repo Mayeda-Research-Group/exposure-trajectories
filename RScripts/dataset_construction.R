@@ -200,14 +200,6 @@ hrs_samp %<>%
   mutate("alive_70" = hrs_samp %>% dplyr::select(contains("age_y")) %>% 
   apply(., 1, detect_70))
 
-# #sanity Check
-# vars <- paste0(LETTERS[seq( from = 11, to = 15)], "AGE")
-# 
-# for(var in vars){
-#   sum(hrs_samp[, var])
-#   hist(hrs_samp[, var])
-# }
-
 #---- CysC measures ----
 #average of all available CysC measures
 analytic_df[, "avg_CYSC"] <- 

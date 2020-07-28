@@ -64,13 +64,15 @@ for(i in 1:length(years)){
       read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
                          year, "/BIOMK", year, "BL_R.da"),
                   paste0("/Users/CrystalShaw/Box/HRS/biomarker_data/biomkr", 
-                         year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE)
+                         year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE) %>%
+      mutate_at("HHIDPN", as.numeric)
   } else{
     #2014 early release biomarker data
     dataframes_list[[i]] <-  read_da_dct(
       "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
       "/Users/CrystalShaw/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
-      HHIDPN = TRUE)
+      HHIDPN = TRUE) %>%
+      mutate_at("HHIDPN", as.numeric)
   }
 }
 
@@ -91,8 +93,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "smoken"))
 
 RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
-                 col_select = all_of(rand_variables)) %>% 
-  mutate_at("hhidpn", as.factor)
+                 col_select = all_of(rand_variables)) 
 
 colnames(RAND)[1] <- "HHIDPN" #For merging
 
@@ -108,7 +109,7 @@ for(i in (length(years) + 1):length(dataframes_list)){
                        "core/h", year, "da/H", year, "I_R.da"),
                 paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
                        "core/h", year, "sta/H", year, "I_R.dct"), 
-                HHIDPN = TRUE)
+                HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric)
 }
 
 #---- merge datasets ----
@@ -116,24 +117,24 @@ for(i in (length(years) + 1):length(dataframes_list)){
 hrs_samp <- join_all(c(list(hrs_tracker, RAND), dataframes_list), 
                      by = "HHIDPN", type = "left")
 
-#---- merge core and biomarker data across waves ----
-core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest: ID, Weight (pounds), Height (inches), 
-  #                              systolic bp (3 times), 
-  #                              diastolic bp (3 times)
-  dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
-                contains("I859"), contains("I864"), contains("I869"), 
-                contains("I860"), contains("I865"), contains("I870")) %>% 
-  set_colnames(c("HHIDPN", paste0(letter_waves, "wt"), 
-                 paste0(letter_waves, "ht"), 
-                 paste0(letter_waves, "sbp", rep(seq(1, 3), each = 5)), 
-                 paste0(letter_waves, "dbp", rep(seq(1, 3), each = 5))))
-
-biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
-  #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
-  #                              adjusted total cholesterol, adjusted HDL
-  dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
-                contains("TC_ADJ"), contains("HDL_ADJ"))
+# #---- merge core and biomarker data across waves ----
+# core_merge <- join_all(core_list, by = "HHIDPN", type = "left") %>% 
+#   #Select variables of interest: ID, Weight (pounds), Height (inches), 
+#   #                              systolic bp (3 times), 
+#   #                              diastolic bp (3 times)
+#   dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
+#                 contains("I859"), contains("I864"), contains("I869"), 
+#                 contains("I860"), contains("I865"), contains("I870")) %>% 
+#   set_colnames(c("HHIDPN", paste0(letter_waves, "wt"), 
+#                  paste0(letter_waves, "ht"), 
+#                  paste0(letter_waves, "sbp", rep(seq(1, 3), each = 5)), 
+#                  paste0(letter_waves, "dbp", rep(seq(1, 3), each = 5))))
+# 
+# biomarker_merge <- join_all(biomarker_list, by = "HHIDPN", type = "left") %>% 
+#   #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
+#   #                              adjusted total cholesterol, adjusted HDL
+#   dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
+#                 contains("TC_ADJ"), contains("HDL_ADJ"))
 
 #---- at least one CysC measure ----
 hrs_samp %<>% 
@@ -182,15 +183,13 @@ hrs_samp %<>%
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
 #       useNA = "ifany")
 
-#There are 14798 people missing race/ethnicity data so I am dropping them
+#There are 6 people missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the RAND rahispan variable (recoded as hispanic)
   dplyr::select(-one_of("rahispan"))
 
 #---- age ----
-ages <- analytic_df %>% dplyr::select(contains("AGE")) %>% 
-  apply(., 1, impute_ages)
-ages[ages > 900] <- NA
+age_y <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%  
 
 analytic_df[, paste0(LETTERS[seq( from = 11, to = 15)], "AGE")] <- t(ages)
 

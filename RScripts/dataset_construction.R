@@ -15,6 +15,7 @@ source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "detect_70.R"))
+source(here::here("RScripts", "cysc_before_70.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -40,12 +41,7 @@ number_waves <- seq(8, 12, by = 1)
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
               "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
-              HHIDPN = TRUE) %>% 
-  #Don't use this when trying to figure out survival through age 70
-  # #participated in HRS 2016 wave (wave "P")
-  # filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
-  # filter(PALIVE %in% c(1, 5)) %>%
-  select("HHIDPN", "PIWTYPE") %>% 
+              HHIDPN = TRUE) %>% select("HHIDPN", "PIWTYPE", "PALIVE") %>% 
   mutate_at("HHIDPN", as.numeric)
 
 #Don't use this when trying to figure out survival through age 70
@@ -200,6 +196,13 @@ hrs_samp %<>%
   mutate("alive_70" = hrs_samp %>% dplyr::select(contains("age_y")) %>% 
   apply(., 1, detect_70))
 
+#Flag CysC measure before 70
+hrs_samp[, "cysc_before_70"] <- 
+  hrs_samp %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
+  apply(., 1, cysc_before_70)
+
+
 #---- CysC measures ----
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 
@@ -257,9 +260,10 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
 #---- save datasets ----
-#For mortality between 2014-2016
-write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
-write_csv(hrs_samp, here::here("Data", "hrs_samp.csv"))
+#Participation in 2016 HRS (core or exit: mortality between 2014-2016 only)
+write_csv(hrs_samp %>% 
+            filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
+            filter(PALIVE %in% c(1, 5)), here::here("Data", "hrs_samp.csv"))
 
 #For 1931-1941 birth cohort
 write_csv(hrs_samp %>% 

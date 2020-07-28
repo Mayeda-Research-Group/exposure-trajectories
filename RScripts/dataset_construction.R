@@ -224,31 +224,31 @@ hrs_samp[, "last_CYSC_zscore"] <-
   sd(hrs_samp$last_CYSC, na.rm = TRUE)
 
 #wave of last CysC measure
-waves <- paste0(LETTERS[seq( from = 11, to = 15)])
 hrs_samp[, "last_CYSC_wave"] <-
   hrs_samp %>%
   dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(., 1, function(x) waves[max(which(!is.na(x)))])
+  apply(., 1, function(x) letter_waves[max(which(!is.na(x)))])
 
 #age at last CysC measure
 hrs_samp %<>% 
-  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ KAGE,
-                                     last_CYSC_wave == "L" ~ LAGE, 
-                                     last_CYSC_wave == "M" ~ MAGE,
-                                     last_CYSC_wave == "N" ~ NAGE, 
-                                     last_CYSC_wave == "O" ~ OAGE))
+  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ Kage_y,
+                                     last_CYSC_wave == "L" ~ Lage_y, 
+                                     last_CYSC_wave == "M" ~ Mage_y,
+                                     last_CYSC_wave == "N" ~ Nage_y, 
+                                     last_CYSC_wave == "O" ~ Oage_y))
 
 # #sanity Check
 # View(hrs_samp %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
-#---- restrict to those with Cystatin C measures ----
+#---- double check restricting to those with Cystatin C measures ----
+#There are 2 people with missing age data at every wave-- will fix this
 hrs_samp %<>% filter(!is.na(last_CYSC_age))
 
 #---- follow-up time ----
 hrs_samp[, "fu_time"] <- 
   hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "AGE"))) %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
   apply(., 1, fu_time)
 
 hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0

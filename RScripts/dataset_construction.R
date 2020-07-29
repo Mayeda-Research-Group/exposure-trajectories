@@ -214,16 +214,31 @@ hrs_samp[, "last_CYSC"] <-
   hrs_samp %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(., 1, function(x) non_missing(x, first = FALSE))
+
 #z score the measures
 hrs_samp[, "last_CYSC_zscore"] <- 
   (hrs_samp$last_CYSC - mean(hrs_samp$last_CYSC, na.rm = TRUE))/
   sd(hrs_samp$last_CYSC, na.rm = TRUE)
+
+#wave of first CysC measure
+hrs_samp[, "first_CYSC_wave"] <-
+  hrs_samp %>%
+  dplyr::select(contains("CYSC_ADJ")) %>%
+  apply(., 1, function(x) letter_waves[min(which(!is.na(x)))])
 
 #wave of last CysC measure
 hrs_samp[, "last_CYSC_wave"] <-
   hrs_samp %>%
   dplyr::select(contains("CYSC_ADJ")) %>%
   apply(., 1, function(x) letter_waves[max(which(!is.na(x)))])
+
+#age at first CysC measure
+hrs_samp %<>% 
+  mutate("first_CYSC_age" = case_when(first_CYSC_wave == "K" ~ Kage_y,
+                                      first_CYSC_wave == "L" ~ Lage_y, 
+                                      first_CYSC_wave == "M" ~ Mage_y,
+                                      first_CYSC_wave == "N" ~ Nage_y, 
+                                      first_CYSC_wave == "O" ~ Oage_y))
 
 #age at last CysC measure
 hrs_samp %<>% 

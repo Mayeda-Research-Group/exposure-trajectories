@@ -233,12 +233,14 @@ hrs_samp[, "last_CYSC_wave"] <-
   apply(., 1, function(x) letter_waves[max(which(!is.na(x)))])
 
 #age at first CysC measure
+#restrict sample to those age-eligible at their first Cystatin C measure
 hrs_samp %<>% 
   mutate("first_CYSC_age" = case_when(first_CYSC_wave == "K" ~ Kage_y,
                                       first_CYSC_wave == "L" ~ Lage_y, 
                                       first_CYSC_wave == "M" ~ Mage_y,
                                       first_CYSC_wave == "N" ~ Nage_y, 
-                                      first_CYSC_wave == "O" ~ Oage_y))
+                                      first_CYSC_wave == "O" ~ Oage_y)) %>% 
+  filter(first_CYSC_age >= 50)
 
 #age at last CysC measure
 hrs_samp %<>% 

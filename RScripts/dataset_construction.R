@@ -41,7 +41,8 @@ number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 hrs_tracker <- 
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
               "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
-              HHIDPN = TRUE) %>% select("HHIDPN", "PIWTYPE", "PALIVE") %>% 
+              HHIDPN = TRUE) %>% 
+  select("HHIDPN", "OIWTYPE", "PIWTYPE", "PALIVE") %>% 
   mutate_at("HHIDPN", as.numeric)
 
 #2006-2012 biomarker data and core data 

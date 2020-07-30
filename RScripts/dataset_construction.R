@@ -33,9 +33,9 @@ source(here::here("RScripts", "cysc_before_70.R"))
 # 2014 | O | 12
 # 2016 | P | 13
 
-years <- c("06", "08", "10", "12", "14")
-letter_waves <- LETTERS[seq(from = 11, to = 15)]
-number_waves <- seq(8, 12, by = 1)
+years <- c("06", "08", "10", "12", "14") #biomarker sample
+letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
+number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 
 #---- read in data ----
 hrs_tracker <- 

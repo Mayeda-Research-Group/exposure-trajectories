@@ -188,7 +188,8 @@ hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
 
 #Flag observations with observed ages at least 70yo
 hrs_samp %<>% 
-  mutate("alive_70" = hrs_samp %>% dplyr::select(contains("age_y")) %>% 
+  mutate("alive_70" = hrs_samp %>% 
+           dplyr::select(paste0(head(letter_waves, -1), "age_y")) %>% 
   apply(., 1, detect_70))
 
 #Flag CysC measure before 70

@@ -42,7 +42,7 @@ hrs_tracker <-
   read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
               "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
               HHIDPN = TRUE) %>% 
-  select("HHIDPN", "OIWTYPE", "PIWTYPE", "PALIVE") %>% 
+  select("HHIDPN", "OIWTYPE", "OALIVE", "PIWTYPE", "PALIVE") %>% 
   mutate_at("HHIDPN", as.numeric)
 
 #2006-2012 biomarker data and core data 

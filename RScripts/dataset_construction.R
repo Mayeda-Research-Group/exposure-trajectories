@@ -123,6 +123,13 @@ for(i in (length(years) + 1):length(dataframes_list)){
                    paste0(letter_waves[i - length(years)], "dbp", seq(1, 3))))
 }
 
+#Anusha Vable's CSES index
+cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/", 
+                        "cSES measures/cses_measures.dta")) %>% 
+  unite(col = "HHIDPN", c("hhid", "pn"), sep = "") %>% 
+  mutate_at("HHIDPN", as.numeric)
+
+
 #---- merge datasets ----
 #Use this to subset RAND data
 hrs_samp <- join_all(c(list(hrs_tracker, RAND), dataframes_list), 

@@ -132,7 +132,7 @@ cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND), dataframes_list), 
+hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
 
 #---- at least one CysC measure ----
@@ -150,6 +150,7 @@ hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"),
 
 # #Sanity check
 # View(hrs_samp[, c("Bday", "rabmonth", "rabyear")] %>% na.omit())
+# View(hrs_samp[, c("DOD", "radmonth", "radyear")] %>% na.omit())
 
 #age at death
 hrs_samp %<>% 
@@ -181,6 +182,7 @@ hrs_samp %<>%
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
 #       useNA = "ifany")
+# table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
 #There are 6 people missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
@@ -204,6 +206,12 @@ hrs_samp[, "cysc_before_70"] <-
   hrs_samp %>% 
   dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
   apply(., 1, cysc_before_70)
+
+#Flag CysC measures between ages [60-70)
+hrs_samp[, "cysc_between_60_70"] <- 
+  hrs_samp %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
+  apply(., 1, cysc_between_60_70)
 
 #---- CysC measures ----
 #average of all available CysC measures

@@ -272,8 +272,8 @@ hrs_samp %<>%
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
 #---- double check restricting to those with Cystatin C measures ----
-#There are 2 people with missing age data at every wave-- will fix this
-hrs_samp %<>% filter(!is.na(last_CYSC_age))
+# #There are 2 people with missing age data at every wave-- will fix this
+# hrs_samp %<>% filter(!is.na(last_CYSC_age))
 
 #---- follow-up time ----
 hrs_samp[, "fu_time"] <- 
@@ -285,6 +285,20 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
+
+#---- checking analytical sample ----
+analytical_sample <- hrs_samp %>% 
+  filter(alive_70 == 1) %>% 
+  filter(cysc_between_60_70 == 1)
+
+nrow(analytical_sample)
+table(analytical_sample$alive_70, useNA = "ifany")
+table(analytical_sample$cysc_between_60_70, useNA = "ifany")
+table(hrs_samp$alive_70, hrs_samp$cysc_between_60_70, 
+      useNA = "ifany")
+
+#Do we have cSES measures for everyone?-- missing 19 people
+View(analytical_sample[which(is.na(analytical_sample$cses_index)), ])
 
 #---- save datasets ----
 #Participation in 2016 HRS (core or exit: mortality between 2014-2016 only)
@@ -299,9 +313,10 @@ write_csv(hrs_samp %>%
             filter(rabyear %in% seq(1931, 1941, by = 1)), 
           here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
 
-#Survival through age 70 and at least one cystatin c measure before 70
+#Survival through age 70 and at least one cystatin c measure in [60, 70)
 write_csv(hrs_samp %>% 
             filter(alive_70 == 1) %>% 
-            filter(cysc_before_70 == 1),
+            filter(cysc_between_60_70 == 1),
           here::here("Data", "hrs_samp_alive_70.csv"))
+
 

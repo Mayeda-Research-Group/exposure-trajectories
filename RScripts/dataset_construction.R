@@ -81,7 +81,8 @@ for(i in 1:length(years)){
 #RAND longitudinal file-- reading in STATA file because SAS file wouldn't load
 #Variables of interest: 
 ## Demographics: HHIDPN, gender, race, hispanic, birth month, 
-##               birth year, birth date, death month, death year, death date, 
+##               birth year, birth date, death month, death year, death date,
+##               date at end of interview
 ##               age data in months (biomarker waves), years of education, 
 ##               highest degree (masked)
 ## Health Behaviors: current smoker
@@ -89,7 +90,8 @@ for(i in 1:length(years)){
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
-                    "rabyear", "rabdate", "radmonth", "radyear", "raddate", 
+                    "rabyear", "rabdate", "radmonth", "radyear", "raddate",
+                    paste0("r", number_waves, "iwend"),
                     paste0("r", number_waves, "agem_e"), "raedyrs",
                     "raedegrm",
                     paste0("r", number_waves, "smoken"))
@@ -168,8 +170,12 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
 hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
 
 #Check those missing age data
-which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
-View(hrs_samp %>% dplyr::select(contains("age_y")))
+still_missing <- 
+  sum(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+
+if(still_missing > 0){
+  
+}
 
 #Flag observations with observed ages at least 70yo
 hrs_samp %<>% 

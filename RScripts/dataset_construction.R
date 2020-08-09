@@ -93,7 +93,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     "raedegrm",
                     paste0("r", number_waves, "smoken"))
 
-RAND <- read_dta("~/Box/HRS/RAND_longitudinal/STATA/randhrs1992_2016v2.dta", 
+RAND <- read_dta(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/STATA/", 
+                        "randhrs1992_2016v2.dta"), 
                  col_select = all_of(rand_variables)) 
 
 colnames(RAND)[1] <- "HHIDPN" #For merging
@@ -128,7 +129,6 @@ cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/",
                         "cSES measures/cses_measures.dta")) %>% 
   unite(col = "HHIDPN", c("hhid", "pn"), sep = "") %>% 
   mutate_at("HHIDPN", as.numeric)
-
 
 #---- merge datasets ----
 #Use this to subset RAND data

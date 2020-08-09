@@ -16,6 +16,7 @@ source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "detect_70.R"))
 source(here::here("RScripts", "cysc_before_70.R"))
+source(here::here("RScripts", "cysc_between_60_70.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -138,7 +139,7 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #---- at least one CysC measure ----
 hrs_samp %<>% 
   mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
-  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
+  apply(1, function(x) sum(1 - is.na(x))))
 
 #---- death ----
 #death indicator

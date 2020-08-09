@@ -138,7 +138,7 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #---- at least one CysC measure ----
 hrs_samp %<>% 
   mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
-  apply(1, function(x) sum(1 - is.na(x))))
+  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
 
 #---- death ----
 #death indicator

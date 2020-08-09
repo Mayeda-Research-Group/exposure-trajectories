@@ -169,13 +169,12 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
 
 hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
 
-#Check those missing age data
+#Check those missing age data-- this person has no data for interview date, 
+# so I'm dropping them
 still_missing <- 
-  sum(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+  which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
 
-if(still_missing > 0){
-  
-}
+hrs_samp <- hrs_samp[-c(still_missing), ]
 
 #Flag observations with observed ages at least 70yo
 hrs_samp %<>% 
@@ -184,18 +183,14 @@ hrs_samp %<>%
            apply(., 1, detect_70))
 
 #---- age at CysC ----
-#Flag CysC measure before 70
-hrs_samp[, "cysc_before_70"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
-  apply(., 1, cysc_before_70)
-
 #Flag CysC measures between ages [60-70)
 hrs_samp[, "cysc_between_60_70"] <- 
   hrs_samp %>% 
   dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
   apply(., 1, cysc_between_60_70)
 
+# #Sanity Check
+# table(hrs_samp$cysc_between_60_70, useNA = "ifany")
 
 #---- gender ----
 hrs_samp %<>% 

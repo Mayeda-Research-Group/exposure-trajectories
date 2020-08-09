@@ -61,7 +61,8 @@ biomarker_14 <-
 #                         "rndhrs_p.csv")) 
 start <- Sys.time()
 RAND <- haven::read_sas(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/", 
-                               "randhrs1992_2016v2.sas7bdat"))
+                               "randhrs1992_2016v2.sas7bdat"), 
+                        col_select = c("HHIDPN", contains("IWTYPE")))
 end <- Sys.time() - start
 
 

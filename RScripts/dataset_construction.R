@@ -192,6 +192,11 @@ hrs_samp[, "cysc_between_60_70"] <-
 # #Sanity Check
 # table(hrs_samp$cysc_between_60_70, useNA = "ifany")
 
+#Restrict to those with Cystatin C measures in [60-70) 
+hrs_samp %<>% filter(cysc_between_60_70 == 1) %>% 
+  #Restric to survivors to age 70
+  filter(alive_70 == 1)
+
 #---- gender ----
 hrs_samp %<>% 
   mutate("female" = ifelse(ragender == 2, 1, 0))
@@ -216,12 +221,10 @@ hrs_samp %<>%
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
-#There are 6 people missing race/ethnicity data so I am dropping them
+#There is 1 person missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the RAND rahispan variable (recoded as hispanic)
   dplyr::select(-one_of("rahispan"))
-
-
 
 #---- CysC measures ----
 #average of all available CysC measures

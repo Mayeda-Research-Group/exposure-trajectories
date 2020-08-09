@@ -226,6 +226,13 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   #Drop the RAND rahispan variable (recoded as hispanic)
   dplyr::select(-one_of("rahispan"))
 
+#---- cSES index ----
+# #Sanity check
+# table(is.na(hrs_samp$cses_index))
+
+#There are 19 people missing the cSES index so I am dropping them
+hrs_samp %<>% filter(!is.na(cses_index)) 
+
 #---- CysC measures ----
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 
@@ -299,37 +306,10 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
-#---- checking analytical sample ----
-analytical_sample <- hrs_samp %>% 
-  filter(alive_70 == 1) %>% 
-  filter(cysc_between_60_70 == 1)
-
-nrow(analytical_sample)
-table(analytical_sample$alive_70, useNA = "ifany")
-table(analytical_sample$cysc_between_60_70, useNA = "ifany")
-table(hrs_samp$alive_70, hrs_samp$cysc_between_60_70, 
-      useNA = "ifany")
-
-#Do we have cSES measures for everyone?-- missing 19 people
-View(analytical_sample[which(is.na(analytical_sample$cses_index)), ])
-
-#---- save datasets ----
-#Participation in 2016 HRS (core or exit: mortality between 2014-2016 only)
-write_csv(hrs_samp %>% 
-            filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
-            filter(PALIVE %in% c(1, 5)), here::here("Data", "hrs_samp.csv"))
-
-#For 1931-1941 birth cohort
-write_csv(hrs_samp %>% 
-            filter(PIWTYPE %in% c(1, 5, 11, 15)) %>% 
-            filter(PALIVE %in% c(1, 5)) %>%
-            filter(rabyear %in% seq(1931, 1941, by = 1)), 
-          here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
-
+#---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)
-write_csv(hrs_samp %>% 
-            filter(alive_70 == 1) %>% 
-            filter(cysc_between_60_70 == 1),
-          here::here("Data", "hrs_samp_alive_70.csv"))
+write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+                           "exposure_trajectories/data/",
+                           "hrs_samp_alive_70_cysc_60_70.csv"))
 
 

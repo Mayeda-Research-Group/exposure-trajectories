@@ -139,7 +139,7 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #---- at least one CysC measure ----
 hrs_samp %<>% 
   mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
-  apply(1, function(x) sum(1 - is.na(x))))
+  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
 
 #---- death ----
 #death indicator
@@ -160,6 +160,36 @@ hrs_samp %<>%
 
 # #Sanity check
 # View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
+
+#---- age ----
+age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
+  apply(., 1, impute_ages) %>% t() 
+
+hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
+
+#Check those missing age data
+which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+View(hrs_samp %>% dplyr::select(contains("age_y")))
+
+#Flag observations with observed ages at least 70yo
+hrs_samp %<>% 
+  mutate("alive_70" = hrs_samp %>% 
+           dplyr::select(paste0(head(letter_waves, -1), "age_y")) %>% 
+           apply(., 1, detect_70))
+
+#---- age at CysC ----
+#Flag CysC measure before 70
+hrs_samp[, "cysc_before_70"] <- 
+  hrs_samp %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
+  apply(., 1, cysc_before_70)
+
+#Flag CysC measures between ages [60-70)
+hrs_samp[, "cysc_between_60_70"] <- 
+  hrs_samp %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
+  apply(., 1, cysc_between_60_70)
+
 
 #---- gender ----
 hrs_samp %<>% 
@@ -190,29 +220,7 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   #Drop the RAND rahispan variable (recoded as hispanic)
   dplyr::select(-one_of("rahispan"))
 
-#---- age ----
-age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
-  apply(., 1, impute_ages) %>% t() 
 
-hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
-
-#Flag observations with observed ages at least 70yo
-hrs_samp %<>% 
-  mutate("alive_70" = hrs_samp %>% 
-           dplyr::select(paste0(head(letter_waves, -1), "age_y")) %>% 
-  apply(., 1, detect_70))
-
-#Flag CysC measure before 70
-hrs_samp[, "cysc_before_70"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
-  apply(., 1, cysc_before_70)
-
-#Flag CysC measures between ages [60-70)
-hrs_samp[, "cysc_between_60_70"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
-  apply(., 1, cysc_between_60_70)
 
 #---- CysC measures ----
 #average of all available CysC measures

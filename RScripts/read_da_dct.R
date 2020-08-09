@@ -18,7 +18,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("readr")
+p_load("readr", "tidyverse")
 
 #---- Function ----
 read_da_dct <- function(data_path, dict_path, HHIDPN = TRUE){

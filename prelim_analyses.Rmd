@@ -7,8 +7,8 @@ output:
     toc_float: 
       collapsed: no
     toc_depth: 5
-    theme: journal
-    highlight: zenburn
+    theme: paper
+    highlight: tango
     code_folding: hide
 bibliography: /Users/CrystalShaw/Dropbox/Mendeley Bibtex/Exposure Trajectories.bib
 ---
@@ -25,7 +25,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "knitr", "broom", "kableExtra", "lme4", 
-       "sjstats")
+       "sjstats", "ghibli")
 
 #No scientific notation
 options(scipen = 999)
@@ -44,7 +44,14 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 
 ```{r read in data}
 hrs_samp <- read_csv(here::here("Data", "hrs_samp.csv"))
-analytic_df <- read_csv(here::here("Data", "analytic_df.csv"))
+hrs_samp_birth_cohort <- 
+  read_csv(here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
+hrs_samp_alive_70 <- 
+  read_csv(here::here("Data", "hrs_samp_alive_70.csv"))
+
+years <- c("06", "08", "10", "12", "14") #biomarker sample
+letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
+number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 ```
 
 ### List of Summary Stats
@@ -64,11 +71,11 @@ knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
 #### Number CysC measures
 
 ```{r CysC by wave}
-CYSC_bywave <- analytic_df %>% dplyr::select(contains("CYSC_ADJ")) %>% 
+CYSC_bywave <- hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(2, function(x) !is.na(x)) %>% colSums() %>% as.data.frame() %>% 
   set_colnames(c("Count")) %>% 
   mutate("Proportion of <br>2016 HRS sample" = 
-           round(Count/nrow(analytic_df), 2)) %>% 
+           round(Count/nrow(hrs_samp), 2)) %>% 
   rownames_to_column(var = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = c("2006", "2008", "2010", "2012", "2014")) %>%
@@ -84,29 +91,44 @@ I am using the variable [wave]CYSC_ADJ for individuals based on the recommendati
 In this preliminary analysis, Cystatin C measures are used for those who participated in the 2014 wave of HRS (core interview) only. 
 
 ```{r CysC per person, out.width = "75%", fig.align = "center"}
-analytic_df[, "num_measures"] <- 5 - (
-  analytic_df %>% 
+hrs_samp[, "num_measures"] <- 5 - (
+  hrs_samp %>% 
   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
 
-analytic_df$num_measures <- as.factor(analytic_df$num_measures)
+hrs_samp$num_measures <- as.factor(hrs_samp$num_measures)
+
+hrs_samp_birth_cohort[, "num_measures"] <- 5 - (
+  hrs_samp_birth_cohort %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+
+hrs_samp_birth_cohort$num_measures <- 
+  as.factor(hrs_samp_birth_cohort$num_measures)
+
+hrs_samp_alive_70[, "num_measures"] <- 5 - (
+  hrs_samp_alive_70 %>% 
+  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+
+hrs_samp_alive_70$num_measures <- 
+  as.factor(hrs_samp_alive_70$num_measures)
 
 # #Sanity Check
-# test_no_measures <- analytic_df %>% 
+# test_no_measures <- hrs_samp %>% 
 #   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums()
 # table(test_no_measures)
 # table(test_no_measures)/sum(table(test_no_measures))
-# hist(analytic_df$KCYSC_ADJ)
-# table(analytic_df$KCYSC_ADJ, useNA = "ifany")
-# View(analytic_df %>% dplyr::select(contains("CYSC_ADJ"), "num_measures"))
+# hist(hrs_samp$KCYSC_ADJ)
+# table(hrs_samp$KCYSC_ADJ, useNA = "ifany")
+# View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "num_measures"))
 
-ggplot(analytic_df, aes(x = num_measures)) + 
+ggplot(hrs_samp, aes(x = num_measures)) + 
   geom_bar(aes(y = ..count../sum(..count..), fill = factor(..x..)), 
            stat = "count", width = 0.3) +
   geom_text(aes(label = scales::percent(round(..count../sum(..count..), 2)),
                 y = ..count../sum(..count..) ), stat = "count", vjust = -.5) +
-  labs(y = "Percent", x = "Number of CysC Measures") +
+  labs(y = "Percent", x = "Number of CysC Measures for 2016 HRS Participants") +
   scale_y_continuous(labels = scales::percent) + 
   theme_minimal() + 
+  scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
   theme(legend.position = "none")
 ```
 
@@ -115,10 +137,11 @@ What is the distribution of time between first and last Cystatin C measure? Thes
 
 *Note that those who only have 1 Cystatin C measure have 0 years of follow up
 
-```{r FU time, out.width = "75%", fig.align = "center"}
-analytic_df$fu_time <- as.factor(analytic_df$fu_time)
+```{r FU time, out.width = "75%", fig.align = "center", eval = FALSE}
+#This plot is crazy now because follow up time is based on differences between ages
+hrs_samp$fu_time <- as.factor(hrs_samp$fu_time)
 
-ggplot(analytic_df, aes(x = fu_time)) + 
+ggplot(hrs_samp, aes(x = fu_time)) + 
   geom_bar(aes(y = ..count../sum(..count..), fill = factor(..x..)), 
            stat = "count", width = 0.3) +
   geom_text(aes(label = scales::percent(round(..count../sum(..count..), 2)),
@@ -134,9 +157,9 @@ Looking at the different patterns and distributions for the CysC measures
 
 ```{r wide to long}
 columns_to_pick <- 
-  colnames(analytic_df)[str_detect(colnames(analytic_df), "CYSC_ADJ")]
+  colnames(hrs_samp)[str_detect(colnames(hrs_samp), "CYSC_ADJ")]
   
-analytic_df_long <- pivot_longer(analytic_df, all_of(columns_to_pick), 
+hrs_samp_long <- pivot_longer(hrs_samp, all_of(columns_to_pick), 
                                  names_to = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = case_when(Wave == "K" ~ "2006", 
@@ -146,7 +169,7 @@ analytic_df_long <- pivot_longer(analytic_df, all_of(columns_to_pick),
                             Wave == "O" ~ "2014"))
 
 #Create categorical variables for plotting
-analytic_df_long %<>% 
+hrs_samp_long %<>% 
   mutate("gender_cat" = ifelse(female == 1, "Women", "Men")) %>%
   mutate("race_eth_cat" = case_when(black == 1 ~ "Black", 
                                     hispanic == 1 ~ "Hispanic", 
@@ -154,7 +177,7 @@ analytic_df_long %<>%
                                     TRUE ~ "White"))
 
 #Data for plots
-df_plots <- analytic_df_long %>% 
+df_plots <- hrs_samp_long %>% 
   #drop anyone without any CysC measures
   filter(num_measures != 0) %>% 
   #drop gender variable for waves without measures
@@ -163,7 +186,7 @@ df_plots <- analytic_df_long %>%
   mutate("race_eth_cat" = ifelse(is.na(value), NA, race_eth_cat))
 
 # #Sanity Check
-# table(analytic_df_long$gender_cat, analytic_df_long$female)
+# table(hrs_samp_long$gender_cat, hrs_samp_long$female)
 ```
 
 ##### Sex/Gender distributions
@@ -174,7 +197,8 @@ ggplot(plot_data, aes(x = gender_cat)) +
   geom_bar(aes(y = ..count.., fill = factor(..x..)), 
            stat = "count", width = 0.3) + 
   theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
-  labs(y = "Count", x = "Sex/Gender") 
+  labs(y = "Count", x = "Sex/Gender") + 
+  scale_fill_ghibli_d("LaputaMedium", direction = -1)
 
 # #Sanity Check
 # test_df <- df_plots %>% filter(Wave == "L")
@@ -191,17 +215,17 @@ num_age_miss <- hrs_samp %>% dplyr::select(contains("AGE"))
 num_age_miss <- sum(num_age_miss == 999)
 ```
 
-There are `r format(people_age_miss, big.mark = ",")` people with at least one imputed age (`r round(people_age_miss/nrow(analytic_df)*100, 2)`%).  
+There are `r format(people_age_miss, big.mark = ",")` people with at least one imputed age (`r round(people_age_miss/nrow(hrs_samp)*100, 2)`%).  
 
-There are a total of `r format(num_age_miss, big.mark = ",")` imputed ages (`r round(num_age_miss/(nrow(analytic_df)*5)*100, 2)`%).  
+There are a total of `r format(num_age_miss, big.mark = ",")` imputed ages (`r round(num_age_miss/(nrow(hrs_samp)*5)*100, 2)`%).  
 
 I imputed age by subtracting back (2yrs/wave) from participants' Wave O (2014 wave) age since everyone has an age at that wave (this analysis is conditional on participation in the 2014 wave).  This imputation will be done using birth month/year and interview month/year in the future.
 
 ```{r age dist by wave, out.width = "75%", fig.align = "center"}
-data <- df_plots %>% dplyr::select("HHIDPN", contains("AGE"), "value") %>%
+data <- df_plots %>% dplyr::select("HHIDPN", contains("age_y"), "value") %>%
   filter(!is.na(value)) %>% distinct(., HHIDPN, .keep_all = TRUE)
 
-plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name", 
+plot_data <- pivot_longer(data, contains("age_y"), names_to = "long_name", 
                           values_to = "Age") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = case_when(Wave == "K" ~ "2006", 
@@ -210,11 +234,13 @@ plot_data <- pivot_longer(data, contains("AGE"), names_to = "long_name",
                             Wave == "N" ~ "2012", 
                             Wave == "O" ~ "2014"))
 
+#ghibli_palettes$LaputaMedium
+
 ggplot(plot_data, aes(x = Age)) + 
   #This is a trick; you could put any text here to get this color
-  geom_histogram(aes(fill = "coral")) + 
+  geom_histogram(color = "#AE93BEFF", fill = "#AE93BEFF") + 
   theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
-  labs(y = "Count", x = "Age")
+  labs(y = "Count", x = "Age") 
 ```
 
 ##### Race/Ethnicity distributions
@@ -225,43 +251,251 @@ ggplot(plot_data, aes(x = race_eth_cat)) +
   geom_bar(aes(y = ..count.., fill = factor(..x..)), 
            stat = "count", width = 0.3) + 
   theme_bw() + theme(legend.position = "none") + facet_wrap("Year") + 
-  labs(y = "Count", x = "Race/Ethnicity") 
+  labs(y = "Count", x = "Race/Ethnicity") + 
+  scale_fill_ghibli_d("LaputaMedium", direction = -1)
 ```
 
-### Is CysC associated with mortality?  
+### Is CysC associated with mortality?
 
-Number of people: `r nrow(analytic_df)`
-Number of observations: `r sum(as.numeric(analytic_df$num_measures))`
-Percent mortality: `r round(mean(analytic_df$death)*100, 2)`% 
+**Based on mortality between 2014-2016 for everyone**  
+Number of people: `r nrow(hrs_samp)`  
+Number of observations: `r sum(as.numeric(hrs_samp$num_measures))`  
+Percent mortality: `r round(mean(hrs_samp$death)*100, 2)`% 
+
+**Based on mortality between 2014-2016 for 1931-1941 birth cohort**  
+Number of people: `r nrow(hrs_samp_birth_cohort)`  
+Number of observations: `r sum(as.numeric(hrs_samp_birth_cohort$num_measures))`  
+Percent mortality: `r round(mean(hrs_samp_birth_cohort$death)*100, 2)`% 
+
+**Based on survival through age 70**  
+Number of people: `r nrow(hrs_samp_alive_70)`  
+Number of observations: `r sum(as.numeric(hrs_samp_alive_70$num_measures))`  
+Percent mortality: `r round(mean(hrs_samp_alive_70$death)*100, 2)`%
+
+```{r age summary stats 2014, eval = FALSE}
+subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
+                "1931-1941 birth cohort" = hrs_samp_birth_cohort,
+                "Survival to 70" = hrs_samp_alive_70)
+
+colnames <- c("Cohort", "Age Summary", "min", "10%", "25%", "Median", "Mean", 
+              "75%", "90%", "max")
+
+table <- 
+  data.frame(matrix(nrow = 2*length(subsets), ncol = length(colnames))) %>% 
+  set_colnames(colnames) %>% 
+  mutate("Cohort" = rep(names(subsets), each = 2)) %>% 
+  mutate("Age Summary" = rep(c("2014 HRS", "All CysC"), length(subsets)))
+  
+for(i in 1:length(subsets)){
+  table[(2*i - 1), "Mean"] <- round(mean(subsets[[i]]$Oage_y), 2)
+  summary_stats <- 
+    round(quantile(subsets[[i]]$Oage_y, 
+                   c(0, 0.10, 0.25, 0.50, 0.75, 0.90, 1)), 2)
+  names(summary_stats) <- c("min", "10%", "25%", "Median", "75%", "90%", "max")
+  table[(2*i - 1), names(summary_stats)] <- summary_stats
+  
+  cysc_measures <- subsets[[i]] %>% dplyr::select(contains("CYSC_ADJ"))
+  cysc_measures <- cysc_measures/cysc_measures #pick up non-missing slots
+  cysc_ages <- subsets[[i]] %>% 
+    dplyr::select(paste0(head(letter_waves, -1), "age_y"))
+  cysc_ages <- as.matrix(cysc_ages*cysc_measures) #set ages to NA is cysc is NA
+  
+  table[2*i, "Mean"] <- round(mean(cysc_ages, na.rm = TRUE), 2)
+  summary_stats <- 
+    round(quantile(cysc_ages, 
+                   c(0, 0.10, 0.25, 0.50, 0.75, 0.90, 1), na.rm = TRUE), 2)
+  names(summary_stats) <- c("min", "10%", "25%", "Median", "75%", "90%", "max")
+  table[2*i, names(summary_stats)] <- summary_stats
+}
+
+write_csv(table, here::here("Tables", "subset_age_summary.csv"))
+```
+
+```{r age summary stat plots 2014 Survivors}
+subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
+                "1931-1941 birth cohort" = hrs_samp_birth_cohort,
+                "Survival to 70" = hrs_samp_alive_70)
+
+for(i in 1:length(subsets)){
+  cysc_measures <- subsets[[i]] %>% dplyr::select(contains("CYSC_ADJ"))
+  cysc_measures <- cysc_measures/cysc_measures #pick up non-missing slots
+  cysc_ages <- subsets[[i]] %>% 
+    dplyr::select(paste0(head(letter_waves, -1), "age_y"))
+  #set ages to NA is cysc is NA
+  cysc_ages <- as.matrix(cysc_ages*cysc_measures) %>% as.data.frame() %>% 
+    mutate("Subset" = names(subsets)[i]) %>% 
+    pivot_longer(cols = contains("age_y"), 
+                 names_to = "Measure", values_to = "Age") %>% 
+    mutate("Measure" = "CysC Age") %>% na.omit()
+  
+  Oages <- subsets[[i]] %>% filter(OALIVE %in% c(1, 2)) %>% 
+    dplyr::select("Oage_y") %>% 
+    mutate("Subset" = names(subsets)[i], 
+           "Measure" = "2014 Age")
+  colnames(Oages)[1] <- "Age"
+  
+  cysc_ages <- rbind(cysc_ages, Oages)
+  
+  if(i == 1){
+    plot_data <- cysc_ages
+  } else{
+    plot_data <- rbind(plot_data, cysc_ages)
+  }
+}
+
+ggplot(plot_data, aes(x = Age, fill = Measure)) + 
+  geom_density(alpha = 0.5, aes(color = Measure)) + facet_wrap("Subset") + 
+  theme_bw() + ggtitle("Age Distributions in Survivors") + 
+  scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1)
+
+```
+
+```{r age summary stat plots 2014 Zombie people}
+subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
+                "1931-1941 birth cohort" = hrs_samp_birth_cohort,
+                "Survival to 70" = hrs_samp_alive_70)
+
+for(i in 1:length(subsets)){
+  cysc_measures <- subsets[[i]] %>% dplyr::select(contains("CYSC_ADJ"))
+  cysc_measures <- cysc_measures/cysc_measures #pick up non-missing slots
+  cysc_ages <- subsets[[i]] %>% 
+    dplyr::select(paste0(head(letter_waves, -1), "age_y"))
+  #set ages to NA is cysc is NA
+  cysc_ages <- as.matrix(cysc_ages*cysc_measures) %>% as.data.frame() %>% 
+    mutate("Subset" = names(subsets)[i]) %>% 
+    pivot_longer(cols = contains("age_y"), 
+                 names_to = "Measure", values_to = "Age") %>% 
+    mutate("Measure" = "CysC Age") %>% na.omit()
+  
+  Oages <- subsets[[i]] %>% dplyr::select("Oage_y") %>% 
+    mutate("Subset" = names(subsets)[i], 
+           "Measure" = "2014 Age")
+  colnames(Oages)[1] <- "Age"
+  
+  cysc_ages <- rbind(cysc_ages, Oages)
+  
+  if(i == 1){
+    plot_data <- cysc_ages
+  } else{
+    plot_data <- rbind(plot_data, cysc_ages)
+  }
+}
+
+ggplot(plot_data, aes(x = Age, fill = Measure)) + 
+  geom_density(alpha = 0.5, aes(color = Measure)) + facet_wrap("Subset") + 
+  theme_bw() + ggtitle("Age Distributions with Zombie People") + 
+  scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1)
+
+```
+```{r age summary stat plots 2016 Survivors}
+subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
+                "1931-1941 birth cohort" = hrs_samp_birth_cohort,
+                "Survival to 70" = hrs_samp_alive_70)
+
+for(i in 1:length(subsets)){
+  cysc_measures <- subsets[[i]] %>% dplyr::select(contains("CYSC_ADJ"))
+  cysc_measures <- cysc_measures/cysc_measures #pick up non-missing slots
+  cysc_ages <- subsets[[i]] %>% 
+    dplyr::select(paste0(head(letter_waves, -1), "age_y"))
+  #set ages to NA is cysc is NA
+  cysc_ages <- as.matrix(cysc_ages*cysc_measures) %>% as.data.frame() %>% 
+    mutate("Subset" = names(subsets)[i]) %>% 
+    pivot_longer(cols = contains("age_y"), 
+                 names_to = "Measure", values_to = "Age") %>% 
+    mutate("Measure" = "CysC Age") %>% na.omit()
+  
+  Pages <- subsets[[i]] %>% filter(PALIVE %in% c(1, 2)) %>% 
+    dplyr::select("Page_y") %>% 
+    mutate("Subset" = names(subsets)[i], 
+           "Measure" = "2016 Age") 
+  colnames(Pages)[1] <- "Age"
+  
+  cysc_ages <- rbind(cysc_ages, Pages)
+  
+  if(i == 1){
+    plot_data <- cysc_ages
+  } else{
+    plot_data <- rbind(plot_data, cysc_ages)
+  }
+}
+
+ggplot(plot_data, aes(x = Age, fill = Measure)) + 
+  geom_density(alpha = 0.5, aes(color = Measure)) + facet_wrap("Subset") + 
+  theme_bw() +  ggtitle("Age Distributions in Survivors") +
+  scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1)
+```
+
+```{r age summary stat plots 2016 Zombie people}
+subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
+                "1931-1941 birth cohort" = hrs_samp_birth_cohort,
+                "Survival to 70" = hrs_samp_alive_70)
+
+for(i in 1:length(subsets)){
+  cysc_measures <- subsets[[i]] %>% dplyr::select(contains("CYSC_ADJ"))
+  cysc_measures <- cysc_measures/cysc_measures #pick up non-missing slots
+  cysc_ages <- subsets[[i]] %>% 
+    dplyr::select(paste0(head(letter_waves, -1), "age_y"))
+  #set ages to NA is cysc is NA
+  cysc_ages <- as.matrix(cysc_ages*cysc_measures) %>% as.data.frame() %>% 
+    mutate("Subset" = names(subsets)[i]) %>% 
+    pivot_longer(cols = contains("age_y"), 
+                 names_to = "Measure", values_to = "Age") %>% 
+    mutate("Measure" = "CysC Age") %>% na.omit()
+  
+  Pages <- subsets[[i]] %>% dplyr::select("Page_y") %>% 
+    mutate("Subset" = names(subsets)[i], 
+           "Measure" = "2016 Age") 
+  colnames(Pages)[1] <- "Age"
+  
+  cysc_ages <- rbind(cysc_ages, Pages)
+  
+  if(i == 1){
+    plot_data <- cysc_ages
+  } else{
+    plot_data <- rbind(plot_data, cysc_ages)
+  }
+}
+
+ggplot(plot_data, aes(x = Age, fill = Measure)) + 
+  geom_density(alpha = 0.5, aes(color = Measure)) + facet_wrap("Subset") + 
+  theme_bw() +  ggtitle("Age Distributions with Zombie People") +
+  scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1)
+```
 
 Distributions of Cystatin C measures used in each model:
 
 ```{r Cystatin C dists, out.width = "75%", fig.align = "center"}
-plot_data <- analytic_df %>% dplyr::select("avg_CYSC", "last_CYSC") %>% 
+plot_data <- hrs_samp %>% dplyr::select("avg_CYSC", "last_CYSC") %>% 
   pivot_longer(cols = c("avg_CYSC", "last_CYSC"), names_to = "Measure", 
                values_to = "Cystatin C")
 plot_data$Measure <- str_remove(plot_data$Measure, "_CYSC")
   
 ggplot(data = plot_data, aes(x = Measure, y = `Cystatin C`)) + 
-  geom_boxplot(color = "#FF766D") + 
+  geom_boxplot(color = "#AE93BEFF") + 
   theme_minimal()
 ```
 
 Correlation between age at 2014 HRS wave and age at last CysC measure (line produced by loess smoothing):
 
 ```{r age correlations, out.width = "75%", fig.align = "center"}
+#ghibli_palettes$LaputaMedium
 # Loess method
-ggplot(analytic_df, aes(x = last_CYSC_age, y = OAGE)) + 
-  geom_point(colour = "#737C87") +
-  geom_smooth(colour = "#F8766D") + 
+ggplot(hrs_samp, aes(x = last_CYSC_age, y = Oage_y)) + 
+  geom_point(colour = "#B4DAE5FF") +
+  geom_smooth(colour = "#AE93BEFF") + 
   theme_minimal() + 
   xlab("Age at last CysC measure") + ylab("Age at 2014 HRS Wave")
 ```
 
 #### CysC on Age
 
-```{r CysC on Age, out.width = "75%", fig.align = "center"}
-plot_data <- analytic_df %>% dplyr::select(contains("AGE", ignore.case = FALSE),
+```{r CysC on Age, out.width = "75%", fig.align = "center", eval=FALSE}
+#Can't figure out why this won't run-- has something to do with pivot longer?
+plot_data <- hrs_samp %>% dplyr::select(contains("age_y", ignore.case = TRUE),
                                            contains("_ADJ")) %>% 
   set_colnames(c(paste0("x", seq(1:5)), 
                  paste0("y", seq(1:5)))) %>%
@@ -269,9 +503,9 @@ plot_data <- analytic_df %>% dplyr::select(contains("AGE", ignore.case = FALSE),
                names_pattern = "(.)(.)")
 
 ggplot(plot_data, aes(x, y)) +
-  geom_point(colour = "#737C87") +
+  geom_point(colour = "#B4DAE5FF") +
   #Span in the fraction of points used to fit each local regression
-  geom_smooth(colour = "#F8766D", span = 0.001) + 
+  geom_smooth(colour = "#AE93BEFF", span = 0.001) + 
   xlab("Age at CysC measure") + ylab("CysC (mg/L)") +
   theme_minimal()
 ```
@@ -284,8 +518,8 @@ $$death \sim OAGE + female + hispanic + black + other + avgCYSC$$
 
 ```{r avg value model}
 model_avg_cysc <- 
-  glm(death ~ OAGE + female + hispanic + black + other + avg_CYSC, 
-      family = binomial(link = "logit"), data = analytic_df)
+  glm(death ~ Oage_y + female + hispanic + black + other + avg_CYSC, 
+      family = binomial(link = "logit"), data = hrs_samp)
 
 kable(tidy(model_avg_cysc, exponentiate = TRUE)) %>% 
   kable_styling(full_width = TRUE)
@@ -304,8 +538,8 @@ $$death \sim OAGE + female + hispanic + black + other + lastCYSC$$
 
 ```{r last value model}
 model_last_cysc <- 
-  glm(death ~ OAGE + female + hispanic + black + other + last_CYSC, 
-      family = binomial(link = "logit"), data = analytic_df)
+  glm(death ~ Oage_y + female + hispanic + black + other + last_CYSC, 
+      family = binomial(link = "logit"), data = hrs_samp)
 
 kable(tidy(model_last_cysc, exponentiate = TRUE)) %>% 
   kable_styling(full_width = TRUE)
@@ -333,10 +567,10 @@ log(CysC) \sim Age &+ female + hispanic + black + other + \\
 \end{align*}
 
 ```{r wide --> long}
-long_df <- analytic_df %>% 
+long_df <- hrs_samp %>% 
   dplyr::select("HHIDPN", "female", "hispanic", "black", "other", 
-                contains("AGE", ignore.case = FALSE), contains("CYSC_ADJ")) %>% 
-  pivot_longer(cols = c(contains("AGE"), contains("CYSC_ADJ")), 
+                contains("age_y", ignore.case = FALSE), contains("CYSC_ADJ")) %>% 
+  pivot_longer(cols = c(contains("age_y"), contains("CYSC_ADJ")), 
                names_to = c("wave", ".value"), 
                names_pattern = "(.)(.)") %>% 
   set_colnames(c("HHIDPN", "female", "hispanic", "black", "other", "wave", 
@@ -351,7 +585,7 @@ plot_data <- long_df[, c("CYSC", "log_CYSC")] %>%
                values_to = "Value")
   
 ggplot(data = plot_data, aes(x = Measure, y = Value)) + 
-  geom_boxplot(color = "#FF766D") + 
+  geom_boxplot(color = "#AE93BEFF") + 
   theme_minimal()
 ```
 
@@ -372,7 +606,7 @@ sjstats::r2(lmm1)
 
 ##### Fitted vs. Residuals
 ```{r tab1, fig.align = "center"}
-plot(lmm1, xlab = "Fitted values", ylab = "Residuals", col = "#F8766D" )
+plot(lmm1, xlab = "Fitted values", ylab = "Residuals", col = "#AE93BEFF" )
 ```
 
 ##### Dist. of Residuals
@@ -440,8 +674,8 @@ plot_data <- do.call("rbind", df_list) %>%
   dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
 
 ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
-  geom_point(colour = "#737C87") + 
-  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  geom_point(colour = "#B4DAE5FF") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#AE93BEFF") + 
   facet_wrap("Missingness") + 
   theme_bw()
 ```
@@ -473,8 +707,8 @@ plot_data <- do.call("rbind", df_list) %>%
   dplyr::select(c("Missingness", "log_CYSC", "pred_log_CYSC"))
 
 ggplot(aes(x = log_CYSC, y = pred_log_CYSC), data = plot_data) + 
-  geom_point(colour = "#737C87") + 
-  geom_abline(slope = 1, intercept = 0, colour = "#F8766D") + 
+  geom_point(colour = "#B4DAE5FF") + 
+  geom_abline(slope = 1, intercept = 0, colour = "#AE93BEFF") + 
   facet_wrap("Missingness") + ggtitle("At least one observation") +
   theme_bw()
 ```

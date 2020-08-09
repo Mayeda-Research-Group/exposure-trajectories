@@ -1,15 +1,13 @@
-fu_time <- function(vector){
+cysc_before_70 <- function(vector){
   waves <- vector[1:5]
   ages <- vector[6:10]
   idx <- !is.na(waves) 
   
-  if(sum(idx) > 1){
-    first_slot <- min(which(idx))
-    last_slot <- max(which(idx))
-    
-    return(ages[last_slot] - ages[first_slot])
+  if(sum(idx) >= 1){
+    count <- sum(ages[idx] < 70)
+    return((count >= 1)*1)
   } else{
-    return(NA)
+    return(0)
   }
 }
 

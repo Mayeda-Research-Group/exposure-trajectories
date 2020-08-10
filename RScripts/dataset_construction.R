@@ -319,7 +319,23 @@ colnames(BMI) <- paste0(head(letter_waves, -1), "BMI")
 hrs_samp %<>% cbind(BMI)
 
 #---- BP measures ----
+bp_measures <- matrix(nrow = nrow(hrs_samp), 
+                      ncol = (length(letter_waves) - 1)*2)
+col = 1
+for(wave in head(letter_waves, -1)){
+  for(bp in c("sbp", "dbp")){
+    bp_measures[, col] <- 
+      rowMeans(hrs_samp %>% dplyr::select(contains(paste0(wave, bp))))
+    col = col + 1
+  }
+}
 
+colnames(bp_measures) <- 
+  data.frame("waves" = rep(head(letter_waves, -1), each = 2), 
+             "bp" = c("sbp", "dbp")) %>% unite("names", sep = "") %>%
+  unlist() %>% paste0(., "_avg")
+
+hrs_samp %<>% cbind(bp_measures)
 
 #---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)

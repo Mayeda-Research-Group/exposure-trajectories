@@ -15,3 +15,6 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
 
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
+# baseline: Sex/gender, race/ethnicity, cSES
+# time-varying: Age, smoking status, BMI, total cholesterol, HDL, HbA1c, sbp, 
+#               dbp

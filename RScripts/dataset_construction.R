@@ -226,6 +226,13 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   #Drop the RAND rahispan variable (recoded as hispanic)
   dplyr::select(-one_of("rahispan"))
 
+#---- Education ----
+# #Sanity check
+# table(is.na(hrs_samp$raedyrs))
+
+#There is one person missing years of education, so I'm going to drop them
+hrs_samp %<>% filter(!is.na(raedyrs))
+
 #---- cSES index ----
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
@@ -336,13 +343,6 @@ colnames(bp_measures) <-
   unlist() %>% paste0(., "_avg")
 
 hrs_samp %<>% cbind(bp_measures)
-
-#---- Education ----
-# #Sanity check
-# table(is.na(hrs_samp$raedyrs))
-
-#There is one person missing years of education, so I'm going to drop them
-hrs_samp %<>% filter(!is.na(raedyrs))
 
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves

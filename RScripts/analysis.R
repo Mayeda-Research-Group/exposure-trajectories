@@ -17,29 +17,32 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
 letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
 
 #---- Imputation dataset ----
-keep <- c("HHIDPN", "raedyrs", paste0("r", head(letter_waves, -1), "smoken"), 
-          "cses_index", "CYSC_ADJ", "A1C_ADJ", "TC_ADJ", "HDl_ADJ", "death", 
+keep <- c("HHIDPN", "raedyrs", paste0(head(letter_waves, -1), "smoken"), 
+          "cses_index", "CYSC_ADJ", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", "death", 
           "age_death_y", paste0(head(letter_waves, -1), "age_y"), "female", 
           "hispanic", "black", "other", "BMI", "sbp_avg", "dbp_avg")
 
-impute <- analytical_sample %>% dplyr::select(contains(keep))
+impute <- analytical_sample %>% dplyr::select(contains(keep)) %>% 
+  #leftover because of "contains"
+  dplyr::select(-c("age_death_d"))
 
-impute_long <- 
-
-#---- Observed Cystatin C ----
-analytical_sample_long <- analytical_sample %>%
-  pivot_longer(cols = contains("CYSC_ADJ"), 
-               names_to = "CysC_wave", values_to = "CysC")
-
-cc_long <- analytical_sample_long %>% filter(!is.na(CysC))
-
-cc_wide <- cc_long %>% pivot_wider(names_from = "CysC_wave", 
-                                   values_from = "CysC")
+impute_long <- impute %>% 
+  pivot_longer(cols = starts_with(head(letter_waves, -1), ignore.case = FALSE), 
+               names_to = c("Wave", ".value"),
+               names_pattern = "(.)(.*)")
 
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
 # baseline: Sex/gender, race/ethnicity, cSES
 # time-varying: Age, smoking status, BMI, total cholesterol, HDL, HbA1c, sbp, 
 #               dbp
+
+cc_impute_long <- impute_long %>% filter(!is.na(CYSC_ADJ))
+colSums(is.na(cc_impute_long))
+
+#Does anyone have height but not weight or vice-versa-- Yep!
+table(is.na(analytical_sample$Kht), is.na(analytical_sample$Kwt))
+
+
 
 

@@ -13,8 +13,20 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
                                      "exposure_trajectories/data/", 
                                      "hrs_samp_alive_70_cysc_60_70.csv"))
 
+#---- Observed Cystatin C ----
+analytical_sample_long <- analytical_sample %>%
+  pivot_longer(cols = contains("CYSC_ADJ"), 
+               names_to = "CysC_wave", values_to = "CysC")
+
+cc_long <- analytical_sample_long %>% filter(!is.na(CysC))
+
+cc_wide <- cc_long %>% pivot_wider(names_from = "CysC_wave", 
+                                   values_from = "CysC")
+
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
 # baseline: Sex/gender, race/ethnicity, cSES
 # time-varying: Age, smoking status, BMI, total cholesterol, HDL, HbA1c, sbp, 
 #               dbp
+
+

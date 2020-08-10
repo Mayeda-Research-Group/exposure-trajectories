@@ -340,7 +340,7 @@ hrs_samp %<>% cbind(bp_measures)
 #---- change numeric wave numbers to letters ----
 colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
                      paste0("r", number_waves, "smoken"))] <- 
-  paste0("r", letter_waves, "smoken")
+  paste0(letter_waves, "smoken")
 
 #---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)

@@ -337,10 +337,14 @@ colnames(bp_measures) <-
 
 hrs_samp %<>% cbind(bp_measures)
 
-#---- change numeric wave numbers to letters ----
+#---- Fix column names for easy column select in analyses ----
+#Change numeric waves to letter waves
 colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
                      paste0("r", number_waves, "smoken"))] <- 
   paste0(letter_waves, "smoken")
+
+#Inconsistency in capitalization
+colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"
 
 #---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)

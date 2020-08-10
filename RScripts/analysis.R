@@ -18,12 +18,14 @@ letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
 number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 
 #---- Imputation dataset ----
-keep <- c("HHIDPN", "raedyrs", "smoken", "cses_index", "CYSC_ADJ", 
-          "A1C_ADJ", "TC_ADJ", "HDl_ADJ", "death", "age_death_y", 
-          paste0(head(letter_waves, -1), "age_y"), "female", "hispanic", 
-          "black", "other", "BMI", "sbp_avg", "dbp_avg")
+keep <- c("HHIDPN", "raedyrs", paste0("r", head(letter_waves, -1), "smoken"), 
+          "cses_index", "CYSC_ADJ", "A1C_ADJ", "TC_ADJ", "HDl_ADJ", "death", 
+          "age_death_y", paste0(head(letter_waves, -1), "age_y"), "female", 
+          "hispanic", "black", "other", "BMI", "sbp_avg", "dbp_avg")
 
 impute <- analytical_sample %>% dplyr::select(contains(keep))
+
+impute_long <- 
 
 #---- Observed Cystatin C ----
 analytical_sample_long <- analytical_sample %>%

@@ -306,6 +306,21 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
+#---- BMI ----
+heights <- hrs_samp %>% 
+  dplyr::select(paste0(head(letter_waves, -1), "ht"))
+
+weights <- hrs_samp %>% 
+  dplyr::select(paste0(head(letter_waves, -1), "wt"))
+
+BMI <- (weights/heights^2)*703  
+colnames(BMI) <- paste0(head(letter_waves, -1), "BMI")
+
+hrs_samp %<>% cbind(BMI)
+
+#---- BP measures ----
+
+
 #---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)
 write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/", 

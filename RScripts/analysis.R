@@ -15,7 +15,6 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
 
 #---- Wave indicators ----
 letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
-number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 
 #---- Imputation dataset ----
 keep <- c("HHIDPN", "raedyrs", paste0("r", head(letter_waves, -1), "smoken"), 

@@ -337,6 +337,13 @@ colnames(bp_measures) <-
 
 hrs_samp %<>% cbind(bp_measures)
 
+#---- Education ----
+# #Sanity check
+# table(is.na(hrs_samp$raedyrs))
+
+#There is one person missing years of education, so I'm going to drop them
+hrs_samp %<>% filter(!is.na(raedyrs))
+
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves
 colnames(hrs_samp)[which(colnames(hrs_samp) %in% 

@@ -255,7 +255,7 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
 
-#There are 19 people missing the cSES index so I am dropping them
+#There are 67 people missing the cSES index so I am dropping them
 hrs_samp %<>% filter(!is.na(cses_index)) 
 
 #---- CysC measures ----
@@ -323,7 +323,7 @@ hrs_samp %<>%
 #---- follow-up time ----
 hrs_samp[, "fu_time"] <- 
   hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
+  dplyr::select(contains(c("CYSC_ADJ", "age_y_int"))) %>% 
   apply(., 1, fu_time)
 
 hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0

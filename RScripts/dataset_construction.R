@@ -248,8 +248,8 @@ hrs_samp %<>%
 
 #There is 1 person missing race/ethnicity data so I am dropping them
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
-  #Drop the RAND rahispan variable (recoded as hispanic)
-  dplyr::select(-one_of("rahispan"))
+  #Drop the RAND rahispan variable (recoded as hispanic) and race variables
+  dplyr::select(-c("rahispan", "raracem"))
 
 #---- Education ----
 # #Sanity check

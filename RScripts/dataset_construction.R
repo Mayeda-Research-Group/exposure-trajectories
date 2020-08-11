@@ -139,8 +139,8 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
                      by = "HHIDPN", type = "left") 
 
 #---- at least one CysC measure ----
-hrs_samp %<>% 
-  mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
+hrs_samp %<>%
+  mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>%
   apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
 
 #---- death ----
@@ -192,9 +192,9 @@ hrs_samp[, "cysc_between_60_70"] <-
 # #Sanity Check
 # table(hrs_samp$cysc_between_60_70, useNA = "ifany")
 
-#Restrict to those with Cystatin C measures in [60-70) 
-hrs_samp %<>% filter(cysc_between_60_70 == 1) %>% 
-  #Restric to survivors to age 70
+#Restrict to those with Cystatin C measures in [60-70)
+hrs_samp %<>% filter(cysc_between_60_70 == 1) %>%
+  #Restrict to survivors to age 70
   filter(alive_70 == 1)
 
 #---- gender ----
@@ -339,8 +339,13 @@ hrs_samp %<>% cbind(bp_measures)
 
 #---- save dataset ----
 #Survival through age 70 and at least one cystatin c measure in [60, 70)
-write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/",
                            "exposure_trajectories/data/",
                            "hrs_samp_alive_70_cysc_60_70.csv"))
+
+# #Survival through age 70
+# write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/",
+#                            "exposure_trajectories/data/",
+#                            "hrs_samp_alive_70.csv"))
 
 

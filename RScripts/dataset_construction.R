@@ -262,7 +262,7 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
 
-#There are 67 people missing the cSES index so I am dropping them
+#There are 19 people missing the cSES index so I am dropping them
 hrs_samp %<>% filter(!is.na(cses_index)) 
 
 #---- CysC measures ----
@@ -354,6 +354,10 @@ BMI[, paste0(letter_waves, "BMI")] <-
   BMI[, paste0(letter_waves, "BMI")] + pick_up
 
 hrs_samp %<>% cbind(BMI)
+
+#Drop RAND's BMI variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
+                               paste0("r", number_waves, "pmbmi")))
 
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves

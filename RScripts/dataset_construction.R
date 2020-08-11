@@ -84,7 +84,8 @@ for(i in 1:length(years)){
 ##               birth year, birth date, death month, death year, death date,
 ##               date at end of interview
 ##               age data in months (biomarker waves), years of education, 
-##               highest degree (masked)
+##               highest degree (masked), BMI (measured), 
+##               BMI (self-report),
 ## Health Behaviors: current smoker
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
@@ -93,7 +94,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
                     paste0("r", number_waves, "iwend"),
                     paste0("r", number_waves, "agem_e"), "raedyrs",
-                    "raedegrm",
+                    "raedegrm", paste0("r", number_waves, "bmi"), 
+                    paste0("r", number_waves, "pmbmi"),
                     paste0("r", number_waves, "smoken"))
 
 RAND <- read_dta(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/STATA/", 

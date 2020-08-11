@@ -84,8 +84,9 @@ for(i in 1:length(years)){
 ##               birth year, birth date, death month, death year, death date,
 ##               date at end of interview
 ##               age data in months (biomarker waves), years of education, 
-##               highest degree (masked), BMI (measured), 
-##               BMI (self-report),
+##               highest degree (masked),  
+## Health: BMI (measured),
+##         BMI (self-report)
 ## Health Behaviors: current smoker
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
@@ -93,8 +94,9 @@ for(i in 1:length(years)){
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
                     paste0("r", number_waves, "iwend"),
-                    paste0("r", number_waves, "agem_e"), "raedyrs",
-                    "raedegrm", paste0("r", number_waves, "bmi"), 
+                    paste0("r", number_waves, "agem_e"), "raedyrs", 
+                    "raedegrm", 
+                    paste0("r", number_waves, "bmi"), 
                     paste0("r", number_waves, "pmbmi"),
                     paste0("r", number_waves, "smoken"))
 
@@ -330,14 +332,25 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
 #---- BMI ----
-heights <- hrs_samp %>% 
-  dplyr::select(paste0(head(letter_waves, -1), "ht"))
+#Sanity check
+View(hrs_samp[, c(paste0("r", number_waves, "bmi"), 
+                  paste0("r", number_waves, "pmbmi"))])
 
-weights <- hrs_samp %>% 
-  dplyr::select(paste0(head(letter_waves, -1), "wt"))
+#Get measured BMI
+BMI <- cbind(hrs_samp[, paste0("r", number_waves, "pmbmi")], 
+             1 - is.na(hrs_samp[, paste0("r", number_waves, "pmbmi")]))
+#Set NAs to 0 so we can pick up remaining NAs from self-report
+BMI[is.na(BMI)] <- 0 
+colnames(BMI) <- c(paste0(letter_waves, "BMI"), 
+                   paste0(letter_waves, "BMI_measured"))
 
-BMI <- (weights/heights^2)*703  
-colnames(BMI) <- paste0(head(letter_waves, -1), "BMI")
+#Pick up self-reported BMI for empty (= 0) cells
+pick_up <- (BMI[, paste0(letter_waves, "BMI")] == 0)*1*
+  hrs_samp[, paste0("r", number_waves, "bmi")]
+
+#Fill in self-reported BMI
+BMI[, paste0(letter_waves, "BMI")] <- 
+  BMI[, paste0(letter_waves, "BMI")] + pick_up
 
 hrs_samp %<>% cbind(BMI)
 

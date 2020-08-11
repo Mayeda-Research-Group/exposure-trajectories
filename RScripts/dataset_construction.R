@@ -194,6 +194,9 @@ hrs_samp %<>%
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(c(paste0(letter_waves, "age_y"), "alive_70")))
 
+#Drop RAND age variables
+hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))
+
 #---- age at CysC ----
 #Flag CysC measures between ages [60-70)
 hrs_samp[, "cysc_between_60_70"] <- 

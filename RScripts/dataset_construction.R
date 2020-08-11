@@ -190,7 +190,7 @@ hrs_samp <- hrs_samp[-c(still_missing), ]
 #Flag observations with observed ages at least 70yo
 hrs_samp %<>% 
   mutate("alive_70" = hrs_samp %>% 
-           dplyr::select(paste0(head(letter_waves, -1), "age_y")) %>% 
+           dplyr::select(paste0(letter_waves, "age_y")) %>% 
            apply(., 1, detect_70))
 
 #---- age at CysC ----

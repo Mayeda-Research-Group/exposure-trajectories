@@ -43,11 +43,12 @@ Brief description of Cystatin C: "Cystatin C is a protein produced by all human 
 *It's good for this biomarker analysis that Cystatin C is thought to rise with healthy aging (in addition to being an indicator of kidney functioning and CVD).*
 
 ```{r read in data}
-hrs_samp <- read_csv(here::here("Data", "hrs_samp.csv"))
-hrs_samp_birth_cohort <- 
-  read_csv(here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
-hrs_samp_alive_70 <- 
-  read_csv(here::here("Data", "hrs_samp_alive_70.csv"))
+# hrs_samp <- read_csv(here::here("Data", "hrs_samp.csv"))
+# hrs_samp_birth_cohort <- 
+#   read_csv(here::here("Data", "hrs_samp_1931-1941_cohort.csv"))
+hrs_samp <- 
+  read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+                  "data/hrs_samp_alive_70_cysc_60_70.csv"))
 
 years <- c("06", "08", "10", "12", "14") #biomarker sample
 letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
@@ -62,8 +63,10 @@ number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
 - Types of patterns
 
 **This flow diagram needs to be updated**
-```{r flow diagram, fig.align = "center", out.width = "35%"}
-knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
+```{r flow diagram, fig.align = "center", out.width = "50%"}
+knitr::include_graphics(paste0("/Users/CrystalShaw/Dropbox/Projects/",
+                               "exposure_trajectories/manuscript/figures/",
+                               "flow_diagram.png"))
 ```
 
 #### Sample characteristics
@@ -74,12 +77,12 @@ knitr::include_graphics(here::here("Figures", "flow_diagram.png"))
 CYSC_bywave <- hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>% 
   apply(2, function(x) !is.na(x)) %>% colSums() %>% as.data.frame() %>% 
   set_colnames(c("Count")) %>% 
-  mutate("Proportion of <br>2016 HRS sample" = 
+  mutate("Proportion of <br>Analytical sample" = 
            round(Count/nrow(hrs_samp), 2)) %>% 
   rownames_to_column(var = "long_name") %>% 
   mutate("Wave" = substr(long_name, start = 1, stop = 1)) %>% 
   mutate("Year" = c("2006", "2008", "2010", "2012", "2014")) %>%
-  dplyr::select("Wave", "Year", "Count", "Proportion of <br>2016 HRS sample")
+  dplyr::select("Wave", "Year", "Count", "Proportion of <br>Analytical sample")
 
 kable(CYSC_bywave, align = "c", escape = FALSE) %>% 
   kable_styling(full_width = FALSE)
@@ -97,19 +100,19 @@ hrs_samp[, "num_measures"] <- 5 - (
 
 hrs_samp$num_measures <- as.factor(hrs_samp$num_measures)
 
-hrs_samp_birth_cohort[, "num_measures"] <- 5 - (
-  hrs_samp_birth_cohort %>% 
-  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
-
-hrs_samp_birth_cohort$num_measures <- 
-  as.factor(hrs_samp_birth_cohort$num_measures)
-
-hrs_samp_alive_70[, "num_measures"] <- 5 - (
-  hrs_samp_alive_70 %>% 
-  dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
-
-hrs_samp_alive_70$num_measures <- 
-  as.factor(hrs_samp_alive_70$num_measures)
+# hrs_samp_birth_cohort[, "num_measures"] <- 5 - (
+#   hrs_samp_birth_cohort %>% 
+#   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+# 
+# hrs_samp_birth_cohort$num_measures <- 
+#   as.factor(hrs_samp_birth_cohort$num_measures)
+# 
+# hrs_samp_alive_70[, "num_measures"] <- 5 - (
+#   hrs_samp_alive_70 %>% 
+#   dplyr::select(contains("CYSC_ADJ")) %>% is.na(.) %>% rowSums())
+# 
+# hrs_samp_alive_70$num_measures <- 
+#   as.factor(hrs_samp_alive_70$num_measures)
 
 # #Sanity Check
 # test_no_measures <- hrs_samp %>% 
@@ -125,7 +128,8 @@ ggplot(hrs_samp, aes(x = num_measures)) +
            stat = "count", width = 0.3) +
   geom_text(aes(label = scales::percent(round(..count../sum(..count..), 2)),
                 y = ..count../sum(..count..) ), stat = "count", vjust = -.5) +
-  labs(y = "Percent", x = "Number of CysC Measures for 2016 HRS Participants") +
+  labs(y = "Percent", 
+       x = "Number of CysC Measures per Participant in Analytical Sample") +
   scale_y_continuous(labels = scales::percent) + 
   theme_minimal() + 
   scale_fill_ghibli_d("LaputaMedium", direction = -1) + 
@@ -257,20 +261,22 @@ ggplot(plot_data, aes(x = race_eth_cat)) +
 
 ### Is CysC associated with mortality?
 
+<!--
 **Based on mortality between 2014-2016 for everyone**  
 Number of people: `r nrow(hrs_samp)`  
 Number of observations: `r sum(as.numeric(hrs_samp$num_measures))`  
 Percent mortality: `r round(mean(hrs_samp$death)*100, 2)`% 
 
 **Based on mortality between 2014-2016 for 1931-1941 birth cohort**  
-Number of people: `r nrow(hrs_samp_birth_cohort)`  
-Number of observations: `r sum(as.numeric(hrs_samp_birth_cohort$num_measures))`  
-Percent mortality: `r round(mean(hrs_samp_birth_cohort$death)*100, 2)`% 
+Number of people: `r nrow(hrs_samp)`  
+Number of observations: `r sum(as.numeric(hrs_samp$num_measures))`  
+Percent mortality: `r round(mean(hrs_samp$death)*100, 2)`% 
+-->
 
-**Based on survival through age 70**  
-Number of people: `r nrow(hrs_samp_alive_70)`  
-Number of observations: `r sum(as.numeric(hrs_samp_alive_70$num_measures))`  
-Percent mortality: `r round(mean(hrs_samp_alive_70$death)*100, 2)`%
+**Based on survival through age 70 with at least one Cystatin C measure in [60, 70)**  
+Number of people: `r nrow(hrs_samp)`  
+Number of observations: `r sum(as.numeric(hrs_samp$num_measures))`  
+Percent mortality: `r round(mean(hrs_samp$death)*100, 2)`% 
 
 ```{r age summary stats 2014, eval = FALSE}
 subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
@@ -311,7 +317,7 @@ for(i in 1:length(subsets)){
 write_csv(table, here::here("Tables", "subset_age_summary.csv"))
 ```
 
-```{r age summary stat plots 2014 Survivors}
+```{r age summary stat plots 2014 Survivors, eval = FALSE}
 subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
                 "1931-1941 birth cohort" = hrs_samp_birth_cohort,
                 "Survival to 70" = hrs_samp_alive_70)
@@ -351,7 +357,7 @@ ggplot(plot_data, aes(x = Age, fill = Measure)) +
 
 ```
 
-```{r age summary stat plots 2014 Zombie people}
+```{r age summary stat plots 2014 Zombie people, eval = FALSE}
 subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
                 "1931-1941 birth cohort" = hrs_samp_birth_cohort,
                 "Survival to 70" = hrs_samp_alive_70)
@@ -389,7 +395,8 @@ ggplot(plot_data, aes(x = Age, fill = Measure)) +
   scale_color_ghibli_d("LaputaMedium", direction = -1)
 
 ```
-```{r age summary stat plots 2016 Survivors}
+
+```{r age summary stat plots 2016 Survivors, eval = FALSE}
 subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
                 "1931-1941 birth cohort" = hrs_samp_birth_cohort,
                 "Survival to 70" = hrs_samp_alive_70)
@@ -428,7 +435,7 @@ ggplot(plot_data, aes(x = Age, fill = Measure)) +
   scale_color_ghibli_d("LaputaMedium", direction = -1)
 ```
 
-```{r age summary stat plots 2016 Zombie people}
+```{r age summary stat plots 2016 Zombie people, eval = FALSE}
 subsets <- list("'Participated' in 2016 HRS" = hrs_samp, 
                 "1931-1941 birth cohort" = hrs_samp_birth_cohort,
                 "Survival to 70" = hrs_samp_alive_70)

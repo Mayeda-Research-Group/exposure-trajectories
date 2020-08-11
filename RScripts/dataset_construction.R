@@ -130,7 +130,8 @@ for(i in (length(years) + 1):length(dataframes_list)){
 
 #Anusha Vable's CSES index
 cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/", 
-                        "cSES measures/cses_measures.dta")) %>% 
+                        "cSES measures/cses_measures.dta"), 
+                 col_select = c("hhid", "pn", "cses_index")) %>% 
   unite(col = "HHIDPN", c("hhid", "pn"), sep = "") %>% 
   mutate_at("HHIDPN", as.numeric)
 

@@ -12,7 +12,6 @@ options(scipen = 999)
 #---- source scripts ----
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
-source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "cysc_between_60_70.R"))
 
@@ -316,15 +315,13 @@ hrs_samp %<>%
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
 
 #---- follow-up time ----
-hrs_samp[, "fu_time"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y_int"))) %>% 
-  apply(., 1, fu_time)
-
+hrs_samp[, "fu_time"] <- hrs_samp[, "last_CYSC_age"] - 
+  hrs_samp[, "first_CYSC_age"]
 hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 
 # #Sanity Check
-# View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
+# View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), contains("CYSC_age"), 
+#                                 contains("age_y_int"), "fu_time"))
 
 #---- BMI ----
 # #Sanity check

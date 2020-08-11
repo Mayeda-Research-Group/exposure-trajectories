@@ -332,9 +332,9 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), "fu_time"))
 
 #---- BMI ----
-#Sanity check
-View(hrs_samp[, c(paste0("r", number_waves, "bmi"), 
-                  paste0("r", number_waves, "pmbmi"))])
+# #Sanity check
+# View(hrs_samp[, c(paste0("r", number_waves, "bmi"), 
+#                   paste0("r", number_waves, "pmbmi"))])
 
 #Get measured BMI
 BMI <- cbind(hrs_samp[, paste0("r", number_waves, "pmbmi")], 

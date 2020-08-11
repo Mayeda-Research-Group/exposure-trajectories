@@ -163,9 +163,10 @@ hrs_samp %<>%
 # #Sanity check
 # View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
 
-#Drop RAND birthdate and death date variables
+#Drop RAND birth date, death date variables, and derived death in days
 hrs_samp %<>% dplyr::select(-c("rabmonth", "rabyear", "rabdate", 
-                               "radmonth", "radyear", "raddate"))
+                               "radmonth", "radyear", "raddate", 
+                               "age_death_d"))
 
 #---- age ----
 age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 

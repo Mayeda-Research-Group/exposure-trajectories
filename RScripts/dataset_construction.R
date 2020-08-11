@@ -86,7 +86,9 @@ for(i in 1:length(years)){
 ##               age data in months (biomarker waves), years of education, 
 ##               highest degree (masked),  
 ## Health: BMI (measured),
-##         BMI (self-report)
+##         BMI (self-report), 
+##         BP (systolic), 
+##         BP (diastolic)
 ## Health Behaviors: current smoker
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
@@ -97,7 +99,9 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "agem_e"), "raedyrs", 
                     "raedegrm", 
                     paste0("r", number_waves, "bmi"), 
-                    paste0("r", number_waves, "pmbmi"),
+                    paste0("r", number_waves, "pmbmi"), 
+                    paste0("r", number_waves, "bpsys"), 
+                    paste0("r", number_waves, "bpdia"),
                     paste0("r", number_waves, "smoken"))
 
 RAND <- read_dta(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/STATA/", 
@@ -122,13 +126,9 @@ for(i in (length(years) + 1):length(dataframes_list)){
     #Select variables of interest: ID, Weight (pounds), Height (inches), 
     #                              systolic bp (3 times), 
     #                              diastolic bp (3 times)
-    dplyr::select(HHIDPN, contains("I841"), contains("I834"), 
-                  contains("I859"), contains("I864"), contains("I869"), 
-                  contains("I860"), contains("I865"), contains("I870")) %>% 
+    dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
     set_colnames(c("HHIDPN", paste0(letter_waves[i - length(years)], "wt"), 
-                   paste0(letter_waves[i - length(years)], "ht"), 
-                   paste0(letter_waves[i - length(years)], "sbp", seq(1, 3)), 
-                   paste0(letter_waves[i - length(years)], "dbp", seq(1, 3))))
+                   paste0(letter_waves[i - length(years)], "ht")))
 }
 
 #Anusha Vable's CSES index
@@ -354,30 +354,19 @@ BMI[, paste0(letter_waves, "BMI")] <-
 
 hrs_samp %<>% cbind(BMI)
 
-#---- BP measures ----
-bp_measures <- matrix(nrow = nrow(hrs_samp), 
-                      ncol = (length(letter_waves) - 1)*2)
-col = 1
-for(wave in head(letter_waves, -1)){
-  for(bp in c("sbp", "dbp")){
-    bp_measures[, col] <- 
-      rowMeans(hrs_samp %>% dplyr::select(contains(paste0(wave, bp))))
-    col = col + 1
-  }
-}
-
-colnames(bp_measures) <- 
-  data.frame("waves" = rep(head(letter_waves, -1), each = 2), 
-             "bp" = c("sbp", "dbp")) %>% unite("names", sep = "") %>%
-  unlist() %>% paste0(., "_avg")
-
-hrs_samp %<>% cbind(bp_measures)
-
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves
 colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
                      paste0("r", number_waves, "smoken"))] <- 
   paste0(letter_waves, "smoken")
+
+colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
+                           paste0("r", number_waves, "bpsys"))] <- 
+  paste0(letter_waves, "bpsys")
+
+colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
+                           paste0("r", number_waves, "bpdia"))] <- 
+  paste0(letter_waves, "bpdia")
 
 #Inconsistency in capitalization
 colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"

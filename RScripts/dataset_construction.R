@@ -79,7 +79,6 @@ for(i in 1:length(years)){
 #Variables of interest: 
 ## Demographics: HHIDPN, gender, race, hispanic, birth month, 
 ##               birth year, birth date, death month, death year, death date,
-##               date at end of interview
 ##               age data in months (biomarker waves), years of education, 
 ##               highest degree (masked),  
 ## Health: BMI (measured),
@@ -92,7 +91,6 @@ for(i in 1:length(years)){
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
-                    paste0("r", number_waves, "iwend"),
                     paste0("r", number_waves, "agem_e"), "raedyrs", 
                     "raedegrm", 
                     paste0("r", number_waves, "bmi"), 
@@ -182,8 +180,8 @@ hrs_samp[, paste0(letter_waves, "age_y_int")] <- floor(age_m/12)
 # View(hrs_samp[, c(paste0(letter_waves, "age_y"), 
 #                   paste0(letter_waves, "age_y_int"))])
 
-#Check those missing age data-- this person has no data for interview date, 
-# so I'm dropping them
+#Check those missing age data-- this person has no data for interview date or 
+#birthdate, so I'm dropping them
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
 

@@ -226,6 +226,9 @@ hrs_samp %<>%
 # #sanity check
 # table(hrs_samp$female, hrs_samp$ragender, useNA = "ifany")
 
+#Drop RAND gender variable 
+hrs_samp %<>% dplyr::select(-ragender)
+
 #---- race-eth ----
 #Code any hispanic as 1, else 0
 hrs_samp %<>% 

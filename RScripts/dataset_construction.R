@@ -14,7 +14,6 @@ source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "fu_time.R"))
 source(here::here("RScripts", "impute_ages.R"))
-source(here::here("RScripts", "cysc_before_70.R"))
 source(here::here("RScripts", "cysc_between_60_70.R"))
 
 #---- wave mapping between HRS and RAND ----
@@ -297,28 +296,24 @@ hrs_samp[, "last_CYSC_wave"] <-
 #age at first CysC measure
 #restrict sample to those age-eligible at their first Cystatin C measure
 hrs_samp %<>% 
-  mutate("first_CYSC_age" = case_when(first_CYSC_wave == "K" ~ Kage_y,
-                                      first_CYSC_wave == "L" ~ Lage_y, 
-                                      first_CYSC_wave == "M" ~ Mage_y,
-                                      first_CYSC_wave == "N" ~ Nage_y, 
-                                      first_CYSC_wave == "O" ~ Oage_y)) %>% 
+  mutate("first_CYSC_age" = case_when(first_CYSC_wave == "K" ~ Kage_y_int,
+                                      first_CYSC_wave == "L" ~ Lage_y_int, 
+                                      first_CYSC_wave == "M" ~ Mage_y_int,
+                                      first_CYSC_wave == "N" ~ Nage_y_int, 
+                                      first_CYSC_wave == "O" ~ Oage_y_int)) %>% 
   filter(first_CYSC_age >= 50)
 
 #age at last CysC measure
 hrs_samp %<>% 
-  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ Kage_y,
-                                     last_CYSC_wave == "L" ~ Lage_y, 
-                                     last_CYSC_wave == "M" ~ Mage_y,
-                                     last_CYSC_wave == "N" ~ Nage_y, 
-                                     last_CYSC_wave == "O" ~ Oage_y))
+  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ Kage_y_int,
+                                     last_CYSC_wave == "L" ~ Lage_y_int, 
+                                     last_CYSC_wave == "M" ~ Mage_y_int,
+                                     last_CYSC_wave == "N" ~ Nage_y_int, 
+                                     last_CYSC_wave == "O" ~ Oage_y_int))
 
 # #sanity Check
 # View(hrs_samp %>% 
 #        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
-
-#---- double check restricting to those with Cystatin C measures ----
-# #There are 2 people with missing age data at every wave-- will fix this
-# hrs_samp %<>% filter(!is.na(last_CYSC_age))
 
 #---- follow-up time ----
 hrs_samp[, "fu_time"] <- 

@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse")
+p_load("here", "tidyverse", "mice")
 
 #No scientific notation
 options(scipen = 999)
@@ -42,6 +42,23 @@ colSums(is.na(cc_impute_long))
 
 #Does anyone have height but not weight or vice-versa-- Yep!
 table(is.na(analytical_sample$Kht), is.na(analytical_sample$Kwt))
+
+#---- cc_long --> cc_wide ----
+cc_impute_wide <- cc_impute_long %>% 
+  pivot_wider(names_from = Wave, 
+              values_from = colnames(cc_impute_long)[11:ncol(cc_impute_long)],
+              names_glue = "{Wave}{.value}")
+
+#Sanity check
+View(cc_impute_wide %>% dplyr::select(starts_with("K")) %>% 
+       filter(is.na(KCYSC_ADJ)))
+
+#---- Create missingness ----
+#Put -999 in for those whose values of Cystatin C are missing to begin with 
+#because we don't want them in the imputation model at alland should not be
+#imputed
+
+impute_long_temp <- impute_long
 
 
 

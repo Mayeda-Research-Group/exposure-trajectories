@@ -16,16 +16,20 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
 #---- Wave indicators ----
 letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
 
+#---- Select variables ----
+keep <- c("HHIDPN", "raedyrs", "cses_index", "death", 
+          "age_death_y", paste0(head(letter_waves, -1), "age_y_int"), "female", 
+          "hispanic", "black", "other", "CYSC_ADJ")
+
+impute <- analytical_sample %>% dplyr::select(contains(keep))
+
+#---- CysC by age ----
+
+
+
+
+#---- OLD ----
 #---- Imputation dataset ----
-keep <- c("HHIDPN", "raedyrs", paste0(head(letter_waves, -1), "smoken"), 
-          "cses_index", "CYSC_ADJ", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", "death", 
-          "age_death_y", paste0(head(letter_waves, -1), "age_y"), "female", 
-          "hispanic", "black", "other", "ht", "wt", "BMI", "sbp_avg", "dbp_avg")
-
-impute <- analytical_sample %>% dplyr::select(contains(keep)) %>% 
-  #leftover because of "contains"
-  dplyr::select(-c("age_death_d"))
-
 impute_long <- impute %>% 
   pivot_longer(cols = starts_with(head(letter_waves, -1), ignore.case = FALSE), 
                names_to = c("Wave", ".value"),

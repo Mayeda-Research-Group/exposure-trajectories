@@ -48,7 +48,10 @@ impute <- impute_long %>%
 # #Sanity Check-- num measures at each age (only 60 should be 0)
 # colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
 
-
+#---- save dataset ----
+write_csv(impute, paste0("/Users/CrystalShaw/Dropbox/Projects/",
+                         "exposure_trajectories/data/",
+                         "imputation_data.csv"))
 
 
 

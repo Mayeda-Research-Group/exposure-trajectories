@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("tidyverse")
+p_load("tidyverse", "magrittr")
 
 #No scientific notation
 options(scipen = 999)
@@ -42,11 +42,32 @@ impute <- impute_long %>%
   dplyr::select(-Wave) %>%
   #get columns of CysC by age
   pivot_wider(names_from = "names", values_from = "CYSC_ADJ") %>% 
-  mutate("CYSC_ADJ_60" = NA) 
+  mutate("CYSC_ADJ_60" = NA) %>% mutate_at("CYSC_ADJ_60", as.numeric) %>%
   relocate(CYSC_ADJ_60, .before = CYSC_ADJ_61) 
 
 # #Sanity Check-- num measures at each age (only 60 should be 0)
 # colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
+  
+#---- log CysC ----
+log_CysC <- log(impute %>% dplyr::select(contains("CYSC"))) %>% 
+  set_colnames(paste0("log", colnames(log_CysC)))
+impute %<>% cbind(log_CysC) 
+
+# #Look at the distributions of CysC and log(CysC)
+# ggplot(impute %>% 
+#          dplyr::select(paste0("CYSC_ADJ_", seq(60, age_range[2]))) %>% 
+#          pivot_longer(cols = everything(), 
+#                       names_to = "Age", values_to = "CysC"), aes(x = CysC)) + 
+#   geom_histogram() + facet_wrap(~ Age)
+# 
+# ggplot(impute %>% 
+#          dplyr::select(paste0("logCYSC_ADJ_", seq(60, age_range[2]))) %>% 
+#          pivot_longer(cols = everything(), 
+#                       names_to = "Age", values_to = "CysC"), aes(x = CysC)) + 
+#   geom_histogram() + facet_wrap(~ Age)
+
+#---- remove extra variables ----
+impute %<>% dplyr::select(-paste0("CYSC_ADJ_", seq(60, age_range[2])))
   
 #---- save dataset ----
 write_csv(impute, paste0("/Users/CrystalShaw/Dropbox/Projects/",

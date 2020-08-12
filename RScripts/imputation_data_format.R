@@ -42,14 +42,11 @@ impute <- impute_long %>%
   dplyr::select(-Wave) %>%
   #get columns of CysC by age
   pivot_wider(names_from = "names", values_from = "CYSC_ADJ") %>% 
-  mutate("CYSC_ADJ_60" = NA) %>% mutate_at("CYSC_ADJ_60", as.numeric) %>%
+  mutate("CYSC_ADJ_60" = NA) 
   relocate(CYSC_ADJ_60, .before = CYSC_ADJ_61) 
 
 # #Sanity Check-- num measures at each age (only 60 should be 0)
 # colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
-
-#---- Column types ----
-sapply(impute, class)
 
 #---- save dataset ----
 write_csv(impute, paste0("/Users/CrystalShaw/Dropbox/Projects/",

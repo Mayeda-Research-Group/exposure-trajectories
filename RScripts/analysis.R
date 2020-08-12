@@ -11,7 +11,9 @@ options(scipen = 999)
 #---- Read in analytical sample ----
 imputation_data <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                                    "exposure_trajectories/data/", 
-                                   "imputation_data.csv"))
+                                   "imputation_data.csv"), 
+                            col_types = cols(.default = col_double(), 
+                                             HHIDPN = col_character()))
 
 #---- Wave indicators ----
 letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS

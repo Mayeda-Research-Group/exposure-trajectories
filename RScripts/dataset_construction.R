@@ -138,7 +138,7 @@ cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/",
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
 
-#---- Number of CysC visits ----
+#---- number of CysC visits ----
 hrs_samp %<>%
   mutate("num_visits" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>%
   apply(1, function(x) sum(1 - is.na(x)))) %>% filter(num_visits != 0)
@@ -248,7 +248,7 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
   dplyr::select(-c("rahispan", "raracem"))
 
-#---- Education ----
+#---- education ----
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 

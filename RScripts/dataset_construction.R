@@ -140,11 +140,12 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 
 #---- number of CysC visits ----
 hrs_samp %<>%
-  mutate("num_visits" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(num_visits != 0)
+  mutate("num_CysC_visits" = hrs_samp %>% 
+           dplyr::select(contains("CYSC_ADJ")) %>%
+  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(num_CysC_visits != 0)
 
 # #Sanity Check
-# View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_visits"))))
+# View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_CysC_visits"))))
 
 #---- death ----
 #death indicator

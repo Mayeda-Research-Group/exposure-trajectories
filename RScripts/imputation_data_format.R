@@ -24,45 +24,31 @@ keep <- c("HHIDPN", "raedyrs", "cses_index", "death",
 impute <- analytical_sample %>% dplyr::select(contains(keep))
 
 #---- CysC by age ----
-
-
-
-
-#---- OLD ----
-#---- Imputation dataset ----
 impute_long <- impute %>% 
-  pivot_longer(cols = starts_with(head(letter_waves, -1), ignore.case = FALSE), 
+  pivot_longer(cols = contains(c("age_y", "CYSC_ADJ"), ignore.case = FALSE), 
                names_to = c("Wave", ".value"),
-               names_pattern = "(.)(.*)")
+               names_pattern = "(.)(.*)") %>% 
+  arrange(age_y_int) %>% filter(!is.na(CYSC_ADJ))
+  
+#Youngest age is 61, so will need to add a column for age 60
+age_range <- c(min(impute_long$age_y_int), max(impute_long$age_y_int))
+#Checking if any of the in between ages are missing (none)
+sum(!which(seq(age_range[1], age_range[2]) %in% impute_long$age_y_int))
 
-#---- Missing data in predictors ----
-#Predictors of Cystatin C: 
-# baseline: Sex/gender, race/ethnicity, cSES
-# time-varying: Age, smoking status, BMI, total cholesterol, HDL, HbA1c, sbp, 
-#               dbp
+impute <- impute_long %>%
+  mutate("label" = "CYSC_ADJ") %>% 
+  unite("names", c("label", "age_y_int"), sep = "_") %>% 
+  #get rid of Wave variable
+  dplyr::select(-Wave) %>%
+  #get columns of CysC by age
+  pivot_wider(names_from = "names", values_from = "CYSC_ADJ") %>% 
+  mutate("CYSC_ADJ_60" = NA) %>% 
+  relocate(CYSC_ADJ_60, .before = CYSC_ADJ_61) 
 
-cc_impute_long <- impute_long %>% filter(!is.na(CYSC_ADJ))
-colSums(is.na(cc_impute_long))
+# #Sanity Check-- num measures at each age (only 60 should be 0)
+# colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
 
-#Does anyone have height but not weight or vice-versa-- Yep!
-table(is.na(analytical_sample$Kht), is.na(analytical_sample$Kwt))
 
-#---- cc_long --> cc_wide ----
-cc_impute_wide <- cc_impute_long %>% 
-  pivot_wider(names_from = Wave, 
-              values_from = colnames(cc_impute_long)[11:ncol(cc_impute_long)],
-              names_glue = "{Wave}{.value}")
-
-#Sanity check
-View(cc_impute_wide %>% dplyr::select(starts_with("K")) %>% 
-       filter(is.na(KCYSC_ADJ)))
-
-#---- Create missingness ----
-#Put -999 in for those whose values of Cystatin C are missing to begin with 
-#because we don't want them in the imputation model at alland should not be
-#imputed
-
-impute_long_temp <- impute_long
 
 
 

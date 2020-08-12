@@ -138,10 +138,13 @@ cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/",
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
 
-#---- at least one CysC measure ----
+#---- Number of CysC visits ----
 hrs_samp %<>%
-  mutate("some_cysc" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(some_cysc != 0)
+  mutate("num_visits" = hrs_samp %>% dplyr::select(contains("CYSC_ADJ")) %>%
+  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(num_visits != 0)
+
+# #Sanity Check
+# View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_visits"))))
 
 #---- death ----
 #death indicator
@@ -212,13 +215,6 @@ hrs_samp[, "cysc_between_60_70"] <-
 hrs_samp %<>% filter(cysc_between_60_70 == 1) %>%
   #Restrict to survivors to age 70
   filter(alive_70 == 1)
-
-#---- number of CysC visits ----
-hrs_samp[, "num_CysC_visits"] <- (1 - is.na(hrs_samp %>% 
-  dplyr::select(contains("CYSC_ADJ")))) %>% rowSums()
-
-# #Sanity Check
-# View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_CysC_visits"))))
 
 #---- gender ----
 hrs_samp %<>% 

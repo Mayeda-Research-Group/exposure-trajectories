@@ -119,8 +119,6 @@ for(i in (length(years) + 1):length(dataframes_list)){
                        "core/h", year, "sta/H", year, "I_R.dct"), 
                 HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
     #Select variables of interest: ID, Weight (pounds), Height (inches), 
-    #                              systolic bp (3 times), 
-    #                              diastolic bp (3 times)
     dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
     set_colnames(c("HHIDPN", paste0(letter_waves[i - length(years)], "wt"), 
                    paste0(letter_waves[i - length(years)], "ht")))

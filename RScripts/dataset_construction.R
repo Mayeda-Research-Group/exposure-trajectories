@@ -44,7 +44,7 @@ hrs_tracker <-
   mutate_at("HHIDPN", as.numeric)
 
 #2006-2012 biomarker data and core data 
-dataframes_list <- vector(mode = "list", length = 2*length(years))
+dataframes_list <- vector(mode = "list", length = length(years))
 
 for(i in 1:length(years)){
   year <- years[i]
@@ -108,21 +108,21 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
-#HRS Core files-- Need for physical measures
-#count continues from biomarker data pull
-for(i in (length(years) + 1):length(dataframes_list)){
-  year <- years[i - length(years)]
-  dataframes_list[[i]] <- 
-    read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
-                       "core/h", year, "da/H", year, "I_R.da"),
-                paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
-                       "core/h", year, "sta/H", year, "I_R.dct"), 
-                HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
-    #Select variables of interest: ID, Weight (pounds), Height (inches), 
-    dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
-    set_colnames(c("HHIDPN", paste0(letter_waves[i - length(years)], "wt"), 
-                   paste0(letter_waves[i - length(years)], "ht")))
-}
+# #HRS Core files-- Need for physical measures
+# #count continues from biomarker data pull
+# for(i in (length(years) + 1):length(dataframes_list)){
+#   year <- years[i - length(years)]
+#   dataframes_list[[i]] <- 
+#     read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
+#                        "core/h", year, "da/H", year, "I_R.da"),
+#                 paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year, 
+#                        "core/h", year, "sta/H", year, "I_R.dct"), 
+#                 HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+#     #Select variables of interest: ID, Weight (pounds), Height (inches), 
+#     dplyr::select(HHIDPN, contains("I841"), contains("I834")) %>% 
+#     set_colnames(c("HHIDPN", paste0(letter_waves[i - length(years)], "wt"), 
+#                    paste0(letter_waves[i - length(years)], "ht")))
+# }
 
 #Anusha Vable's CSES index
 cSES <- read_dta(paste0("~/Dropbox/Projects/exposure_trajectories/data/", 
@@ -327,6 +327,12 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), contains("CYSC_age"), 
 #                                 contains("age_y_int"), "fu_time"))
+
+#---- height ----
+
+
+#---- weight ----
+
 
 #---- BMI ----
 # #Sanity check

@@ -81,7 +81,11 @@ for(i in 1:length(years)){
 ##               birth year, birth date, death month, death year, death date,
 ##               age data in months (biomarker waves), years of education, 
 ##               highest degree (masked),  
-## Health: BMI (measured),
+## Health: weight (kg; measured),
+##         weight (kg; self-report),
+##         height (m; measured),
+##         height (m; self-report),
+##         BMI (measured),
 ##         BMI (self-report), 
 ##         BP (systolic), 
 ##         BP (diastolic)
@@ -93,6 +97,10 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
                     paste0("r", number_waves, "agem_e"), "raedyrs", 
                     "raedegrm", 
+                    paste0("r", number_waves, "pmwght"), 
+                    paste0("r", number_waves, "weight"),
+                    paste0("r", number_waves, "pmhght"), 
+                    paste0("r", number_waves, "height"),
                     paste0("r", number_waves, "bmi"), 
                     paste0("r", number_waves, "pmbmi"), 
                     paste0("r", number_waves, "bpsys"), 
@@ -329,6 +337,27 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 #                                 contains("age_y_int"), "fu_time"))
 
 #---- height ----
+#Get measured height
+height <- cbind(hrs_samp[, paste0("r", number_waves, "pmhght")], 
+                1 - is.na(hrs_samp[, paste0("r", number_waves, "pmhght")]))
+#Set NAs to 0 so we can pick up remaining NAs from self-report
+height[is.na(height)] <- 0 
+colnames(height) <- c(paste0(letter_waves, "height"), 
+                      paste0(letter_waves, "height_measured"))
+
+#Pick up self-reported height for empty (= 0) cells
+pick_up <- (height[, paste0(letter_waves, "height")] == 0)*1*
+  hrs_samp[, paste0("r", number_waves, "height")]
+
+#Fill in self-reported BMI
+BMI[, paste0(letter_waves, "BMI")] <- 
+  BMI[, paste0(letter_waves, "BMI")] + pick_up
+
+hrs_samp %<>% cbind(BMI)
+
+#Drop RAND's BMI variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
+                               paste0("r", number_waves, "pmbmi")))
 
 
 #---- weight ----

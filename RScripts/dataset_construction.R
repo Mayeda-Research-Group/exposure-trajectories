@@ -33,8 +33,8 @@ source(here::here("RScripts", "measured_self_report.R"))
 # 2016 | P | 13
 
 years <- c("06", "08", "10", "12", "14") #biomarker sample
-letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
-number_waves <- seq(8, 13, by = 1) #biomarker sample + 2016 HRS
+letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample 
+number_waves <- seq(8, 12, by = 1) #biomarker sample
 
 #---- read in data ----
 hrs_tracker <- 
@@ -69,9 +69,11 @@ for(i in 1:length(years)){
       HHIDPN = TRUE) %>%
       mutate_at("HHIDPN", as.numeric) %>% 
       #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
-      #                              adjusted total cholesterol, adjusted HDL
+      #                              adjusted total cholesterol, adjusted HDL, 
+      #                              adjusted c-reactive protein
       dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
-                    contains("TC_ADJ"), contains("HDL_ADJ"))
+                    contains("TC_ADJ"), contains("HDL_ADJ"), 
+                    contains("CRP_ADJ"))
     
   }
 }
@@ -88,25 +90,43 @@ for(i in 1:length(years)){
 ##         height (m; self-report),
 ##         BMI (measured),
 ##         BMI (self-report), 
+##         waist circumference,
 ##         BP (systolic), 
-##         BP (diastolic)
-## Health Behaviors: current smoker
+##         BP (diastolic), 
+##         reports high blood pressure this wave,
+##         reports diabetes this wave,
+##         reports cancer this wave,
+##         reports stroke this wave,
+##         reports heart problems this wave
+## Health Behaviors: current smoker 
+##                   number of drinks per day
+##                   frequency of vigorous/moderate/light physical activity
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
-                    paste0("r", number_waves, "agem_e"), "raedyrs", 
+                    paste0("r", c(number_waves, 13), "agem_e"), "raedyrs", 
                     "raedegrm", 
                     paste0("r", number_waves, "pmwght"), 
                     paste0("r", number_waves, "weight"),
                     paste0("r", number_waves, "pmhght"), 
                     paste0("r", number_waves, "height"),
                     paste0("r", number_waves, "bmi"), 
-                    paste0("r", number_waves, "pmbmi"), 
+                    paste0("r", number_waves, "pmbmi"),
+                    paste0("r", number_waves, "pmwaist"),
                     paste0("r", number_waves, "bpsys"), 
                     paste0("r", number_waves, "bpdia"),
-                    paste0("r", number_waves, "smoken"))
+                    paste0("r", number_waves, "hibp"),
+                    paste0("r", number_waves, "diab"),
+                    paste0("r", number_waves, "cancr"),
+                    paste0("r", number_waves, "strok"), 
+                    paste0("r", number_waves, "heart"),
+                    paste0("r", number_waves, "smoken"), 
+                    paste0("r", number_waves, "drinkd"), 
+                    paste0("r", number_waves, "vgactx"),
+                    paste0("r", number_waves, "mdactx"), 
+                    paste0("r", number_waves, "ltactx"))
 
 RAND <- read_dta(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 
@@ -184,13 +204,13 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
   apply(., 1, impute_ages) %>% t() 
 
 #Exact ages
-hrs_samp[, paste0(letter_waves, "age_y")] <- age_m/12
+hrs_samp[, paste0(c(letter_waves, "P"), "age_y")] <- age_m/12
 #Ages rounded down to nearest year
-hrs_samp[, paste0(letter_waves, "age_y_int")] <- floor(age_m/12)
+hrs_samp[, paste0(c(letter_waves, "P"), "age_y_int")] <- floor(age_m/12)
 
 # #Sanity check
-# View(hrs_samp[, c(paste0(letter_waves, "age_y"), 
-#                   paste0(letter_waves, "age_y_int"))])
+# View(hrs_samp[, c(c(letter_waves, "P"), "age_y"), 
+#                   c(letter_waves, "P"), "age_y_int"))])
 
 #Check those missing age data-- this person has no data for interview date or 
 #birthdate, so I'm dropping them
@@ -204,10 +224,11 @@ hrs_samp %<>%
   mutate("alive_70" = ifelse(Oage_y >= 70, 1, 0))
 
 # #Sanity Check
-# View(hrs_samp %>% dplyr::select(c(paste0(letter_waves, "age_y"), "alive_70")))
+# View(hrs_samp %>% dplyr::select(c(paste0(c(letter_waves, "P"), "age_y"), 
+#"alive_70")))
 
 #Drop RAND age variables
-hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))
+hrs_samp %<>% dplyr::select(-paste0("r", c(number_waves, 13), "agem_e"))
 
 #---- age at CysC ----
 #Flag CysC measures between ages [60-70)

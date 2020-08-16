@@ -400,7 +400,6 @@ for(var in variables){
   colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
                              paste0("r", number_waves, var))] <- 
     paste0(letter_waves, var)
-  
 }
 
 #Inconsistency in capitalization

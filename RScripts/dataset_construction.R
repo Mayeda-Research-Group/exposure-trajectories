@@ -392,17 +392,16 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"),
 
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves
-colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
-                     paste0("r", number_waves, "smoken"))] <- 
-  paste0(letter_waves, "smoken")
+variables <- c("smoken", "bpsys", "bpdia", "pmwaist", "drinkd", 
+               paste0(c("vg", "md", "lt"), "actx"), "hibp", "heart", "strok", 
+               "diab", "cancr")
 
-colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
-                           paste0("r", number_waves, "bpsys"))] <- 
-  paste0(letter_waves, "bpsys")
-
-colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
-                           paste0("r", number_waves, "bpdia"))] <- 
-  paste0(letter_waves, "bpdia")
+for(var in variables){
+  colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
+                             paste0("r", number_waves, var))] <- 
+    paste0(letter_waves, var)
+  
+}
 
 #Inconsistency in capitalization
 colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"

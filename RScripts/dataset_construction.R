@@ -14,6 +14,7 @@ source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "cysc_between_60_70.R"))
+source(here::here("RScripts", "measured_self_report.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -337,28 +338,19 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 #                                 contains("age_y_int"), "fu_time"))
 
 #---- height ----
-#Get measured height
-height <- cbind(hrs_samp[, paste0("r", number_waves, "pmhght")], 
-                1 - is.na(hrs_samp[, paste0("r", number_waves, "pmhght")]))
-#Set NAs to 0 so we can pick up remaining NAs from self-report
-height[is.na(height)] <- 0 
-colnames(height) <- c(paste0(letter_waves, "height"), 
-                      paste0(letter_waves, "height_measured"))
+hrs_samp %<>% 
+  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmhght"), 
+                       paste0("r", number_waves, "height"), "height"))
 
-#Pick up self-reported height for empty (= 0) cells
-pick_up <- (height[, paste0(letter_waves, "height")] == 0)*1*
-  hrs_samp[, paste0("r", number_waves, "height")]
-
-#Fill in self-reported BMI
-BMI[, paste0(letter_waves, "BMI")] <- 
-  BMI[, paste0(letter_waves, "BMI")] + pick_up
-
-hrs_samp %<>% cbind(BMI)
-
-#Drop RAND's BMI variables
-hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
-                               paste0("r", number_waves, "pmbmi")))
-
+# #Sanity check
+# View(hrs_samp[, c(paste0("r", number_waves, "pmhght"), 
+#                   paste0("r", number_waves, "height"), 
+#                   paste0(letter_waves, "height"),
+#                   paste0(letter_waves, "height_measured"))])
+  
+#Drop RAND's height variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmhght"), 
+                               paste0("r", number_waves, "height")))
 
 #---- weight ----
 

@@ -353,31 +353,18 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmhght"),
                                paste0("r", number_waves, "height")))
 
 #---- weight ----
+hrs_samp %<>% 
+  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmwght"), 
+                             paste0("r", number_waves, "weight"), "weight"))
 
+#Drop RAND's weight variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmwght"), 
+                               paste0("r", number_waves, "weight")))
 
 #---- BMI ----
-# #Sanity check
-# View(hrs_samp[, c(paste0("r", number_waves, "bmi"), 
-#                   paste0("r", number_waves, "pmbmi"))])
-
-#Get measured BMI
-BMI <- cbind(hrs_samp[, paste0("r", number_waves, "pmbmi")], 
-             1 - is.na(hrs_samp[, paste0("r", number_waves, "pmbmi")]))
-#Set NAs to 0 so we can pick up remaining NAs from self-report
-BMI[is.na(BMI)] <- 0 
-colnames(BMI) <- c(paste0(letter_waves, "BMI"), 
-                   paste0(letter_waves, "BMI_measured"))
-
-#Pick up self-reported BMI for empty (= 0) cells
-pick_up <- (BMI[, paste0(letter_waves, "BMI")] == 0)*1*
-  hrs_samp[, paste0("r", number_waves, "bmi")]
-
-#Fill in self-reported BMI
-BMI[, paste0(letter_waves, "BMI")] <- 
-  BMI[, paste0(letter_waves, "BMI")] + pick_up
-
-hrs_samp %<>% cbind(BMI)
-
+hrs_samp %<>% 
+  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"), 
+                             paste0("r", number_waves, "bmi"), "BMI"))
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))

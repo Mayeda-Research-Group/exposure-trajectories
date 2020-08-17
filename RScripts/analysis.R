@@ -51,27 +51,28 @@ impute_here_long <- is.na(imputation_data_long) %>%
 colSums(impute_here_long)/nrow(impute_here_long)
 
 
-
 #Define where we want imputations
 impute_here_wide[, c("age_death_y", 
                      paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
 
 
-
 #---- predictor matrix ----
-predictors <- matrix(1, ncol = ncol(imputation_data), 
-                     nrow = ncol(imputation_data)) %>% 
-  set_colnames(colnames(imputation_data)) %>% 
-  set_rownames(colnames(imputation_data))
+predictors <- matrix(1, ncol = ncol(imputation_data_long), 
+                     nrow = ncol(imputation_data_long)) %>% 
+  set_colnames(colnames(imputation_data_long)) %>% 
+  set_rownames(colnames(imputation_data_long))
 diag(predictors) <- 0
 
 #Don't use these as predictors
 predictors[, "HHIDPN"] <- 0
-predictors[, "logCYSC_ADJ_60"] <- 0
 
 #Don't predict these
-predictors[colnames(imputation_data)[-which(colnames(imputation_data) %in% 
-                                   paste0("logCYSC_ADJ_", seq(60, 69)))], ] <- 0
+predictors[colnames(predictors)[-which(colnames(predictors) == 
+                                         "logCYSC_ADJ")], ] <- 0
+
+# #Don't predict these in wide dataset
+# predictors[colnames(imputation_data)[-which(colnames(imputation_data) %in% 
+#                                    paste0("logCYSC_ADJ_", seq(60, 69)))], ] <- 0
 
 #---- MICE ----
 # #Look at missing data pattern

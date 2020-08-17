@@ -9,10 +9,18 @@ p_load("here", "tidyverse", "mice")
 options(scipen = 999)
 
 #---- Read in analytical sample ----
-imputation_data <- 
+imputation_data_wide <- 
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
-                  "imputation_data.csv"), 
+                  "imputation_data_wide.csv"), 
+           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+                            death = col_factor(), female = col_factor(), 
+                            hispanic = col_factor(), black = col_factor(), 
+                            other = col_factor())) 
+imputation_data_long <- 
+  read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+                  "exposure_trajectories/data/", 
+                  "imputation_data_long.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death = col_factor(), female = col_factor(), 
                             hispanic = col_factor(), black = col_factor(), 
@@ -23,14 +31,16 @@ imputation_data <-
 # baseline: Sex/gender, race/ethnicity, cSES, death, age at death
 # time-varying: 
 
-#Define where we want data imputed
-impute_here <- is.na(imputation_data) %>% 
-  set_colnames(colnames(imputation_data))*1
+#Indicate where these if missing data
+impute_here_wide <- is.na(imputation_data_wide) %>% 
+  set_colnames(colnames(imputation_data_wide))*1
 
-#Check where there is missing data
+#Check where there is missing data in the wide dataset
 colSums(impute_here)/3204
 
 impute_here[, c("age_death_y", paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
+
+
 
 #---- predictor matrix ----
 predictors <- matrix(1, ncol = ncol(imputation_data), 

@@ -16,8 +16,7 @@ imputation_data <-
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death = col_factor(), female = col_factor(), 
                             hispanic = col_factor(), black = col_factor(), 
-                            other = col_factor())) %>% 
-  dplyr::select(-age_death_y)
+                            other = col_factor())) 
 
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 

@@ -31,14 +31,30 @@ imputation_data_long <-
 # baseline: Sex/gender, race/ethnicity, cSES, death, age at death
 # time-varying: 
 
-#Indicate where these if missing data
+#Indicate where there is missing data in the wide data
 impute_here_wide <- is.na(imputation_data_wide) %>% 
   set_colnames(colnames(imputation_data_wide))*1
+colSums(impute_here_wide)/nrow(impute_here_wide)
 
-#Check where there is missing data in the wide dataset
-colSums(impute_here)/3204
+#Get rid of lines with missing data in ages [70, max_age]
+max_age <- max(imputation_data_long$Age, na.rm = TRUE)
+imputation_data_long %<>% 
+  mutate("remove" = ifelse(Age %in% seq(70, max_age) & 
+                             is.na(logCYSC_ADJ), 1, 0)) %>% 
+  filter(remove == 0) %>% 
+  dplyr::select(-"remove")
 
-impute_here[, c("age_death_y", paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
+#Indicate where there is missing data in the long data
+impute_here_long <- is.na(imputation_data_long) %>% 
+  set_colnames(colnames(imputation_data_long))*1
+
+colSums(impute_here_long)/nrow(impute_here_long)
+
+
+
+#Define where we want imputations
+impute_here_wide[, c("age_death_y", 
+                     paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
 
 
 

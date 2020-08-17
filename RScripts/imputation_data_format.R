@@ -14,7 +14,7 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
                                      "hrs_samp_alive_70_cysc_60_70.csv"))
 
 #---- Wave indicators ----
-letter_waves <- LETTERS[seq(from = 11, to = 16)] #biomarker sample + 2016 HRS
+letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample
 
 #---- Select variables ----
 keep <- c("HHIDPN", "raedyrs", "cses_index", "death", 

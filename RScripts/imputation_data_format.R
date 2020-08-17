@@ -18,7 +18,7 @@ letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample
 
 #---- Select variables ----
 keep <- c("HHIDPN", "raedyrs", "cses_index", "death", 
-          "age_death_y", paste0(head(letter_waves, -1), "age_y_int"), "female", 
+          "age_death_y", paste0(head(letter_waves), "age_y_int"), "female", 
           "hispanic", "black", "other", "CYSC_ADJ")
 
 impute <- analytical_sample %>% dplyr::select(contains(keep))

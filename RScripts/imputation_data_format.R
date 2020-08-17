@@ -49,8 +49,8 @@ impute <- impute_long %>%
 # colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
   
 #---- log CysC ----
-log_CysC <- log(impute %>% dplyr::select(contains("CYSC"))) %>% 
-  set_colnames(paste0("log", colnames(log_CysC)))
+log_CysC <- log(impute %>% dplyr::select(contains("CYSC"))) 
+colnames(log_CysC) <- paste0("log", colnames(log_CysC))
 impute %<>% cbind(log_CysC) 
 
 # #Look at the distributions of CysC and log(CysC)
@@ -68,11 +68,21 @@ impute %<>% cbind(log_CysC)
 
 #---- remove extra variables ----
 impute %<>% dplyr::select(-paste0("CYSC_ADJ_", seq(60, age_range[2])))
+
+#---- create long data ----
+impute_long <- impute %>% 
+  pivot_longer(cols = contains(c("logCYSC_ADJ"), ignore.case = FALSE), 
+               names_to = c(".value", "Age"),
+               names_pattern = "(.*).{1}(..$)") 
   
-#---- save dataset ----
+#---- save datasets ----
 write_csv(impute, paste0("/Users/CrystalShaw/Dropbox/Projects/",
                          "exposure_trajectories/data/",
-                         "imputation_data.csv"))
+                         "imputation_data_wide.csv"))
+
+write_csv(impute_long, paste0("/Users/CrystalShaw/Dropbox/Projects/",
+                              "exposure_trajectories/data/",
+                              "imputation_data_long.csv"))
 
 
 

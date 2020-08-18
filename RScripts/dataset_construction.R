@@ -359,19 +359,28 @@ hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
 #                                 contains("age_y_int"), "fu_time"))
 
 #---- height ----
+#Create a "best" height variable by taking the median of measured heights if 
+#available or first self-reported height
 hrs_samp %<>% 
-  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmhght"), 
-                       paste0("r", number_waves, "height"), "height"))
+  mutate("med_height" = hrs_samp %>% 
+           dplyr::select(paste0("r", number_waves, "pmhght")) %>%
+           apply(1, function(x) median(x, na.rm = TRUE)), 
+         "self_height" = hrs_samp %>% 
+           dplyr::select(paste0("r", number_waves, "height")) %>%
+           apply(1, function(x) x[min(which(!is.na(x)))])) %>% 
+  mutate("height_measured" = ifelse(!is.na(height), 1, 0)) %>% 
+  mutate("height" = ifelse(height_measured == 1, med_height, self_height))
+
 
 # #Sanity check
-# View(hrs_samp[, c(paste0("r", number_waves, "pmhght"), 
-#                   paste0("r", number_waves, "height"), 
-#                   paste0(letter_waves, "height"),
-#                   paste0(letter_waves, "height_measured"))])
+# View(hrs_samp[, c(paste0("r", number_waves, "pmhght"),
+#                   paste0("r", number_waves, "height"),
+#                   "med_height", "self_height", "height_measured", "height")])
   
-#Drop RAND's height variables
+#Drop RAND's height variables + extra derived variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmhght"), 
-                               paste0("r", number_waves, "height")))
+                               paste0("r", number_waves, "height"), 
+                               "med_height", "self_height"))
 
 #---- weight ----
 hrs_samp %<>% 

@@ -51,9 +51,9 @@ impute_here_long <- is.na(imputation_data_long) %>%
 colSums(impute_here_long)/nrow(impute_here_long)
 
 
-#Define where we want imputations
-impute_here_wide[, c("age_death_y", 
-                     paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
+# #Define where we want imputations in wide data
+# impute_here_wide[, c("age_death_y", 
+#                      paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
 
 
 #---- predictor matrix ----
@@ -78,15 +78,16 @@ predictors[colnames(predictors)[-which(colnames(predictors) ==
 # #Look at missing data pattern
 # md.pattern(imputation_data %>% dplyr::select(contains("CYSC")))
 
-md.pattern(complete(imputations, action = 2)[, c("age_death_y", "logCYSC_ADJ_62")])
+md.pattern(complete(imputations, 
+                    action = 2)[, c("age_death_y", "logCYSC_ADJ_62")])
 
 #Imputation
 #Want 25 imputations 
 #maxit seems to be the number of iterations for the trace plot
-imputations <- mice(imputation_data, m = 2, maxit = 25, 
+imputations <- mice(imputation_data_long, m = 5, maxit = 100, 
                     predictorMatrix = predictors, 
-                    #where = impute_here,
-                    defaultMethod = rep("norm.predict", 4), seed = 20200812)
+                    where = impute_here_long,
+                    defaultMethod = rep("norm", 4), seed = 20200812)
 
 #check diagnostics
 View(imputations$loggedEvents)
@@ -96,6 +97,11 @@ densityplot(imputations, ~ age_death_y)
 #Checking
 sample_complete <- complete(imputations, action = 1)
 max(table(sample_complete$age_death_y))
+
+#---- Analytic model ----
+for(i in 0:2){
+  View(complete(imputations, action = i))
+}
 
 
 

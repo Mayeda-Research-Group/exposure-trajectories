@@ -29,11 +29,12 @@ imputation_data_long <-
                             other = col_factor(), smoke_now = col_factor())) 
 
 #---- Indicate observed Cystatin C ----
+#only interested in observed if they are in age range [60, 69]
 imputation_data_long %<>% 
-  mutate("observed" = ifelse(is.na(logCYSC_ADJ), 0, 1))
+  mutate("observed" = ifelse(!is.na(logCYSC_ADJ) & Age < 70, 1, 0))
 
 # #Sanity check
-# View(imputation_data_long[, c("logCYSC_ADJ", "observed")])
+# View(imputation_data_long[, c("logCYSC_ADJ", "Age", "observed")])
 
 #---- Induce missingness ----
 #ages in decreasing order
@@ -44,6 +45,9 @@ start_70 <- min(which(imputation_data_long$Age >= 70))
 
 # #Sanity check
 # View(imputation_data_long[c(start_70 - 1, start_70, start_70 + 1), ])
+
+#which values [60, 69] are observed
+obs_in_range <- which(imputation_data_long$observed == 1)
 
 #create missing indicator by scenario
 mcar10 <- sample(seq(1:(start_70 - 1)), size = floor(0.10*(start_70 - 1)))

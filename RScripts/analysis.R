@@ -8,6 +8,8 @@ p_load("here", "tidyverse", "mice")
 #No scientific notation
 options(scipen = 999)
 
+set.seed(20200819)
+
 #---- Read in analytical sample ----
 # imputation_data_wide <- 
 #   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 

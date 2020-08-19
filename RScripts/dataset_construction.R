@@ -399,9 +399,16 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))
 
+#---- Smoking ----
+
+#Drop RAND's smoking variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
+                               paste0("r", number_waves, "pmbmi")))
+
+
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves
-variables <- c("smoken", "bpsys", "bpdia", "pmwaist", "drinkd", 
+variables <- c("bpsys", "bpdia", "pmwaist", "drinkd", 
                paste0(c("vg", "md", "lt"), "actx"), "hibp", "heart", "strok", 
                "diab", "cancr")
 

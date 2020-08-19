@@ -37,25 +37,16 @@ imputation_data_long %<>%
 # View(imputation_data_long[, c("logCYSC_ADJ", "Age", "observed")])
 
 #---- Induce missingness ----
-#ages in decreasing order
-imputation_data_long %<>% arrange(Age)
-
-#row where ages become 70 or above
-start_70 <- min(which(imputation_data_long$Age >= 70))
-
-# #Sanity check
-# View(imputation_data_long[c(start_70 - 1, start_70, start_70 + 1), ])
-
 #which values [60, 69] are observed
 obs_in_range <- which(imputation_data_long$observed == 1)
 
 #create missing indicator by scenario
-mcar10 <- sample(seq(1:(start_70 - 1)), size = floor(0.10*(start_70 - 1)))
+mcar10 <- sample(obs_in_range, size = floor(0.10*length(obs_in_range)))
 
 imputation_data_long[, "mcar10"] <- 0
 imputation_data_long[mcar10, "mcar10"] <- 1
 
-# #Sanity check-- no observations over age 70 should be masked
+# #Sanity check
 # imputation_data_long %>% filter(Age >= 70) %>% summarise_at("mcar10", sum)
 # sum(imputation_data_long$mcar10)
 
@@ -64,7 +55,8 @@ imputation_data_long %<>%
   mutate("logCYSC_ADJ_masked" = ifelse(mcar10 == 1, NA, logCYSC_ADJ)) 
 
 # #Sanity check
-# View(imputation_data_long[, c("logCYSC_ADJ", "logCYSC_ADJ_masked", "mcar10")])
+# View(imputation_data_long[, c("Age", "logCYSC_ADJ", "logCYSC_ADJ_masked",
+#                               "mcar10")])
 
 #---- Remove people with no Cystatin C measures ----
 no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 

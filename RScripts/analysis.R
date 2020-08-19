@@ -35,6 +35,33 @@ imputation_data_long %<>% filter(!is.na(logCYSC_ADJ))
 # length(unique(imputation_data_long$HHIDPN))
 # hist(imputation_data_long$Age)
 
+#---- Induce missingness ----
+#ages in decreasing order
+imputation_data_long %<>% arrange(Age)
+
+#row where ages become 70 or above
+start_70 <- min(which(imputation_data_long$Age >= 70))
+
+# #Sanity check
+# View(imputation_data_long[c(start_70 - 1, start_70, start_70 + 1), ])
+
+#create missing indicator by scenario
+mcar10 <- sample(seq(1:(start_70 - 1)), size = floor(0.10*(start_70 - 1)))
+
+imputation_data_long[, "mcar10"] <- 0
+imputation_data_long[mcar10, "mcar10"] <- 1
+
+# #Sanity check-- no observations over age 70 should be masked
+# imputation_data_long %>% filter(Age >= 70) %>% summarise_at("mcar10", sum)
+# sum(imputation_data_long$mcar10)
+
+#mask values based on missing value indicator
+imputation_data_long %<>% 
+  mutate("logCYSC_ADJ_masked" = ifelse(mcar10 == 1, NA, logCYSC_ADJ)) 
+
+# #Sanity check
+# View(imputation_data_long[, c("logCYSC_ADJ", "logCYSC_ADJ_masked", "mcar10")])
+
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
 # baseline: Sex/gender, race/ethnicity, cSES, death, age at death

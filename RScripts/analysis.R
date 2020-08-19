@@ -59,9 +59,12 @@ imputation_data_long %<>%
 #                               "mcar10")])
 
 #---- Remove people with no Cystatin C measures ----
+#On this run, I've removed 75 people
 no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 
   summarise_at("logCYSC_ADJ_masked", function(x) sum(!is.na(x))) %>% 
   filter(logCYSC_ADJ_masked == 0)
+
+imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
@@ -69,10 +72,10 @@ no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>%
 #           smoking status
 # time-varying: 
 
-#Indicate where there is missing data in the wide data
-impute_here_wide <- is.na(imputation_data_wide) %>% 
-  set_colnames(colnames(imputation_data_wide))*1
-colSums(impute_here_wide)/nrow(impute_here_wide)
+# #Indicate where there is missing data in the wide data
+# impute_here_wide <- is.na(imputation_data_wide) %>% 
+#   set_colnames(colnames(imputation_data_wide))*1
+# colSums(impute_here_wide)/nrow(impute_here_wide)
 
 #Get rid of lines with missing data in ages [70, max_age]
 max_age <- max(imputation_data_long$Age, na.rm = TRUE)

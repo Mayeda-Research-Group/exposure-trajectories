@@ -369,7 +369,7 @@ hrs_samp %<>%
          "self_height" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "height")) %>%
            apply(1, function(x) x[min(which(!is.na(x)))])) %>% 
-  mutate("height_measured" = ifelse(!is.na(height), 1, 0)) %>% 
+  mutate("height_measured" = ifelse(!is.na(med_height), 1, 0)) %>% 
   mutate("height" = ifelse(height_measured == 1, med_height, self_height))
 
 

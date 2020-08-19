@@ -26,6 +26,13 @@ imputation_data_long <-
                             hispanic = col_factor(), black = col_factor(), 
                             other = col_factor(), smoke_now = col_factor())) 
 
+#---- Observed Cystatin C ----
+imputation_data_long %<>% filter(!is.na(logCYSC_ADJ))
+
+# #Sanity check-- should still have 3,204 people
+# length(unique(imputation_data_long$HHIDPN))
+# hist(imputation_data_long$Age)
+
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 
 # baseline: Sex/gender, race/ethnicity, cSES, death, age at death

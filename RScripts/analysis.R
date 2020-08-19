@@ -9,14 +9,14 @@ p_load("here", "tidyverse", "mice")
 options(scipen = 999)
 
 #---- Read in analytical sample ----
-imputation_data_wide <- 
-  read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-                  "exposure_trajectories/data/", 
-                  "imputation_data_wide.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death = col_factor(), female = col_factor(), 
-                            hispanic = col_factor(), black = col_factor(), 
-                            other = col_factor())) 
+# imputation_data_wide <- 
+#   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+#                   "exposure_trajectories/data/", 
+#                   "imputation_data_wide.csv"), 
+#            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+#                             death = col_factor(), female = col_factor(), 
+#                             hispanic = col_factor(), black = col_factor(), 
+#                             other = col_factor())) 
 imputation_data_long <- 
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
@@ -24,7 +24,7 @@ imputation_data_long <-
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death = col_factor(), female = col_factor(), 
                             hispanic = col_factor(), black = col_factor(), 
-                            other = col_factor())) 
+                            other = col_factor(), smoke_now = col_factor())) 
 
 #---- Missing data in predictors ----
 #Predictors of Cystatin C: 

@@ -60,7 +60,8 @@ for(i in 1:length(years)){
       #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
       #                              adjusted total cholesterol, adjusted HDL
       dplyr::select(HHIDPN, contains("CYSC_ADJ"), contains("A1C_ADJ"), 
-                    contains("TC_ADJ"), contains("HDL_ADJ"))
+                    contains("TC_ADJ"), contains("HDL_ADJ"), 
+                    contains("CRP_ADJ"))
   } else{
     #2014 early release biomarker data
     dataframes_list[[i]] <-  read_da_dct(

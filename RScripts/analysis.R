@@ -59,7 +59,7 @@ imputation_data_long %<>%
 #                               "mcar10")])
 
 #---- Remove people with no Cystatin C measures ----
-#On this run, I've removed 75 people
+#On this run, I've removed 78 people
 no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 
   summarise_at("logCYSC_ADJ_masked", function(x) sum(!is.na(x))) %>% 
   filter(logCYSC_ADJ_masked == 0)
@@ -77,6 +77,10 @@ imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 #   set_colnames(colnames(imputation_data_wide))*1
 # colSums(impute_here_wide)/nrow(impute_here_wide)
 
+# #Define where we want imputations in wide data
+# impute_here_wide[, c("age_death_y", 
+#                      paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
+
 #Get rid of lines with missing data in ages [70, max_age]
 max_age <- max(imputation_data_long$Age, na.rm = TRUE)
 imputation_data_long %<>% 
@@ -91,12 +95,6 @@ impute_here_long <- is.na(imputation_data_long) %>%
 
 colSums(impute_here_long)/nrow(impute_here_long)
 
-
-# #Define where we want imputations in wide data
-# impute_here_wide[, c("age_death_y", 
-#                      paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
-
-
 #---- predictor matrix ----
 predictors <- matrix(1, ncol = ncol(imputation_data_long), 
                      nrow = ncol(imputation_data_long)) %>% 
@@ -105,11 +103,11 @@ predictors <- matrix(1, ncol = ncol(imputation_data_long),
 diag(predictors) <- 0
 
 #Don't use these as predictors
-predictors[, "HHIDPN"] <- 0
+predictors[, c("HHIDPN", "logCYSC_ADJ", "observed", "mcar10")] <- 0
 
 #Don't predict these
 predictors[colnames(predictors)[-which(colnames(predictors) == 
-                                         "logCYSC_ADJ")], ] <- 0
+                                         "logCYSC_ADJ_masked")], ] <- 0
 
 # #Don't predict these in wide dataset
 # predictors[colnames(imputation_data)[-which(colnames(imputation_data) %in% 
@@ -119,9 +117,6 @@ predictors[colnames(predictors)[-which(colnames(predictors) ==
 # #Look at missing data pattern
 # md.pattern(imputation_data %>% dplyr::select(contains("CYSC")))
 
-md.pattern(complete(imputations, 
-                    action = 2)[, c("age_death_y", "logCYSC_ADJ_62")])
-
 #Imputation
 #Want 25 imputations 
 #maxit seems to be the number of iterations for the trace plot
@@ -130,19 +125,28 @@ imputations <- mice(imputation_data_long, m = 5, maxit = 100,
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
 
-#check diagnostics
-View(imputations$loggedEvents)
-plot(imputations)
-densityplot(imputations, ~ age_death_y)
+# #check diagnostics
+# View(imputations$loggedEvents)
+# plot(imputations)
+# densityplot(imputations, ~ age_death_y)
 
 #Checking
 sample_complete <- complete(imputations, action = 1)
 max(table(sample_complete$age_death_y))
 
+#---- Observed vs Predicted ----
+plot_data <- 
+
 #---- Analytic model ----
-for(i in 0:2){
-  View(complete(imputations, action = i))
-}
+
+#---- Saving output ----
+#trace plots
+png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+           "manuscript/figures/mcar10_traceplot.png"), 
+    width = 7, height = 4.5, units = "in", res = 300)
+plot(imputations)
+dev.off()
+
 
 
 

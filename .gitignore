@@ -7,6 +7,5 @@
 *.xlsx
 *.DS_Store
 
-useful_lit*
-Data*
 Tables*
+Figures*

@@ -120,7 +120,8 @@ predictors[colnames(predictors)[-which(colnames(predictors) ==
 #Imputation
 #Want 25 imputations 
 #maxit seems to be the number of iterations for the trace plot
-imputations <- mice(imputation_data_long, m = 5, maxit = 100, 
+num_impute = 5
+imputations <- mice(imputation_data_long, m = num_impute, maxit = 100, 
                     predictorMatrix = predictors, 
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
@@ -135,7 +136,29 @@ sample_complete <- complete(imputations, action = 1)
 max(table(sample_complete$age_death_y))
 
 #---- Observed vs Predicted ----
-plot_data <- 
+plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long), 
+                        ncol = num_impute)) %>% 
+  set_colnames(paste0("impute", seq(1:num_impute))) %>% 
+  mutate("observed" = imputation_data_long$logCYSC_ADJ, 
+         "mcar10" = imputation_data_long$mcar10)
+
+for(i in 1:num_impute){
+  plot_data[, paste0("impute", i)] <- 
+    complete(imputations, action = i)[, "logCYSC_ADJ_masked"]
+}
+
+#Subset to those masked in the sample
+plot_data %<>% 
+  mutate("imputed" = plot_data %>% 
+           dplyr::select(contains("impute")) %>% rowMeans()) %>% 
+  filter(mcar10 == 1) 
+  
+#plot
+ggplot(data = plot_data, aes(x = observed, y = imputed)) + 
+  geom_point() + 
+  theme_minimal()
+  
+  
 
 #---- Analytic model ----
 

@@ -388,6 +388,19 @@ hrs_samp %<>%
   cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmwght"), 
                              paste0("r", number_waves, "weight"), "weight"))
 
+# #Checking weird weight values (from YW's analysis)
+# View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
+#        dplyr::select(c(paste0(letter_waves, "weight"),
+#                        paste0(letter_waves, "weight_measured"))))
+
+#Set the weird measures to NA
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight"] <- NA
+
+#Fix measured indicators
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight_measured"] <- 0
+
 #Drop RAND's weight variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmwght"), 
                                paste0("r", number_waves, "weight")))
@@ -396,6 +409,20 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmwght"),
 hrs_samp %<>% 
   cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"), 
                              paste0("r", number_waves, "bmi"), "BMI"))
+
+# #Checking weird BMI values (from YW's analysis)
+# View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
+#        dplyr::select(c(paste0(letter_waves, "BMI"),
+#                        paste0(letter_waves, "BMI_measured"))))
+
+#Set the weird measures to NA-- consistent with weight 
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI"] <- NA
+
+#Fix measured indicators
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
+
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))

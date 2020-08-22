@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "mice")
+p_load("here", "tidyverse", "magrittr", "mice", "ghibli")
 
 #No scientific notation
 options(scipen = 999)
@@ -120,8 +120,8 @@ predictors[colnames(predictors)[-which(colnames(predictors) ==
 #Imputation
 #Want 25 imputations 
 #maxit seems to be the number of iterations for the trace plot
-num_impute = 5
-imputations <- mice(imputation_data_long, m = num_impute, maxit = 100, 
+num_impute = 3
+imputations <- mice(imputation_data_long, m = num_impute, maxit = 5, 
                     predictorMatrix = predictors, 
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
@@ -131,9 +131,9 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 100,
 # plot(imputations)
 # densityplot(imputations, ~ age_death_y)
 
-#Checking
-sample_complete <- complete(imputations, action = 1)
-max(table(sample_complete$age_death_y))
+# #Checking
+# sample_complete <- complete(imputations, action = 1)
+
 
 #---- Observed vs Predicted ----
 plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long), 

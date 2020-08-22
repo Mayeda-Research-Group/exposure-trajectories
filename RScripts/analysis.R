@@ -139,7 +139,7 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long), 
                         ncol = num_impute)) %>% 
   set_colnames(paste0("impute", seq(1:num_impute))) %>% 
-  mutate("observed" = imputation_data_long$logCYSC_ADJ, 
+  mutate("Observed" = imputation_data_long$logCYSC_ADJ, 
          "mcar10" = imputation_data_long$mcar10)
 
 for(i in 1:num_impute){
@@ -149,16 +149,25 @@ for(i in 1:num_impute){
 
 #Subset to those masked in the sample
 plot_data %<>% 
-  mutate("imputed" = plot_data %>% 
+  mutate("Imputed" = plot_data %>% 
            dplyr::select(contains("impute")) %>% rowMeans()) %>% 
   filter(mcar10 == 1) 
   
 #plot
-ggplot(data = plot_data, aes(x = observed, y = imputed)) + 
-  geom_point() + 
-  theme_minimal()
-  
-  
+png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+           "manuscript/figures/mcar10_obs_pred.png"), 
+    width = 7, height = 4.5, units = "in", res = 300)
+
+ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
+  geom_point(color = "#B4DAE5FF") + 
+  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
+  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
+              size = 1) + 
+  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
+                 "Imputation Strategy: Fully Conditional Specification")) + 
+  theme_minimal() 
+
+dev.off()
 
 #---- Analytic model ----
 

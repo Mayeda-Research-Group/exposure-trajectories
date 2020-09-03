@@ -154,10 +154,6 @@ plot_data %<>%
   filter(mcar10 == 1) 
   
 #plot
-png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-           "manuscript/figures/mcar10_obs_pred.png"), 
-    width = 7, height = 4.5, units = "in", res = 300)
-
 ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
   geom_point(color = "#B4DAE5FF") + 
   geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
@@ -165,9 +161,11 @@ ggplot(data = plot_data, aes(x = Observed, y = Imputed)) +
               size = 1) + 
   ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
                  "Imputation Strategy: Fully Conditional Specification")) + 
-  theme_minimal() 
+  theme_minimal()  
 
-dev.off()
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/mcar10_obs_pred.jpeg"), 
+       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- Analytic model ----
 

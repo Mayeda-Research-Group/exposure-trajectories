@@ -24,9 +24,10 @@ imputation_data_long <-
                   "exposure_trajectories/data/", 
                   "imputation_data_long.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death = col_factor(), female = col_factor(), 
-                            hispanic = col_factor(), black = col_factor(), 
-                            other = col_factor(), smoke_now = col_factor())) 
+                            Wave = col_character(), death = col_factor(), 
+                            female = col_factor(), hispanic = col_factor(), 
+                            black = col_factor(), other = col_factor(), 
+                            smoker = col_factor())) 
 
 #---- Indicate observed Cystatin C ----
 #only interested in observed if they are in age range [60, 69]

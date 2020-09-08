@@ -49,22 +49,22 @@ imputation_data_long[, "mcar10"] <- 0
 imputation_data_long[mcar10, "mcar10"] <- 1
 
 # #Sanity check
-# imputation_data_long %>% filter(Age >= 70) %>% summarise_at("mcar10", sum)
+# imputation_data_long %>% filter(age_y_int >= 70) %>% summarise_at("mcar10", sum)
 # sum(imputation_data_long$mcar10)
 
 #mask values based on missing value indicator
 imputation_data_long %<>% 
-  mutate("logCYSC_ADJ_masked" = ifelse(mcar10 == 1, NA, logCYSC_ADJ)) 
+  mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) 
 
 # #Sanity check
-# View(imputation_data_long[, c("Age", "logCYSC_ADJ", "logCYSC_ADJ_masked",
+# View(imputation_data_long[, c("age_y_int", "log_CysC", "log_CysC_masked",
 #                               "mcar10")])
 
 #---- Remove people with no Cystatin C measures ----
 #On this run, I've removed 78 people
 no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 
-  summarise_at("logCYSC_ADJ_masked", function(x) sum(!is.na(x))) %>% 
-  filter(logCYSC_ADJ_masked == 0)
+  summarise_at("log_CysC_masked", function(x) sum(!is.na(x))) %>% 
+  filter(log_CysC_masked == 0)
 
 imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 

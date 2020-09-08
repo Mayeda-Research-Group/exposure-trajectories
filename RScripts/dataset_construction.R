@@ -445,6 +445,20 @@ hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))
 
+#---- waist measure ----
+# #Checking weird weight values (from YW's analysis)
+# View(hrs_samp %>% filter(HHIDPN %in% c(21587040, 52985020, 55000040, 75475020, 
+#                                        76110040, 78203040)) %>%
+#        dplyr::select(c("HHIDPN", paste0("r", number_waves, "pmwaist"))))
+
+#Set the weird measures to NA
+hrs_samp[which(hrs_samp$HHIDPN == 21587040), "r10pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 52985020), "r9pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 55000040), "r10pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 75475020), "r12pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 76110040), "r11pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 78203040), "r12pmwaist"] <- NA
+
 #---- smoking ----
 hrs_samp %<>% 
   mutate("smoke_now" = hrs_samp %>% 

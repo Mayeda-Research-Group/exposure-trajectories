@@ -48,37 +48,18 @@ impute_long <- impute %>%
 #   summarize_at("CYSC_ADJ", ~sum(!is.na(.)))
   
 #---- log CysC ----
-log_CysC <- log(impute %>% dplyr::select(contains("CYSC"))) 
-colnames(log_CysC) <- paste0("log", colnames(log_CysC))
-impute %<>% cbind(log_CysC) 
+impute_long %<>% mutate("log_CysC" = log(CYSC_ADJ)) 
 
 # #Look at the distributions of CysC and log(CysC)
-# ggplot(impute %>% 
-#          dplyr::select(paste0("CYSC_ADJ_", seq(60, age_range[2]))) %>% 
-#          pivot_longer(cols = everything(), 
-#                       names_to = "Age", values_to = "CysC"), aes(x = CysC)) + 
-#   geom_histogram() + facet_wrap(~ Age)
+# ggplot(impute_long %>%
+#          dplyr::select("CYSC_ADJ", "age_y_int"), aes(x = CYSC_ADJ)) +
+#   geom_histogram() + facet_wrap(~ age_y_int)
 # 
-# ggplot(impute %>% 
-#          dplyr::select(paste0("logCYSC_ADJ_", seq(60, age_range[2]))) %>% 
-#          pivot_longer(cols = everything(), 
-#                       names_to = "Age", values_to = "CysC"), aes(x = CysC)) + 
-#   geom_histogram() + facet_wrap(~ Age)
+# ggplot(impute_long %>%
+#          dplyr::select("log_CysC", "age_y_int"), aes(x = log_CysC)) +
+#   geom_histogram() + facet_wrap(~ age_y_int)
 
-#---- remove extra variables ----
-impute %<>% dplyr::select(-paste0("CYSC_ADJ_", seq(60, age_range[2])))
-
-#---- create long data ----
-impute_long <- impute %>% 
-  pivot_longer(cols = contains(c("logCYSC_ADJ"), ignore.case = FALSE), 
-               names_to = c(".value", "Age"),
-               names_pattern = "(.*).{1}(..$)") 
-  
 #---- save datasets ----
-write_csv(impute, paste0("/Users/CrystalShaw/Dropbox/Projects/",
-                         "exposure_trajectories/data/",
-                         "imputation_data_wide.csv"))
-
 write_csv(impute_long, paste0("/Users/CrystalShaw/Dropbox/Projects/",
                               "exposure_trajectories/data/",
                               "imputation_data_long.csv"))

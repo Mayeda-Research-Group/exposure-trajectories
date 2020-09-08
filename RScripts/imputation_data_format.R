@@ -17,9 +17,10 @@ analytical_sample <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
 letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample
 
 #---- Select variables ----
-keep <- c("HHIDPN", "raedyrs", "cses_index", "death", 
-          "age_death_y", paste0(head(letter_waves), "age_y_int"), "female", 
-          "hispanic", "black", "other", "smoke_now", "CYSC_ADJ")
+keep <- c("HHIDPN", paste0(head(letter_waves), "age_y_int"), "female", 
+          "hispanic", "black", "other", "raedyrs", "cses_index", "death", 
+          "age_death_y", "smoker", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", "height", 
+          "weight", "BMI", "bpsys", "bpdia", "CYSC_ADJ")
 
 impute <- analytical_sample %>% dplyr::select(contains(keep))
 

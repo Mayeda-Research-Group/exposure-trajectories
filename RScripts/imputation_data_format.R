@@ -24,30 +24,28 @@ keep <- c("HHIDPN", paste0(head(letter_waves), "age_y_int"), "female",
 
 impute <- analytical_sample %>% dplyr::select(contains(keep))
 
-#---- CysC by age ----
-impute_long <- impute %>% 
-  pivot_longer(cols = contains(c("age_y", "CYSC_ADJ"), ignore.case = FALSE), 
-               names_to = c("Wave", ".value"),
-               names_pattern = "(.)(.*)") %>% 
-  arrange(age_y_int) %>% filter(!is.na(CYSC_ADJ))
-  
-#Youngest age is 61, so will need to add a column for age 60
-age_range <- c(min(impute_long$age_y_int), max(impute_long$age_y_int))
+#---- Age range ----
+age_range <- c(min(impute %>% dplyr::select(contains("age_y"))), 
+               max(impute %>% dplyr::select(contains("age_y"))))
+
 #Checking if any of the in between ages are missing (none)
 sum(!which(seq(age_range[1], age_range[2]) %in% impute_long$age_y_int))
 
-impute <- impute_long %>%
-  mutate("label" = "CYSC_ADJ") %>% 
-  unite("names", c("label", "age_y_int"), sep = "_") %>% 
-  #get rid of Wave variable
-  dplyr::select(-Wave) %>%
-  #get columns of CysC by age
-  pivot_wider(names_from = "names", values_from = "CYSC_ADJ") %>% 
-  mutate("CYSC_ADJ_60" = NA) %>% mutate_at("CYSC_ADJ_60", as.numeric) %>%
-  relocate(CYSC_ADJ_60, .before = CYSC_ADJ_61) 
+#Youngest age is 61, so will need to column for age 60
+impute %<>% mutate("Xage_y_int" = 60)
+
+#---- long data ----
+impute_long <- impute %>% 
+  pivot_longer(cols = contains(c("age_y", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", 
+                                 "weight", "BMI", "bpsys", "bpdia", "CYSC_ADJ"), 
+                               ignore.case = FALSE), 
+               names_to = c("Wave", ".value"),
+               names_pattern = "(.)(.*)") %>% 
+  arrange(age_y_int) %>% filter(!is.na(CYSC_ADJ) | age_y_int == 60)
 
 # #Sanity Check-- num measures at each age (only 60 should be 0)
-# colSums(1 - is.na(impute %>% dplyr::select(contains("CYSC_ADJ"))))
+# measures_by_age <- impute_long %>% group_by(age_y_int) %>% 
+#   summarize_at("CYSC_ADJ", ~sum(!is.na(.)))
   
 #---- log CysC ----
 log_CysC <- log(impute %>% dplyr::select(contains("CYSC"))) 

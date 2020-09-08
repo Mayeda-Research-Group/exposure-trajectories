@@ -461,12 +461,12 @@ hrs_samp[which(hrs_samp$HHIDPN == 78203040), "r12pmwaist"] <- NA
 
 #---- smoking ----
 hrs_samp %<>% 
-  mutate("smoke_now" = hrs_samp %>% 
+  mutate("smoker" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "smoken")) %>%
            apply(1, function(x) x[min(which(!is.na(x)))]))
 
 # #Sanity check
-# View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoke_now")])
+# View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoker")])
 
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))

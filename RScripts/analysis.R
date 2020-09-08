@@ -32,10 +32,11 @@ imputation_data_long <-
 #---- Indicate observed Cystatin C ----
 #only interested in observed if they are in age range [60, 69]
 imputation_data_long %<>% 
-  mutate("observed" = ifelse(!is.na(logCYSC_ADJ) & Age < 70, 1, 0))
+  mutate("observed" = ifelse(!is.na(log_CysC) & age_y_int < 70, 1, 0))
 
-# #Sanity check
-# View(imputation_data_long[, c("logCYSC_ADJ", "Age", "observed")])
+# #Sanity check-- only ages [61, 69] should have a 1
+# obs_by_age <- imputation_data_long %>% group_by(age_y_int) %>% 
+#   summarize_at("observed", ~sum(. == 1))
 
 #---- Induce missingness ----
 #which values [60, 69] are observed

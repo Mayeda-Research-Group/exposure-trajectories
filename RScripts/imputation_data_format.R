@@ -47,7 +47,15 @@ impute_long <- impute %>%
 # #Sanity Check-- num measures at each age (only 60 should be 0)
 # measures_by_age <- impute_long %>% group_by(age_y_int) %>% 
 #   summarize_at("CYSC_ADJ", ~sum(!is.na(.)))
-  
+
+#measured indicators should be 0 instead of NA for missing weight/BMI values
+impute_long[which(is.na(impute_long$weight_measured)), "weight_measured"] <- 0
+impute_long[which(is.na(impute_long$weight_measured)), "BMI_measured"] <- 0
+
+# #Sanity check
+# sum(is.na(impute_long$weight_measured))
+# sum(is.na(impute_long$BMI_measured))
+
 #---- log CysC ----
 impute_long %<>% mutate("log_CysC" = log(CYSC_ADJ)) 
 

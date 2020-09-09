@@ -78,7 +78,7 @@ imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 impute_here_long <- is.na(imputation_data_long) %>% 
   set_colnames(colnames(imputation_data_long))*1
 
-missingness <- colSums(impute_here_long)/nrow(impute_here_long) 
+missingness <- colSums(impute_here_long)/nrow(impute_here_long)
 
 write_csv(missingness, 
           paste0("/Users/CrystalShaw/Dropbox/Projects/", 

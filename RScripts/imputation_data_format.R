@@ -50,7 +50,7 @@ impute_long <- impute %>%
 
 #measured indicators should be 0 instead of NA for missing weight/BMI values
 impute_long[which(is.na(impute_long$weight_measured)), "weight_measured"] <- 0
-impute_long[which(is.na(impute_long$weight_measured)), "BMI_measured"] <- 0
+impute_long[which(is.na(impute_long$BMI_measured)), "BMI_measured"] <- 0
 
 # #Sanity check
 # sum(is.na(impute_long$weight_measured))

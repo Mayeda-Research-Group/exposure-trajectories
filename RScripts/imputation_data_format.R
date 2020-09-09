@@ -29,7 +29,8 @@ age_range <- c(min(impute %>% dplyr::select(contains("age_y"))),
                max(impute %>% dplyr::select(contains("age_y"))))
 
 #Checking if any of the in between ages are missing (none)
-sum(!which(seq(age_range[1], age_range[2]) %in% impute_long$age_y_int))
+sum(!which(seq(age_range[1], age_range[2]) %in% 
+             (impute %>% dplyr::select(contains("age_y")))))
 
 #Youngest age is 61, so will need to column for age 60
 impute %<>% mutate("Xage_y_int" = 60)

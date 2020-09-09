@@ -416,8 +416,8 @@ hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight"] <- NA
 
 #Fix measured indicators
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight_measured"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight_measured"] <- NA
 
 #Drop RAND's weight variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmwght"), 
@@ -438,8 +438,8 @@ hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI"] <- NA
 
 #Fix measured indicators
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- NA
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 

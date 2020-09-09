@@ -428,6 +428,12 @@ hrs_samp %<>%
   cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"), 
                              paste0("r", number_waves, "bmi"), "BMI"))
 
+# #Sanity check-- I had an issue with this observation that led to my finding
+# #               a bug in my measured_self_report code
+# View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
+#        dplyr::select(c(paste0(letter_waves, "BMI"),
+#                        paste0(letter_waves, "BMI_measured"))))
+       
 # #Checking weird BMI values (from YW's analysis)
 # View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
 #        dplyr::select(c(paste0(letter_waves, "BMI"),

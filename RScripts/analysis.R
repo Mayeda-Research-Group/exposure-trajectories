@@ -23,11 +23,11 @@ imputation_data_long <-
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
                   "imputation_data_long.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            Wave = col_character(), death = col_factor(), 
+           col_types = cols(.default = col_double(), HHIDPN = col_factor(), 
+                            Wave = col_factor(), death = col_factor(), 
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
-                            smoker = col_factor())) 
+                            smoker = col_integer())) 
 
 #---- Indicate observed Cystatin C ----
 #only interested in observed if they are in age range [60, 69]
@@ -88,6 +88,12 @@ write_csv(missingness,
           paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                  "exposure_trajectories/manuscript/", 
                  "tables/missingness.csv"))
+
+#---- check col types of dataframe ----
+sapply(imputation_data_long, class)
+
+imputation_data_long %<>% 
+  mutate_at(c("observed", "mcar10"), as.factor)
 
 #---- predictor matrix ----
 predictors <- matrix(1, ncol = ncol(imputation_data_long), 

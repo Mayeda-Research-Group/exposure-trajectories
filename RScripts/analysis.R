@@ -124,10 +124,10 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
 
-#check diagnostics
-View(imputations$loggedEvents)
-plot(imputations)
-densityplot(imputations, ~ age_death_y)
+# #check diagnostics
+# View(imputations$loggedEvents)
+# plot(imputations)
+# densityplot(imputations, ~ age_death_y)
 
 # #Checking
 # sample_original <- complete(imputations, action = 0)

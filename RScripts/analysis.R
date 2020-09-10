@@ -54,7 +54,8 @@ imputation_data_long[mcar10, "mcar10"] <- 1
 
 #mask values based on missing value indicator
 imputation_data_long %<>% 
-  mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) 
+  mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) %>%
+  mutate("CysC_masked" = exp(log_CysC_masked))
 
 # #Sanity check
 # View(imputation_data_long[, c("age_y_int", "log_CysC", "log_CysC_masked",
@@ -95,21 +96,26 @@ sapply(imputation_data_long, class)
 imputation_data_long %<>% 
   mutate_at(c("observed", "mcar10"), as.factor)
 
+#---- Specify formulas ----
+meth <- make.method(imputation_data_long)
+meth["BMI"] <- "~I(weight / height^2)"
+meth["CysC_masked"] <- "~I(exp(log_CysC_masked))"
+
 #---- predictor matrix ----
-predictors <- matrix(1, ncol = ncol(imputation_data_long), 
-                     nrow = ncol(imputation_data_long)) %>% 
-  set_colnames(colnames(imputation_data_long)) %>% 
-  set_rownames(colnames(imputation_data_long))
-diag(predictors) <- 0
+pred <- make.predictorMatrix(imputation_data_long)
 
 #Don't use these as predictors
-predictors[, c("HHIDPN", "log_CysC", "observed", "mcar10", "height_measured", 
-               "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ")] <- 0
+pred[, c("HHIDPN", "log_CysC", "observed", "mcar10", "height_measured", 
+         "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ", 
+         "CysC_masked")] <- 0
 
-#Don't predict these
-predictors[colnames(predictors)[-which(colnames(predictors) == 
-                                         "log_CysC_masked")], ] <- 0
+#Formulas are already specified for these
+pred[c("BMI", "CysC_masked"), ] <- 0
 
+#Do not need imputations for these
+pred[c("HHIDPN", "female", "hispanic", "black", "other", "raedyrs", "death", 
+       "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
+       "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
 
 #---- MICE ----
 # #Look at missing data pattern
@@ -129,12 +135,12 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 # plot(imputations)
 # densityplot(imputations, ~ age_death_y)
 
-# #Checking
-# sample_original <- complete(imputations, action = 0)
-# sample_complete <- complete(imputations, action = 3)
-# 
-# colSums(is.na(sample_original))
-# colSums(is.na(sample_complete))
+#Checking
+sample_original <- complete(imputations, action = 0)
+sample_complete <- complete(imputations, action = 3)
+
+colSums(is.na(sample_original))
+colSums(is.na(sample_complete))
 
 #LMM Imputation
 
@@ -174,7 +180,12 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- Analytic model ----
-#From the original data
+#From the original data-- start with Cystatin C at age 65
+CysC_65
+
+#Based on imputations
+
+
 
 
 

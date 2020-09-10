@@ -117,7 +117,7 @@ predictors[colnames(predictors)[-which(colnames(predictors) ==
 # #Look at missing data pattern
 # md.pattern(imputation_data %>% dplyr::select(contains("CYSC")))
 
-#Imputation
+#FCS Imputation
 #Want 25 imputations 
 #maxit seems to be the number of iterations for the trace plot
 num_impute = 3
@@ -133,6 +133,10 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 
 # #Checking
 # sample_complete <- complete(imputations, action = 1)
+
+#LMM Imputation
+
+
 
 
 #---- Observed vs Predicted ----
@@ -168,6 +172,7 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- Analytic model ----
+
 
 #---- Saving output ----
 #trace plots

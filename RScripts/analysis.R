@@ -129,12 +129,12 @@ View(imputations$loggedEvents)
 plot(imputations)
 densityplot(imputations, ~ age_death_y)
 
-#Checking
-sample_original <- complete(imputations, action = 0)
-sample_complete <- complete(imputations, action = 3)
-
-colSums(is.na(sample_original))
-colSums(is.na(sample_complete))
+# #Checking
+# sample_original <- complete(imputations, action = 0)
+# sample_complete <- complete(imputations, action = 3)
+# 
+# colSums(is.na(sample_original))
+# colSums(is.na(sample_complete))
 
 #LMM Imputation
 
@@ -145,12 +145,12 @@ colSums(is.na(sample_complete))
 plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long), 
                         ncol = num_impute)) %>% 
   set_colnames(paste0("impute", seq(1:num_impute))) %>% 
-  mutate("Observed" = imputation_data_long$logCYSC_ADJ, 
+  mutate("Observed" = imputation_data_long$log_CysC, 
          "mcar10" = imputation_data_long$mcar10)
 
 for(i in 1:num_impute){
   plot_data[, paste0("impute", i)] <- 
-    complete(imputations, action = i)[, "logCYSC_ADJ_masked"]
+    complete(imputations, action = i)[, "log_CysC_masked"]
 }
 
 #Subset to those masked in the sample
@@ -174,6 +174,8 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- Analytic model ----
+#From the original data
+
 
 
 #---- Saving output ----

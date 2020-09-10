@@ -428,6 +428,12 @@ hrs_samp %<>%
   cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"), 
                              paste0("r", number_waves, "bmi"), "BMI"))
 
+# #Sanity check-- I had an issue with this observation that led to my finding
+# #               a bug in my measured_self_report code
+# View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
+#        dplyr::select(c(paste0(letter_waves, "BMI"),
+#                        paste0(letter_waves, "BMI_measured"))))
+       
 # #Checking weird BMI values (from YW's analysis)
 # View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
 #        dplyr::select(c(paste0(letter_waves, "BMI"),
@@ -445,14 +451,28 @@ hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))
 
+#---- waist measure ----
+# #Checking weird weight values (from YW's analysis)
+# View(hrs_samp %>% filter(HHIDPN %in% c(21587040, 52985020, 55000040, 75475020, 
+#                                        76110040, 78203040)) %>%
+#        dplyr::select(c("HHIDPN", paste0("r", number_waves, "pmwaist"))))
+
+#Set the weird measures to NA
+hrs_samp[which(hrs_samp$HHIDPN == 21587040), "r10pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 52985020), "r9pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 55000040), "r10pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 75475020), "r12pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 76110040), "r11pmwaist"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 78203040), "r12pmwaist"] <- NA
+
 #---- smoking ----
 hrs_samp %<>% 
-  mutate("smoke_now" = hrs_samp %>% 
+  mutate("smoker" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "smoken")) %>%
            apply(1, function(x) x[min(which(!is.na(x)))]))
 
 # #Sanity check
-# View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoke_now")])
+# View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoker")])
 
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))

@@ -24,17 +24,19 @@ imputation_data_long <-
                   "exposure_trajectories/data/", 
                   "imputation_data_long.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death = col_factor(), female = col_factor(), 
-                            hispanic = col_factor(), black = col_factor(), 
-                            other = col_factor(), smoke_now = col_factor())) 
+                            Wave = col_character(), death = col_factor(), 
+                            female = col_factor(), hispanic = col_factor(), 
+                            black = col_factor(), other = col_factor(), 
+                            smoker = col_factor())) 
 
 #---- Indicate observed Cystatin C ----
 #only interested in observed if they are in age range [60, 69]
 imputation_data_long %<>% 
-  mutate("observed" = ifelse(!is.na(logCYSC_ADJ) & Age < 70, 1, 0))
+  mutate("observed" = ifelse(!is.na(log_CysC) & age_y_int < 70, 1, 0))
 
-# #Sanity check
-# View(imputation_data_long[, c("logCYSC_ADJ", "Age", "observed")])
+# #Sanity check-- only ages [61, 69] should have a 1
+# obs_by_age <- imputation_data_long %>% group_by(age_y_int) %>% 
+#   summarize_at("observed", ~sum(. == 1))
 
 #---- Induce missingness ----
 #which values [60, 69] are observed
@@ -47,22 +49,22 @@ imputation_data_long[, "mcar10"] <- 0
 imputation_data_long[mcar10, "mcar10"] <- 1
 
 # #Sanity check
-# imputation_data_long %>% filter(Age >= 70) %>% summarise_at("mcar10", sum)
+# imputation_data_long %>% filter(age_y_int >= 70) %>% summarise_at("mcar10", sum)
 # sum(imputation_data_long$mcar10)
 
 #mask values based on missing value indicator
 imputation_data_long %<>% 
-  mutate("logCYSC_ADJ_masked" = ifelse(mcar10 == 1, NA, logCYSC_ADJ)) 
+  mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) 
 
 # #Sanity check
-# View(imputation_data_long[, c("Age", "logCYSC_ADJ", "logCYSC_ADJ_masked",
+# View(imputation_data_long[, c("age_y_int", "log_CysC", "log_CysC_masked",
 #                               "mcar10")])
 
 #---- Remove people with no Cystatin C measures ----
 #On this run, I've removed 78 people
 no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 
-  summarise_at("logCYSC_ADJ_masked", function(x) sum(!is.na(x))) %>% 
-  filter(logCYSC_ADJ_masked == 0)
+  summarise_at("log_CysC_masked", function(x) sum(!is.na(x))) %>% 
+  filter(log_CysC_masked == 0)
 
 imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 
@@ -72,28 +74,16 @@ imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 #           smoking status
 # time-varying: 
 
-# #Indicate where there is missing data in the wide data
-# impute_here_wide <- is.na(imputation_data_wide) %>% 
-#   set_colnames(colnames(imputation_data_wide))*1
-# colSums(impute_here_wide)/nrow(impute_here_wide)
-
-# #Define where we want imputations in wide data
-# impute_here_wide[, c("age_death_y", 
-#                      paste0("logCYSC_ADJ_", c(60, seq(70, 78))))] <- 0
-
-#Get rid of lines with missing data in ages [70, max_age]
-max_age <- max(imputation_data_long$Age, na.rm = TRUE)
-imputation_data_long %<>% 
-  mutate("remove" = ifelse(Age %in% seq(70, max_age) & 
-                             is.na(logCYSC_ADJ), 1, 0)) %>% 
-  filter(remove == 0) %>% 
-  dplyr::select(-"remove")
-
 #Indicate where there is missing data in the long data
 impute_here_long <- is.na(imputation_data_long) %>% 
   set_colnames(colnames(imputation_data_long))*1
 
-colSums(impute_here_long)/nrow(impute_here_long)
+missingness <- colSums(impute_here_long)/nrow(impute_here_long)
+
+write_csv(missingness, 
+          paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+                 "exposure_trajectories/manuscript/", 
+                 "tables/missingness.csv"))
 
 #---- predictor matrix ----
 predictors <- matrix(1, ncol = ncol(imputation_data_long), 

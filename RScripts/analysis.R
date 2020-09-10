@@ -78,7 +78,11 @@ imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 impute_here_long <- is.na(imputation_data_long) %>% 
   set_colnames(colnames(imputation_data_long))*1
 
-missingness <- colSums(impute_here_long)/nrow(impute_here_long)
+missingness <- t(colSums(impute_here_long)/nrow(impute_here_long)) %>% 
+  as.data.frame() %>% round(., 2) %>%
+  dplyr::select(-c("HHIDPN", "height_measured", "Wave", "weight_measured", 
+                   "BMI_measured", "observed", "log_CysC", "mcar10", 
+                   "log_CysC_masked"))
 
 write_csv(missingness, 
           paste0("/Users/CrystalShaw/Dropbox/Projects/", 

@@ -100,6 +100,7 @@ for(i in 1:length(years)){
 ##         reports stroke this wave,
 ##         reports heart problems this wave
 ## Health Behaviors: current smoker 
+##                   number of days drinking per week
 ##                   number of drinks per day
 ##                   frequency of vigorous/moderate/light physical activity
 ## 
@@ -124,7 +125,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "strok"), 
                     paste0("r", number_waves, "heart"),
                     paste0("r", number_waves, "smoken"), 
-                    paste0("r", number_waves, "drinkd"), 
+                    paste0("r", number_waves, "drinkd"),
+                    paste0("r", number_waves, "drinkn"),
                     paste0("r", number_waves, "vgactx"),
                     paste0("r", number_waves, "mdactx"), 
                     paste0("r", number_waves, "ltactx"))
@@ -494,7 +496,7 @@ hrs_samp[, med_vars] <- reformat
 
 #---- Fix column names for easy column select in analyses ----
 #Change numeric waves to letter waves
-variables <- c("bpsys", "bpdia", "pmwaist", "drinkd", 
+variables <- c("bpsys", "bpdia", "pmwaist", "drinkn", "drinkd",  
                paste0(c("vg", "md", "lt"), "actx"), "hibp", "heart", "strok", 
                "diab", "cancr")
 

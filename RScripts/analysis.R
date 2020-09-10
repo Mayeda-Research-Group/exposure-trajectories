@@ -97,15 +97,13 @@ predictors <- matrix(1, ncol = ncol(imputation_data_long),
 diag(predictors) <- 0
 
 #Don't use these as predictors
-predictors[, c("HHIDPN", "logCYSC_ADJ", "observed", "mcar10")] <- 0
+predictors[, c("HHIDPN", "log_CysC", "observed", "mcar10", "height_measured", 
+               "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ")] <- 0
 
 #Don't predict these
 predictors[colnames(predictors)[-which(colnames(predictors) == 
-                                         "logCYSC_ADJ_masked")], ] <- 0
+                                         "log_CysC_masked")], ] <- 0
 
-# #Don't predict these in wide dataset
-# predictors[colnames(imputation_data)[-which(colnames(imputation_data) %in% 
-#                                    paste0("logCYSC_ADJ_", seq(60, 69)))], ] <- 0
 
 #---- MICE ----
 # #Look at missing data pattern
@@ -120,13 +118,17 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
 
-# #check diagnostics
-# View(imputations$loggedEvents)
-# plot(imputations)
-# densityplot(imputations, ~ age_death_y)
+#check diagnostics
+View(imputations$loggedEvents)
+plot(imputations)
+densityplot(imputations, ~ age_death_y)
 
-# #Checking
-# sample_complete <- complete(imputations, action = 1)
+#Checking
+sample_original <- complete(imputations, action = 0)
+sample_complete <- complete(imputations, action = 3)
+
+colSums(is.na(sample_original))
+colSums(is.na(sample_complete))
 
 #LMM Imputation
 

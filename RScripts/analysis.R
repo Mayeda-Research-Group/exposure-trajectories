@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "mice", "ghibli")
+p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli")
 
 #No scientific notation
 options(scipen = 999)
@@ -23,8 +23,8 @@ imputation_data_long <-
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
                   "imputation_data_long.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_factor(), 
-                            Wave = col_factor(), death = col_factor(), 
+           col_types = cols(.default = col_double(), HHIDPN = col_integer(), 
+                            Wave = col_factor(), death = col_integer(), 
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer())) 
@@ -69,27 +69,6 @@ no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>%
 
 imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 
-#---- Missing data in predictors ----
-#Predictors of Cystatin C: 
-# baseline: Sex/gender, race/ethnicity, cSES, death, age at death, 
-#           smoking status
-# time-varying: 
-
-#Indicate where there is missing data in the long data
-impute_here_long <- is.na(imputation_data_long) %>% 
-  set_colnames(colnames(imputation_data_long))*1
-
-missingness <- t(colSums(impute_here_long)/nrow(impute_here_long)) %>% 
-  as.data.frame() %>% round(., 2) %>%
-  dplyr::select(-c("HHIDPN", "height_measured", "Wave", "weight_measured", 
-                   "BMI_measured", "observed", "log_CysC", "mcar10", 
-                   "log_CysC_masked"))
-
-write_csv(missingness, 
-          paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-                 "exposure_trajectories/manuscript/", 
-                 "tables/missingness.csv"))
-
 #---- check col types of dataframe ----
 sapply(imputation_data_long, class)
 
@@ -112,10 +91,36 @@ pred[, c("HHIDPN", "log_CysC", "observed", "mcar10", "height_measured",
 #Formulas are already specified for these
 pred[c("BMI", "CysC_masked"), ] <- 0
 
-#Do not need imputations for these
+#Do not need imputations for these-- do I even need to specify this?
 pred[c("HHIDPN", "female", "hispanic", "black", "other", "raedyrs", "death", 
        "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
        "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
+
+#---- Missing data in predictors ----
+#Predictors of Cystatin C: 
+# baseline: Sex/gender, race/ethnicity, cSES, death, age at death, 
+#           smoking status
+# time-varying: 
+
+#Indicate where there is missing data in the long data
+impute_here_long <- is.na(imputation_data_long) %>% 
+  set_colnames(colnames(imputation_data_long))*1
+
+missingness <- t(colSums(impute_here_long)/nrow(impute_here_long)) %>% 
+  as.data.frame() %>% round(., 2) 
+
+#Indicate where we don't want imputations-- original data
+impute_here_long[, c("CYSC_ADJ", "log_CysC")] <- 0
+
+missingness_table <- missingness %>%
+  dplyr::select(-c("HHIDPN", "height_measured", "Wave", "weight_measured", 
+                   "BMI_measured", "observed", "log_CysC", "mcar10", 
+                   "log_CysC_masked", "CysC_masked"))
+
+write_csv(missingness_table, 
+          paste0("/Users/CrystalShaw/Dropbox/Projects/", 
+                 "exposure_trajectories/manuscript/", 
+                 "tables/missingness.csv"))
 
 #---- MICE ----
 # #Look at missing data pattern
@@ -126,7 +131,7 @@ pred[c("HHIDPN", "female", "hispanic", "black", "other", "raedyrs", "death",
 #maxit seems to be the number of iterations for the trace plot
 num_impute = 3
 imputations <- mice(imputation_data_long, m = num_impute, maxit = 5, 
-                    predictorMatrix = predictors, 
+                    predictorMatrix = pred, 
                     where = impute_here_long,
                     defaultMethod = rep("norm", 4), seed = 20200812)
 
@@ -135,16 +140,56 @@ imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 # plot(imputations)
 # densityplot(imputations, ~ age_death_y)
 
-#Checking
-sample_original <- complete(imputations, action = 0)
-sample_complete <- complete(imputations, action = 3)
-
-colSums(is.na(sample_original))
-colSums(is.na(sample_complete))
+# #Checking
+# sample_original <- complete(imputations, action = 0)
+# sample_complete <- complete(imputations, action = 3)
+# 
+# colSums(is.na(sample_original))
+# colSums(is.na(sample_complete))
 
 #LMM Imputation
+pred_lmm <- make.predictorMatrix(imputation_data_long)
+
+#Don't use these as predictors
+pred_lmm[, c("log_CysC", "observed", "mcar10", "height_measured", 
+         "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ", 
+         "CysC_masked")] <- 0
+
+#Formulas are already specified for these
+pred_lmm[c("BMI", "CysC_masked"), ] <- 0
+
+#Specify class variable
+pred_lmm[, "HHIDPN"] <- -2
+
+#Specify fixed effects
+pred_lmm[, c("female", "hispanic", "black", "other", "raedyrs", "cses_index", 
+           "smoker", "height")] <- 1
+
+#Specify random effect
+pred_lmm[, c("weight", "age_y_int", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", 
+           "bpsys", "bpdia", "BMI")] <- 2
 
 
+#Do not need imputations for these-- do I even need to specify this?
+pred_lmm[c("female", "hispanic", "black", "other", "raedyrs", "death", 
+       "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
+       "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
+
+lmm_imputations <- mice(imputation_data_long, m = num_impute, maxit = 5, 
+                    predictorMatrix = pred_lmm, 
+                    where = impute_here_long,
+                    defaultMethod = rep("2l.pan", 4), seed = 20200812)
+
+# #check diagnostics
+# View(lmm_imputations$loggedEvents)
+# plot(lmm_imputations)
+
+# #Checking
+# sample_original <- complete(imputations, action = 0)
+# sample_complete <- complete(imputations, action = 3)
+#
+# colSums(is.na(sample_original))
+# colSums(is.na(sample_complete))
 
 
 #---- Observed vs Predicted ----
@@ -156,7 +201,7 @@ plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long),
 
 for(i in 1:num_impute){
   plot_data[, paste0("impute", i)] <- 
-    complete(imputations, action = i)[, "log_CysC_masked"]
+    complete(lmm_imputations, action = i)[, "log_CysC_masked"]
 }
 
 #Subset to those masked in the sample
@@ -181,12 +226,46 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 
 #---- Analytic model ----
 #From the original data-- start with Cystatin C at age 65
-CysC_65
+CysC_65_model <- glm(death ~ female + hispanic + black + other + raedyrs + 
+                       cses_index + smoker + BMI + CYSC_ADJ, 
+                     family = binomial(link = "logit"), 
+                     data = imputation_data_long %>% filter(age_y_int == 65))
+
+tidy(CysC_65_model, exp = TRUE, conf.int = TRUE)
 
 #Based on imputations
+model_list <- vector(mode = "list", length = num_impute)
 
+for(i in 1:num_impute){
+  data = complete(imputations, action = i)
+  model_list[[i]] <- 
+    glm(death ~ female + hispanic + black + other + raedyrs + 
+          cses_index + smoker + BMI + CysC_masked, 
+        family = binomial(link = "logit"), 
+        data = data %>% filter(age_y_int == 65))
+}
 
+pooled_models <- summary(pool(model_list))
+pt_ests <- exp(pooled_models$estimate)
+CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
+                 pooled_models$estimate + pooled_models$std.error))
 
+#Based on imputations
+lmm_model_list <- vector(mode = "list", length = num_impute)
+
+for(i in 1:num_impute){
+  data = complete(lmm_imputations, action = i)
+  lmm_model_list[[i]] <- 
+    glm(death ~ female + hispanic + black + other + raedyrs + 
+          cses_index + smoker + BMI + CysC_masked, 
+        family = binomial(link = "logit"), 
+        data = data %>% filter(age_y_int == 65))
+}
+
+pooled_lmm_models <- summary(pool(lmm_model_list))
+pt_ests <- exp(pooled_lmm_models$estimate)
+CIs <- exp(cbind(pooled_lmm_models$estimate - pooled_lmm_models$std.error, 
+                 pooled_lmm_models$estimate + pooled_lmm_models$std.error))
 
 
 #---- Saving output ----

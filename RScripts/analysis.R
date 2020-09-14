@@ -3,7 +3,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli")
+p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
+       "ResourceSelection")
 
 #No scientific notation
 options(scipen = 999)
@@ -40,7 +41,7 @@ obs_by_age <- imputation_data_long %>% dplyr::group_by(age_y_int) %>%
 
 #---- E1 Def: Cystatin C at age XX ----
 
-#---- E1 Complete Data ----
+#---- E1: Complete Data ----
 #Choosing age 68 because that's where we have a lot of data (n = 770)
 in_sample <- imputation_data_long %>% 
   dplyr::filter(age_y_int == 68 & !is.na(log_CysC))
@@ -76,8 +77,29 @@ E1 %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 # #Sanity check-- final sample size of complete data ~753
 # length(unique(E1$HHIDPN))
 
+#---- E1: Analytical Model ----
+covariates <- c("female", "hispanic", "black", "other", "raedyrs", "cses_index", 
+                "smoker", "BMI", "CYSC_ADJ")
 
+subset <- E1 %>% filter(age_y_int == 68)
+missingness <- subset %>% dplyr::select(covariates) %>% is.na() %>% colSums()
 
+#What are we trying to recover?
+E1_truth <- glm(death ~ female + hispanic + black + other + raedyrs + 
+                  cses_index + smoker + BMI + CYSC_ADJ, 
+                family = binomial(link = "logit"), 
+                data = subset, 
+                na.action = "na.omit")
+
+# #Look at the model
+# summary(E1_truth)
+
+# #Tidy output
+# tidy(E1_truth, exp = TRUE, conf.int = TRUE)
+
+# #Goodness of fit-- Hosmer-Lemeshow Test (g should be > num covariates in model)
+# model_subset <- na.omit(subset[, c(covariates, "death")])
+# hoslem.test(model_subset$death, fitted(E1_truth), g = (length(covariates) + 2))
 
 
 

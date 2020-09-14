@@ -101,6 +101,12 @@ E1_truth <- glm(death ~ female + hispanic + black + other + raedyrs +
 # model_subset <- na.omit(subset[, c(covariates, "death")])
 # hoslem.test(model_subset$death, fitted(E1_truth), g = (length(covariates) + 2))
 
+#---- E2 Def: Number of years elevated Cystatin C ----
+
+#---- E2: Complete Data ----
+
+
+
 
 
 #---- OLD CODE ----

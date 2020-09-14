@@ -38,9 +38,50 @@ imputation_data_long %<>%
 obs_by_age <- imputation_data_long %>% dplyr::group_by(age_y_int) %>%
   summarize_at("observed", ~sum(. == 1))
 
-#---- Exposure Def 1: ----
+#---- E1 Def: Cystatin C at age XX ----
+
+#---- E1 Complete Data ----
+#Choosing age 68 because that's where we have a lot of data (n = 770)
+in_sample <- imputation_data_long %>% 
+  dplyr::filter(age_y_int == 68 & !is.na(log_CysC))
+
+E1 <- imputation_data_long %>% dplyr::filter(HHIDPN %in% in_sample$HHIDPN)
+
+# #Sanity check
+# length(unique(E1$HHIDPN))
+
+#Create missing indicator by variable
+can_mask <- which(E1$age_y_int == 68)
+mcar10 <- sample(can_mask, size = floor(0.10*length(can_mask)))
+E1[, "mcar10"] <- 0
+E1[mcar10, "mcar10"] <- 1
+
+# #Sanity check
+# #Should be 77
+# sum(E1$mcar10)
+# #1s should only show up at age 68
+# E1 %>% group_by(age_y_int) %>% summarise_at("mcar10", ~sum(.))
+
+E1 %<>% 
+  dplyr::mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) %>%
+  dplyr::mutate("CysC_masked" = exp(log_CysC_masked))
+
+#Remove people with no CysC measures-- on this run, I've removed 17 people
+no_cysc <- E1 %>% dplyr::group_by(HHIDPN) %>% 
+  summarise_at("log_CysC_masked", function(x) sum(!is.na(x))) %>% 
+  filter(log_CysC_masked == 0)
+
+E1 %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
+
+# #Sanity check-- final sample size of complete data ~753
+# length(unique(E1$HHIDPN))
 
 
+
+
+
+
+#---- OLD CODE ----
 #---- Induce missingness ----
 #which values [60, 69] are observed
 obs_in_range <- which(imputation_data_long$observed == 1)

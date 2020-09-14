@@ -34,9 +34,12 @@ imputation_data_long <-
 imputation_data_long %<>% 
   mutate("observed" = ifelse(!is.na(log_CysC) & age_y_int < 70, 1, 0))
 
-# #Sanity check-- only ages [61, 69] should have a 1
-# obs_by_age <- imputation_data_long %>% group_by(age_y_int) %>% 
-#   summarize_at("observed", ~sum(. == 1))
+#Sanity check-- only ages [61, 69] should have a 1
+obs_by_age <- imputation_data_long %>% dplyr::group_by(age_y_int) %>%
+  summarize_at("observed", ~sum(. == 1))
+
+#---- Exposure Def 1: ----
+
 
 #---- Induce missingness ----
 #which values [60, 69] are observed

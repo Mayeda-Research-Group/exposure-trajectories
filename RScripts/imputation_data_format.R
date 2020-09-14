@@ -28,12 +28,10 @@ impute <- analytical_sample %>% dplyr::select(contains(keep))
 age_range <- c(min(impute %>% dplyr::select(contains("age_y"))), 
                max(impute %>% dplyr::select(contains("age_y"))))
 
-#Checking if any of the in between ages are missing (none)
-sum(!which(seq(age_range[1], age_range[2]) %in% 
-             (impute %>% dplyr::select(contains("age_y")))))
-
-#Youngest age is 61, so will need to column for age 60
-impute %<>% mutate("Xage_y_int" = 60)
+# #Checking if any of the in between ages are missing (none)
+# #There are no observations at age 60
+# sum(!which(seq(age_range[1], age_range[2]) %in% 
+#              (impute %>% dplyr::select(contains("age_y")))))
 
 #---- long data ----
 impute_long <- impute %>% 
@@ -42,17 +40,41 @@ impute_long <- impute %>%
                                ignore.case = FALSE), 
                names_to = c("Wave", ".value"),
                names_pattern = "(.)(.*)") %>% 
-  arrange(age_y_int) %>% filter(!is.na(CYSC_ADJ) | age_y_int == 60)
+  arrange(HHIDPN) 
+
+#---- Add rows for age bracket of interest ----
+#Exposure ages: [60, 69]
+invariant <- c("female", "hispanic", "black", "other", "raedyrs", "cses_index", 
+               "death", "age_death_y", "smoker", "height_measured", "height")
+measured_indicators <- c("weight_measured", "BMI_measured")
+
+exp_ages <- seq(60, 69, by = 1)
+
+HHIDPNs <- unique(impute_long$HHIDPN)
+for(ID in HHIDPNs){
+  subset <- impute_long %>% dplyr::filter(HHIDPN == ID)
+  obs_ages <- subset$age_y_int
+  missing_ages <- exp_ages[which(!exp_ages %in% obs_ages)]
+  
+  #Create new rows
+  new_rows <- as.data.frame(matrix(nrow = length(missing_ages), 
+                                   ncol = ncol(impute_long))) %>% 
+    set_colnames(colnames(impute_long))
+  
+  new_rows$HHIDPN <- ID
+  new_rows$age_y_int <- missing_ages
+  new_rows[, invariant] <- subset[1, invariant]
+  new_rows[, measured_indicators] <- 0
+  
+  #Add new rows to long data
+  impute_long %<>% rbind(new_rows)
+}
 
 # #Sanity Check-- num measures at each age (only 60 should be 0)
-# measures_by_age <- impute_long %>% group_by(age_y_int) %>% 
+# measures_by_age <- impute_long %>% dplyr::group_by(age_y_int) %>%
 #   summarize_at("CYSC_ADJ", ~sum(!is.na(.)))
-
-#measured indicators should be 0 instead of NA for missing weight/BMI values
-impute_long[which(is.na(impute_long$weight_measured)), "weight_measured"] <- 0
-impute_long[which(is.na(impute_long$BMI_measured)), "BMI_measured"] <- 0
-
-# #Sanity check
+# 
+# #If measures are not observed, they should be set to 0, not NA
 # sum(is.na(impute_long$weight_measured))
 # sum(is.na(impute_long$BMI_measured))
 

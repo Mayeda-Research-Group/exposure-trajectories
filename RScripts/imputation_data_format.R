@@ -79,7 +79,7 @@ for(ID in HHIDPNs){
 # sum(is.na(impute_long$BMI_measured))
 
 #---- log CysC ----
-impute_long %<>% mutate("log_CysC" = log(CYSC_ADJ)) 
+impute_long %<>% dplyr::mutate("log_CysC" = log(CYSC_ADJ)) 
 
 # #Look at the distributions of CysC and log(CysC)
 # ggplot(impute_long %>%

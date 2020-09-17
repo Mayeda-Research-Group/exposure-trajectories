@@ -190,10 +190,14 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 hrs_samp %<>%
   mutate("num_CysC_visits" = hrs_samp %>% 
            dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(1, function(x) sum(1 - is.na(x)))) %>% filter(num_CysC_visits != 0)
+  apply(1, function(x) sum(1 - is.na(x)))) 
 
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_CysC_visits"))))
+# table(hrs_samp$num_CysC_visits, useNA = "ifany")
+
+#keep people with 3 Cystatin C visits-- complete cases
+hrs_samp %<>% filter(num_CysC_visits == 3)
 
 #---- death ----
 #death indicator
@@ -238,7 +242,8 @@ hrs_samp[, paste0(c(letter_waves, "P"), "age_y_int")] <- floor(age_m/12)
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
 
-hrs_samp <- hrs_samp[-c(still_missing), ]
+# #Now there's no one missing age data
+#hrs_samp <- hrs_samp[-c(still_missing), ]
 
 #Flag observations with observed ages at least 70yo up to 2014 HRS
 hrs_samp %<>% 
@@ -261,10 +266,10 @@ hrs_samp[, "cysc_between_60_70"] <-
 # #Sanity Check
 # table(hrs_samp$cysc_between_60_70, useNA = "ifany")
 
-#Restrict to those with Cystatin C measures in [60-70)
-hrs_samp %<>% filter(cysc_between_60_70 == 1) %>%
-  #Restrict to survivors to age 70
-  filter(alive_70 == 1)
+# #Restrict to those with Cystatin C measures in [60-70)-- may not need this step
+# hrs_samp %<>% filter(cysc_between_60_70 == 1) %>%
+#   #Restrict to survivors to age 70
+#   filter(alive_70 == 1)
 
 #---- gender ----
 hrs_samp %<>% 
@@ -285,16 +290,17 @@ hrs_samp %<>%
   mutate("other" = ifelse(raracem == 3 & hispanic == 0, 1, 0)) %>% 
   mutate("unknown_race_eth" = ifelse(is.na(raracem) & hispanic == 0, 1, 0))
 
-# #sanity check
-# table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
-# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
-# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
-# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
-#       useNA = "ifany")
-# table(hrs_samp$unknown_race_eth, useNA = "ifany")
+#Sanity check
+table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
+table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
+table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
+table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
+      useNA = "ifany")
+table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
-#There is 1 person missing race/ethnicity data so I am dropping them
-hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
+#1st def: 1 person missing race/ethnicity
+#2nd def: no people missing race/ethnicity data so I am dropping them
+hrs_samp %<>% #filter(unknown_race_eth == 0) %>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
   dplyr::select(-c("rahispan", "raracem"))
 
@@ -303,16 +309,21 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
 # table(is.na(hrs_samp$raedyrs))
 
 #There is one person missing years of education, so I'm going to drop them
+#Second def has 5 people missing race/ethnicity
 hrs_samp %<>% filter(!is.na(raedyrs))
 
 #---- cSES index ----
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
 
-#There are 19 people missing the cSES index so I am dropping them
-hrs_samp %<>% filter(!is.na(cses_index)) 
+# #There are 19 people missing the cSES index so I am dropping them
+# #2nd def: there are no people missing cses index
+# hrs_samp %<>% filter(!is.na(cses_index)) 
 
 #---- CysC measures ----
+#distribution of ages
+
+
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 
   hrs_samp %>% 

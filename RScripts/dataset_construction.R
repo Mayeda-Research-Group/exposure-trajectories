@@ -320,18 +320,40 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 # #2nd def: there are no people missing cses index
 # hrs_samp %<>% filter(!is.na(cses_index)) 
 
+#---- Testing data subsets ----
+# #distribution of ages
+# #create long data
+# plot_data <- hrs_samp %>% 
+#   dplyr::select(c("HHIDPN", contains("CYSC_ADJ"), contains("age_y_int"))) %>% 
+#   pivot_longer(cols = c(contains("CYSC"), contains("age")), 
+#                names_to = c("Wave", ".value"),
+#                names_pattern = "(.)(.*)") %>% filter(!is.na(CYSC_ADJ))
+# 
+# ggplot(aes(x = age_y_int), data = plot_data %>% filter(Wave == "K")) + 
+#   geom_bar(stat = "count") + 
+#   #geom_text(stat='count', aes(label=..count..), vjust=-1) + 
+#   #scale_x_discrete(limits = seq(45, 90, by = 5)) + 
+#   theme_minimal()
+
+# #Sanity check
+# #How many people at each age in each wave
+# age_by_wave <- plot_data %>% group_by(Wave) %>% 
+#   summarise_at("age_y_int", count)
+# #Number of people per wave
+# age_by_wave %>% group_by(Wave) %>% summarise_at("age_y_int.freq", sum)
+
+# #First waves-- everyone's first wave is K
+# table(plot_data$Wave)
+# first_waves <- plot_data %>% group_by(HHIDPN) %>% slice_head()
+# table(first_waves$Wave)
+
+test <- hrs_samp %>% filter(Kage_y_int %in% seq(69, 74, by = 1))
+
+#Sanity check-- how many people died in this cohort by 2016
+sum(test$death)
+mean(test$death)
+
 #---- CysC measures ----
-#distribution of ages
-#create long data
-plot_data <- hrs_samp %>% 
-  dplyr::select(c("HHIDPN", contains("CYSC_ADJ"), contains("age_y_int"))) %>% 
-  pivot_longer(cols = c(contains("CYSC"), contains("age")), 
-               names_to = c("Wave", ".value"),
-               names_pattern = "(.)(.*)") %>% filter(!is.na(CYSC_ADJ))
-
-ggplot(aes(x = age_y_int), data = plot_data) + geom_bar(stat = "count") + 
-  theme_minimal() 
-
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 
   hrs_samp %>% 

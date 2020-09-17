@@ -322,7 +322,15 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 
 #---- CysC measures ----
 #distribution of ages
+#create long data
+plot_data <- hrs_samp %>% 
+  dplyr::select(c("HHIDPN", contains("CYSC_ADJ"), contains("age_y_int"))) %>% 
+  pivot_longer(cols = c(contains("CYSC"), contains("age")), 
+               names_to = c("Wave", ".value"),
+               names_pattern = "(.)(.*)") %>% filter(!is.na(CYSC_ADJ))
 
+ggplot(aes(x = age_y_int), data = plot_data) + geom_bar(stat = "count") + 
+  theme_minimal() 
 
 #average of all available CysC measures
 hrs_samp[, "avg_CYSC"] <- 
@@ -402,7 +410,6 @@ hrs_samp %<>%
            apply(1, function(x) x[min(which(!is.na(x)))])) %>% 
   mutate("height_measured" = ifelse(!is.na(med_height), 1, 0)) %>% 
   mutate("height" = ifelse(height_measured == 1, med_height, self_height))
-
 
 # #Sanity check
 # View(hrs_samp[, c(paste0("r", number_waves, "pmhght"),

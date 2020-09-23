@@ -347,7 +347,8 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 # first_waves <- plot_data %>% group_by(HHIDPN) %>% slice_head()
 # table(first_waves$Wave)
 
-test <- hrs_samp %>% filter(Kage_y_int %in% seq(69, 74, by = 1))
+test <- hrs_samp %>% filter(Kage_y_int %in% seq(60, 75, by = 1))
+nrow(test)
 
 #Sanity check-- how many people died in this cohort by 2016
 sum(test$death)

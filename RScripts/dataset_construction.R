@@ -239,7 +239,7 @@ hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"),
 #age at death
 hrs_samp %<>% 
   mutate("age_death_d" = difftime(DOD, Bday, units = "days"), 
-         "age_death_y" = as.numeric(age_death_d/365.25))
+         "age_death_y" = floor(as.numeric(age_death_d/365.25)))
 
 # #Sanity check
 # View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
@@ -268,6 +268,15 @@ hrs_samp[, paste0(c(letter_waves, "P"), "age_y_int")] <- floor(age_m/12)
 #birthdate, so I'm dropping them
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+
+#Impute data of death for assumed dead in 2018
+hrs_samp %<>% 
+  mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
+                                Page_y_int + 2, age_death_y))
+
+# #Sanity check
+# View(hrs_samp[, c("age_death_d", "age_death_y",
+#                   "death2016", "death2018", "Page_y_int")])
 
 # #Now there's no one missing age data
 #hrs_samp <- hrs_samp[-c(still_missing), ]
@@ -355,7 +364,7 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 #   pivot_longer(cols = c(contains("CYSC"), contains("age")),
 #                names_to = c("Wave", ".value"),
 #                names_pattern = "(.)(.*)") %>% filter(!is.na(CYSC_ADJ))
-#
+# 
 # ggplot(aes(x = age_y_int), data = plot_data %>% filter(Wave == "K")) +
 #   geom_bar(stat = "count") +
 #   #geom_text(stat='count', aes(label=..count..), vjust=-1) +
@@ -374,12 +383,12 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 # first_waves <- plot_data %>% group_by(HHIDPN) %>% slice_head()
 # table(first_waves$Wave)
 
-test <- hrs_samp %>% filter(Kage_y_int %in% seq(60, 75, by = 1))
+test <- hrs_samp %>% filter(Kage_y_int %in% seq(60, 64, by = 1))
 nrow(test)
 
 #Sanity check-- how many people died in this cohort by 2016
-sum(test$death)
-mean(test$death)
+sum(test$death2018)
+mean(test$death2018)
 
 #---- CysC measures ----
 #average of all available CysC measures

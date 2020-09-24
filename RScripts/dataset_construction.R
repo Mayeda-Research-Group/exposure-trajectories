@@ -45,7 +45,7 @@ hrs_tracker <-
   mutate_at("HHIDPN", as.numeric)
 
 #2006-2012 biomarker data and core data 
-dataframes_list <- vector(mode = "list", length = 2*length(years))
+dataframes_list <- vector(mode = "list", length = (2*length(years) + 1))
 
 for(i in 1:length(years)){
   year <- years[i]
@@ -140,38 +140,51 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
-#HRS Core files-- Need for medication
+#HRS Core files-- Need for medication; need 2018 for vital status
 #count continues from biomarker data pull
 for(i in (length(years) + 1):length(dataframes_list)){
-  year <- years[i - length(years)]
-  dataframes_list[[i]] <-
-    left_join(
-      read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
-                         "core/h", year, "da/H", year, "C_R.da"),
-                  paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
-                         "core/h", year, "sta/H", year, "C_R.dct"),
-                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
-      read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
-                         "core/h", year, "da/H", year, "N_R.da"),
-                  paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
-                         "core/h", year, "sta/H", year, "N_R.dct"),
-                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
-      by = "HHIDPN") %>%
-    #Select variables of interest: ID, diabetes meds (swallowed),
-    #                              diabetes meds (insulin), 
-    #                              bp meds, cholesterol meds
-    dplyr::select(HHIDPN, 
-                  contains("C011"), contains("C012"), 
-                  contains("C006"), contains("N360")) %>%
-    set_colnames(c("HHIDPN", 
-                   paste0(letter_waves[i - length(years)],
-                          "diabetes_rx_swallowed"),
-                   paste0(letter_waves[i - length(years)],
-                          "diabetes_rx_insulin"), 
-                   paste0(letter_waves[i - length(years)],
-                          "bp_rx"), 
-                   paste0(letter_waves[i - length(years)],
-                          "cholesterol_rx")))
+  if(i == length(dataframes_list)){
+    year = 18
+    dataframes_list[[i]] <-
+        read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "da/H", year, "IO_R.da"),
+                    paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "sta/H", year, "IO_R.dct"),
+                    HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>%
+      #Select variables of interest: ID, alive status
+      dplyr::select(HHIDPN, contains("Q007")) %>%
+      set_colnames(c("HHIDPN", "alive2018"))
+  } else{
+    year <- years[i - length(years)]
+    dataframes_list[[i]] <-
+      left_join(
+        read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "da/H", year, "C_R.da"),
+                    paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "sta/H", year, "C_R.dct"),
+                    HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
+        read_da_dct(paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "da/H", year, "N_R.da"),
+                    paste0("/Users/CrystalShaw/Box/HRS/core_files/h", year,
+                           "core/h", year, "sta/H", year, "N_R.dct"),
+                    HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
+        by = "HHIDPN") %>%
+      #Select variables of interest: ID, diabetes meds (swallowed),
+      #                              diabetes meds (insulin), 
+      #                              bp meds, cholesterol meds
+      dplyr::select(HHIDPN, 
+                    contains("C011"), contains("C012"), 
+                    contains("C006"), contains("N360")) %>%
+      set_colnames(c("HHIDPN", 
+                     paste0(letter_waves[i - length(years)],
+                            "diabetes_rx_swallowed"),
+                     paste0(letter_waves[i - length(years)],
+                            "diabetes_rx_insulin"), 
+                     paste0(letter_waves[i - length(years)],
+                            "bp_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "cholesterol_rx")))
+  }
 }
 
 #Anusha Vable's CSES index
@@ -200,8 +213,20 @@ hrs_samp %<>%
 hrs_samp %<>% filter(num_CysC_visits == 3)
 
 #---- death ----
-#death indicator
-hrs_samp %<>% mutate("death" = ifelse(is.na(raddate), 0, 1))
+#death indicators: RAND dates of death get us to 2016
+hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1))
+
+#Sanity check
+table(hrs_samp$death2016, hrs_samp$alive2018, useNA = "ifany")
+
+hrs_samp %<>% 
+  mutate("death2018" = ifelse((death2016 == 0 & is.na(alive2018)) | 
+                                death2016 == 1, 1, 0))
+
+#Sanity check
+table(hrs_samp$death2018, hrs_samp$alive2018, useNA = "ifany")
+table(hrs_samp$death2016, hrs_samp$death2018, useNA = "ifany")
+table(hrs_samp$death2018, useNA = "ifany")
 
 #format RAND dates with lubridate
 hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"), 
@@ -218,6 +243,8 @@ hrs_samp %<>%
 
 # #Sanity check
 # View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
+# View(hrs_samp[, c("age_death_y", "death2016", "death2018")] %>% 
+#        filter(death2018 == 1))
 
 #Drop RAND birth date, death date variables, and derived death in days
 hrs_samp %<>% dplyr::select(-c("rabmonth", "rabyear", "rabdate", 
@@ -318,26 +345,26 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 
 # #There are 19 people missing the cSES index so I am dropping them
 # #2nd def: there are no people missing cses index
-# hrs_samp %<>% filter(!is.na(cses_index)) 
+#  hrs_samp %<>% filter(!is.na(cses_index))
 
 #---- Testing data subsets ----
 # #distribution of ages
 # #create long data
-# plot_data <- hrs_samp %>% 
-#   dplyr::select(c("HHIDPN", contains("CYSC_ADJ"), contains("age_y_int"))) %>% 
-#   pivot_longer(cols = c(contains("CYSC"), contains("age")), 
+# plot_data <- hrs_samp %>%
+#   dplyr::select(c("HHIDPN", contains("CYSC_ADJ"), contains("age_y_int"))) %>%
+#   pivot_longer(cols = c(contains("CYSC"), contains("age")),
 #                names_to = c("Wave", ".value"),
 #                names_pattern = "(.)(.*)") %>% filter(!is.na(CYSC_ADJ))
-# 
-# ggplot(aes(x = age_y_int), data = plot_data %>% filter(Wave == "K")) + 
-#   geom_bar(stat = "count") + 
-#   #geom_text(stat='count', aes(label=..count..), vjust=-1) + 
-#   #scale_x_discrete(limits = seq(45, 90, by = 5)) + 
+#
+# ggplot(aes(x = age_y_int), data = plot_data %>% filter(Wave == "K")) +
+#   geom_bar(stat = "count") +
+#   #geom_text(stat='count', aes(label=..count..), vjust=-1) +
+#   #scale_x_discrete(limits = seq(45, 90, by = 5)) +
 #   theme_minimal()
 
 # #Sanity check
 # #How many people at each age in each wave
-# age_by_wave <- plot_data %>% group_by(Wave) %>% 
+# age_by_wave <- plot_data %>% group_by(Wave) %>%
 #   summarise_at("age_y_int", count)
 # #Number of people per wave
 # age_by_wave %>% group_by(Wave) %>% summarise_at("age_y_int.freq", sum)
@@ -551,10 +578,13 @@ for(var in variables){
 colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"
 
 #---- save dataset ----
-#Survival through age 70 and at least one cystatin c measure in [60, 70)
-write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/",
-                           "exposure_trajectories/data/",
-                           "hrs_samp_alive_70_cysc_60_70.csv"))
+#3 Cystatin C measures
+
+
+# #Survival through age 70 and at least one cystatin c measure in [60, 70)
+# write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/",
+#                            "exposure_trajectories/data/",
+#                            "hrs_samp_alive_70_cysc_60_70.csv"))
 
 # #Survival through age 70
 # write_csv(hrs_samp, paste0("/Users/CrystalShaw/Dropbox/Projects/",

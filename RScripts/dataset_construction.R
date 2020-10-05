@@ -327,13 +327,13 @@ hrs_samp %<>%
   mutate("other" = ifelse(raracem == 3 & hispanic == 0, 1, 0)) %>% 
   mutate("unknown_race_eth" = ifelse(is.na(raracem) & hispanic == 0, 1, 0))
 
-#Sanity check
-table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
-table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
-table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
-table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
-      useNA = "ifany")
-table(hrs_samp$unknown_race_eth, useNA = "ifany")
+# #Sanity check
+# table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
+#       useNA = "ifany")
+# table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
 #1st def: 1 person missing race/ethnicity
 #2nd def: no people missing race/ethnicity data so I am dropping them

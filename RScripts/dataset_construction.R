@@ -214,20 +214,21 @@ hrs_samp %<>%
 hrs_samp %<>% filter(num_CysC_visits == 3)
 
 #---- death ----
-#death indicators: RAND dates of death get us to 2016
+#death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
 hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1))
-
-#Sanity check
-table(hrs_samp$death2016, hrs_samp$alive2018, useNA = "ifany")
-
 hrs_samp %<>% 
-  mutate("death2018" = ifelse((death2016 == 0 & is.na(alive2018)) | 
-                                death2016 == 1, 1, 0))
+  mutate("death2018_old" = ifelse((death2016 == 0 & is.na(alive2018)) | 
+                                death2016 == 1, 1, 0)) %>% 
+  mutate("death2018" = ifelse(QALIVE %in% c(5, 6), 1, 0))
 
-#Sanity check
-table(hrs_samp$death2018, hrs_samp$alive2018, useNA = "ifany")
-table(hrs_samp$death2016, hrs_samp$death2018, useNA = "ifany")
-table(hrs_samp$death2018, useNA = "ifany")
+
+# #Sanity check
+# #1 = alive; 2 = presumed alive; 5 = known deceased this wave; 
+# #6 = known deceased prior wave 
+# table(hrs_samp$QALIVE, useNA = "ifany")
+# table(hrs_samp$death2016, useNA = "ifany")
+# table(hrs_samp$death2018_old, useNA = "ifany")
+# table(hrs_samp$death2018, useNA = "ifany")
 
 #format RAND dates with lubridate
 hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"), 

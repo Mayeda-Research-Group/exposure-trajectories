@@ -38,10 +38,11 @@ number_waves <- seq(8, 12, by = 1) #biomarker sample
 
 #---- read in data ----
 hrs_tracker <- 
-  read_da_dct("/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.da", 
-              "/Users/CrystalShaw/Box/HRS/2016_tracker/trk2016/TRK2016TR_R.dct", 
-              HHIDPN = TRUE) %>% 
-  select("HHIDPN", "OIWTYPE", "OALIVE", "PIWTYPE", "PALIVE") %>% 
+  read_sas(paste0("/Users/CrystalShaw/Box/HRS/tracker/trk2018_3/", 
+                  "trk2018tr_r.sas7bdat")) %>% 
+  select("HHID", "PN", "OIWTYPE", "OALIVE", "PIWTYPE", "PALIVE", "QIWTYPE", 
+         "QALIVE") %>% 
+  unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
   mutate_at("HHIDPN", as.numeric)
 
 #2006-2012 biomarker data and core data 

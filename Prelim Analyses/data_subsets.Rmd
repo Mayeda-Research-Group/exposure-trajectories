@@ -1,0 +1,112 @@
+---
+title: "Exposure Trajectories"
+subtitle: "Data Subsets"
+author: "Crystal Shaw"
+date: "`r format(Sys.time(), '%m/%d/%y')`"
+output: 
+rmarkdown::word_document:
+  theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r packages}
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("here", "tidyverse", "magrittr")
+
+#No scientific notation
+options(scipen = 999)
+```
+
+```{r import data}
+hrs_samp <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
+                            "exposure_trajectories/data/",
+                            "hrs_samp_3cysc.csv"))
+```
+Distributions of age at last Cystatin C Measure overlayed with age at death
+
+```{r create subsets}
+subsets_data <- data.frame("Cys1_start_age" = rep(seq(60, 71, by = 1), 7)) %>% 
+  mutate("Cys1_end_age" = c(seq(60, 71, by = 1) + 4, seq(60, 71, by = 1) + 5, 
+                            seq(60, 71, by = 1) + 6, seq(60, 71, by = 1) + 7, 
+                            seq(60, 71, by = 1) + 8, seq(60, 71, by = 1) + 9, 
+                            seq(60, 71, by = 1) + 10)) %>% 
+  mutate("range" = Cys1_end_age - Cys1_start_age, 
+         "n" = NA, "Cys3_age_range" = NA, "Cys3_mean_age" = NA, 
+         "Cys3_med_age" = NA, 
+         "death2018_100_n" = NA, "death2018_100_p" = NA, 
+         "death2018_100_age_range" = NA, 
+         "death2018_75_n" = NA, "death2018_75_p" = NA, 
+         "death2018_75_age_range" = NA, 
+         "death2018_50_n" = NA, "death2018_50_p" = NA, 
+         "death2018_50_age_range" = NA)
+
+for(i in 1:nrow(subsets_data)){
+  #data
+  test <- hrs_samp %>% 
+    filter(Kage_y_int %in% 
+             seq(as.numeric(subsets_data[i, "Cys1_start_age"]), 
+                 as.numeric(subsets_data[i, "Cys1_end_age"]), by = 1))
+  
+  #masking deaths
+  dead_2018 <- which(test$death2018 == 1)
+  mask_50 <- sample(dead_2018, floor(0.5*length(dead_2018)))
+  mask_25 <- sample(dead_2018, floor(0.25*length(dead_2018)))
+  
+  test %<>% mutate("death2018_75" = death2018, 
+                   "death2018_50" = death2018)
+  test[mask_25, "death2018_75"] <- 0
+  test[mask_50, "death2018_50"] <- 0
+  
+  #filling in table
+  subsets_data[i, "n"] <- nrow(test)
+  subsets_data[i, "Cys3_age_range"] <- 
+    paste0("[", min(test$Oage_y_int), ", ", max(test$Oage_y_int), "]")
+  subsets_data[i, "Cys3_mean_age"] <- mean(test$Oage_y_int)
+  subsets_data[i, "Cys3_med_age"] <- median(test$Oage_y_int)
+  
+  subsets_data[i, "death2018_100_n"] <- sum(test$death2018)
+  subsets_data[i, "death2018_100_p"] <- round(mean(test$death2018), 2)
+  subsets_data[i, "death2018_100_age_range"] <- 
+    paste0("[", min(test$age_death_y, na.rm = TRUE), ", ", 
+           max(test$age_death_y, na.rm = TRUE), "]")
+  
+  death_75 <- test %>% filter(death2018_75 == 1)
+  subsets_data[i, "death2018_75_n"] <- sum(test$death2018_75)
+  subsets_data[i, "death2018_75_p"] <- round(mean(test$death2018_75), 2)
+  subsets_data[i, "death2018_75_age_range"] <- 
+    paste0("[", min(death_75$age_death_y, na.rm = TRUE), ", ", 
+           max(death_75$age_death_y, na.rm = TRUE), "]")
+  
+  death_50 <- test %>% filter(death2018_50 == 1)
+  subsets_data[i, "death2018_50_n"] <- sum(test$death2018_50)
+  subsets_data[i, "death2018_50_p"] <- round(mean(test$death2018_50), 2)
+  subsets_data[i, "death2018_50_age_range"] <- 
+    paste0("[", min(death_50$age_death_y, na.rm = TRUE), ", ", 
+           max(death_50$age_death_y, na.rm = TRUE), "]")
+  
+  #Plots
+  plot_data <- test %>% 
+    dplyr::select("Oage_y_int", "death2018", "age_death_y")
+  
+  print(paste0("First CysC ages: [", subsets_data[i, "Cys1_start_age"], 
+                   ", ", subsets_data[i, "Cys1_end_age"], "]"))  
+  
+  print(ggplot(data = plot_data) + 
+          geom_bar(aes(x = Oage_y_int, fill = "Last CysC Wave"), stat = "count", 
+                   color = "lightblue", fill = "lightblue") + 
+          geom_bar(aes(x = age_death_y, fill = "Death by 2018"), stat = "count", 
+                   alpha = 0.5) +
+          theme_minimal() + xlab("Age") + 
+    # the labels must match what you specified above
+    scale_fill_manual(name = "", values = c("Last CysC Wave" = "lightblue", 
+                                            "Death by 2018" = "gray")))
+}
+
+write_csv(subsets_data, "/Users/CrystalShaw/Desktop/exp_traj_subsets.csv")            
+```

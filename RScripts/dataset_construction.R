@@ -277,8 +277,7 @@ hrs_samp %<>%
                                 Page_y_int + 2, age_death_y))
 
 # #Sanity check
-# View(hrs_samp[, c("age_death_d", "age_death_y",
-#                   "death2016", "death2018", "Page_y_int")])
+# View(hrs_samp[, c("age_death_y", "death2016", "death2018", "Page_y_int")])
 
 # #Now there's no one missing age data
 #hrs_samp <- hrs_samp[-c(still_missing), ]

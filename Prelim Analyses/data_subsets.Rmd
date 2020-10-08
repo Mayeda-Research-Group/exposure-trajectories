@@ -117,22 +117,24 @@ for(i in 1:nrow(subsets_data)){
                             values = c("Last CysC Wave" = "lightblue", 
                                        "Death by 2018" = "gray")))
   
-  #Model
-  model_avg_cysc <- 
-  glm(death2018 ~ Oage_y + female + hispanic + black + other + avg_CYSC, 
-      family = binomial(link = "logit"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = FALSE, conf.int = TRUE) %>% 
-    filter(term == "avg_CYSC")
-  
-  subsets_data[i, "OR"] <- round(results$estimate, 2)
-  subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ", 
-                                  round(results$conf.high, 2), "]")
+  # #Logistic Regression Model
+  # model_avg_cysc <- 
+  # glm(death2018 ~ Oage_y + female + hispanic + black + other + avg_CYSC, 
+  #     family = binomial(link = "logit"), data = test)
+  # 
+  # results <- tidy(model_avg_cysc, exponentiate = FALSE, conf.int = TRUE) %>% 
+  #   filter(term == "avg_CYSC")
+  # 
+  # subsets_data[i, "OR"] <- round(results$estimate, 2)
+  # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ", 
+  #                                 round(results$conf.high, 2), "]")
   
   # #Model diagnostics
   # pchisq(model_avg_cysc$deviance, df = model_avg_cysc$df.residual,
   #        lower.tail = FALSE)
   # plot(model_avg_cysc)
+  
+  #Relative Risk Regression
 }
 
 write_csv(subsets_data, "exp_traj_subsets_RR_regression.csv")            

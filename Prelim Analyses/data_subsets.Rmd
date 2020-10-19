@@ -28,7 +28,8 @@ hrs_samp <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
                             "exposure_trajectories/data/",
                             "hrs_samp_3cysc.csv")) %>% 
   mutate("log_avg_CYSC" = log(avg_CYSC), 
-         "decile_cat" = 0)
+         "decile_cat" = 0, 
+         "quartile_cat" = 0)
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 
@@ -42,7 +43,7 @@ subsets_data <- data.frame("Cys1_start_age" = rep(seq(60, 71, by = 1), 7)) %>%
          "n" = NA, "Cys3_age_range" = NA, "Cys3_mean_age" = NA, 
          "Cys3_med_age" = NA, 
          "death2018_n" = NA, "death2018_p" = NA, 
-         "death2018_age_range" = NA, "RR" = NA, "CI" = NA)
+         "death2018_age_range" = NA, "RR" = NA, "CI_RR" = NA)
 
 for(i in 1:nrow(subsets_data)){
   #data
@@ -53,13 +54,24 @@ for(i in 1:nrow(subsets_data)){
   
   #Cystatin C deciles
   deciles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 11), type = 5)
+  quintiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 6), type = 5)
+  quartiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 5), type = 5)
   
   for(j in 1:nrow(test)){
     test[j, "decile_cat"] <- min(which(test$avg_CYSC[j] <= deciles)) - 1
+    test[j, "quintile_cat"] <- min(which(test$avg_CYSC[j] <= quintiles)) - 1
+    test[j, "quartile_cat"] <- min(which(test$avg_CYSC[j] <= quartiles)) - 1
   }
+  
+  test[test$decile_cat == 0, "decile_cat"] <- 1
+  test[test$quintile_cat == 0, "quintile_cat"] <- 1
+  test[test$quartile_cat == 0, "quartile_cat"] <- 1
   
   # #Sanity check
   # View(test[, c("decile_cat", "avg_CYSC")])
+  # table(test$decile_cat)
+  # table(test$quintile_cat)
+  # table(test$quartile_cat)
   
   # #masking deaths
   # dead_2018 <- which(test$death2018 == 1)
@@ -118,11 +130,11 @@ for(i in 1:nrow(subsets_data)){
                                        "Death by 2018" = "gray")))
   
   # #Logistic Regression Model
-  # model_avg_cysc <- 
-  # glm(death2018 ~ Oage_y + female + hispanic + black + other + avg_CYSC, 
+  # model_avg_cysc <-
+  # glm(death2018 ~ Oage_y + female + hispanic + black + other + avg_CYSC,
   #     family = binomial(link = "logit"), data = test)
   # 
-  # results <- tidy(model_avg_cysc, exponentiate = FALSE, conf.int = TRUE) %>% 
+  # results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
   #   filter(term == "avg_CYSC")
   # 
   # subsets_data[i, "OR"] <- round(results$estimate, 2)
@@ -134,8 +146,20 @@ for(i in 1:nrow(subsets_data)){
   #        lower.tail = FALSE)
   # plot(model_avg_cysc)
   
+  
   #Relative Risk Regression
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          as.factor(quartile_cat), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+  
+  # subsets_data[i, "RR"] <- round(results$estimate, 2)
+  # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ",
+  #                                 round(results$conf.high, 2), "]")
+
 }
 
-write_csv(subsets_data, "exp_traj_subsets_RR_regression.csv")            
+write_csv(subsets_data, "exp_traj_subsets_RR_regression_avg_CysC.csv")            
 ```

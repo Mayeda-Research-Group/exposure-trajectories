@@ -100,6 +100,7 @@ for(i in 1:length(years)){
 ##         reports cancer this wave,
 ##         reports stroke this wave,
 ##         reports heart problems this wave
+##        diabetes ever/never
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week
 ##                   number of drinks per day
@@ -130,7 +131,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "drinkn"),
                     paste0("r", number_waves, "vgactx"),
                     paste0("r", number_waves, "mdactx"), 
-                    paste0("r", number_waves, "ltactx"))
+                    paste0("r", number_waves, "ltactx"),
+                    paste0("r", number_waves, "diabe"))
 
 RAND <- read_dta(paste0("/Users/CrystalShaw/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 
@@ -542,7 +544,7 @@ hrs_samp[, med_vars] <- reformat
 #Change numeric waves to letter waves
 variables <- c("bpsys", "bpdia", "pmwaist", "drinkn", "drinkd",  
                paste0(c("vg", "md", "lt"), "actx"), "hibp", "heart", "strok", 
-               "diab", "cancr")
+               "diab", "cancr", "diabe")
 
 for(var in variables){
   colnames(hrs_samp)[which(colnames(hrs_samp) %in% 

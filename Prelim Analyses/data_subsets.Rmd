@@ -24,7 +24,7 @@ options(scipen = 999)
 ```
 
 ```{r import data}
-hrs_samp <- read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/",
+hrs_samp <- read_csv(paste0("C:/Users/yingyan_wu/Dropbox/",#"/Users/CrystalShaw/Dropbox/Projects/"
                             "exposure_trajectories/data/",
                             "hrs_samp_3cysc.csv")) %>% 
   mutate("log_avg_CYSC" = log(avg_CYSC), 
@@ -82,6 +82,7 @@ for(i in 1:nrow(subsets_data)){
   #                  "death2018_50" = death2018)
   # test[mask_25, "death2018_75"] <- 0
   # test[mask_50, "death2018_50"] <- 0
+  
   
   #filling in table
   subsets_data[i, "n"] <- nrow(test)
@@ -148,6 +149,7 @@ for(i in 1:nrow(subsets_data)){
   
   
   #Relative Risk Regression
+   print("Variables: age, gender, race, CysC (quartile)")  
   model_avg_cysc <-
     glm(death2018 ~ Oage_y + female + hispanic + black + other + 
           as.factor(quartile_cat), family = poisson(link = "log"), data = test)
@@ -159,6 +161,16 @@ for(i in 1:nrow(subsets_data)){
   # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ",
   #                                 round(results$conf.high, 2), "]")
 
+  #Relative Risk Regression
+   print("Variables + smoking status, diabetes")  
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other 
+          + smoker + Odiabe + 
+          as.factor(quartile_cat), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+  
 }
 
 write_csv(subsets_data, "exp_traj_subsets_RR_regression_avg_CysC.csv")            

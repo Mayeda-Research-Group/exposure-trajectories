@@ -30,7 +30,6 @@ hrs_samp <- read_csv(paste0("C:/Users/yingyan_wu/Dropbox/",#"/Users/CrystalShaw/
   mutate("log_avg_CYSC" = log(avg_CYSC), 
          "decile_cat" = 0, 
          "quartile_cat" = 0)
-head(hrs_samp[ ,"log_avg_CYSC"])
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 

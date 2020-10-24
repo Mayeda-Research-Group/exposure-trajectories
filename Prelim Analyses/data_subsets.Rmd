@@ -30,6 +30,7 @@ hrs_samp <- read_csv(paste0("C:/Users/yingyan_wu/Dropbox/",#"/Users/CrystalShaw/
   mutate("log_avg_CYSC" = log(avg_CYSC), 
          "decile_cat" = 0, 
          "quartile_cat" = 0)
+head(hrs_samp[ ,"log_avg_CYSC"])
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 
@@ -149,7 +150,8 @@ for(i in 1:nrow(subsets_data)){
   
   
   #Relative Risk Regression
-   print("Variables: age, gender, race, CysC (quartile)")  
+   print("Variables: age, gender, race, CysC (quartile)")
+   
   model_avg_cysc <-
     glm(death2018 ~ Oage_y + female + hispanic + black + other + 
           as.factor(quartile_cat), family = poisson(link = "log"), data = test)
@@ -161,16 +163,37 @@ for(i in 1:nrow(subsets_data)){
   # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ",
   #                                 round(results$conf.high, 2), "]")
 
-  #Relative Risk Regression
-   print("Variables + smoking status, diabetes")  
+  # Adding smoking+diabetes into RR model
+   print("Variables + smoking status, diabetes")
+   
   model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other 
-          + smoker + Odiabe + 
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          smoker + Odiabe + 
           as.factor(quartile_cat), family = poisson(link = "log"), data = test)
   
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results)
   
+   # Using log avg CysC
+   print("Using Log CysC")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other +
+          log_avg_CYSC, family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+  
+   # Using log avg CysC + smoking + diabetes
+   print("Using Log CysC + smoking + diabetes")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          smoker + Odiabe + 
+          log_avg_CYSC, family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
 }
 
 write_csv(subsets_data, "exp_traj_subsets_RR_regression_avg_CysC.csv")            

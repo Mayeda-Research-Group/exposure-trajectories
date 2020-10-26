@@ -16,7 +16,7 @@ options(scipen = 999)
 # Crystal's directory: /Users/CrystalShaw
 #                     ~/Dropbox/Projects
 
-#Changing diretories here will change them throughout the script
+#Changing directories here will change them throughout the script
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 

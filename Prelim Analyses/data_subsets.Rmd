@@ -30,6 +30,37 @@ hrs_samp <- read_csv(paste0("C:/Users/yingyan_wu/Dropbox/",#"/Users/CrystalShaw/
   mutate("log_avg_CYSC" = log(avg_CYSC), 
          "decile_cat" = 0, 
          "quartile_cat" = 0)
+
+#eGFR calculation
+hrs_samp[, "KeGFR"] <- ifelse(hrs_samp$female == 1, 
+                              133*pmin(hrs_samp$KCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$KCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Kage_y*0.932, 
+                              133*pmin(hrs_samp$KCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$KCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Kage_y)
+
+hrs_samp[, "MeGFR"] <- ifelse(hrs_samp$female == 1, 
+                              133*pmin(hrs_samp$MCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$MCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Mage_y*0.932, 
+                              133*pmin(hrs_samp$MCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$MCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Mage_y)
+
+hrs_samp[, "OeGFR"] <- ifelse(hrs_samp$female == 1, 
+                              133*pmin(hrs_samp$OCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$OCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Oage_y*0.932, 
+                              133*pmin(hrs_samp$OCYSC_ADJ/0.8, 1)^-0.499*
+                                pmax(hrs_samp$OCYSC_ADJ/0.8, 1)^-1.328*
+                                0.996^hrs_samp$Oage_y)
+
+hrs_samp[, "avg_eGFR"] <-  hrs_samp %>% 
+  dplyr::select(contains("eGFR")) %>% 
+  rowMeans(na.rm = TRUE)
+
+hrs_samp[, "eGFR_CKD"] <- ifelse(hrs_samp$avg_eGFR >= 90, 0,1)
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 
@@ -193,6 +224,28 @@ for(i in 1:nrow(subsets_data)){
   
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results)
+  
+  # Using CysC estimated eGFR (category)
+   print("Using CysC estimated eGFR category")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other +
+          as.factor(eGFR_CKD), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+  
+   # Using eGFR category + smoking + diabetes
+   print("Using eGFR category + smoking + diabetes")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          smoker + Odiabe + 
+          as.factor(eGFR_CKD), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results) 
+  
 }
 
 write_csv(subsets_data, "exp_traj_subsets_RR_regression_avg_CysC.csv")            

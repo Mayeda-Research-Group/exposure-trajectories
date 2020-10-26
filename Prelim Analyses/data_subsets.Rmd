@@ -25,7 +25,7 @@ options(scipen = 999)
 
 ```{r import data}
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox/"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
@@ -63,7 +63,7 @@ hrs_samp[, "avg_eGFR"] <-  hrs_samp %>%
   dplyr::select(contains("eGFR")) %>% 
   rowMeans(na.rm = TRUE)
 
-hrs_samp[, "eGFR_CKD"] <- ifelse(hrs_samp$avg_eGFR >= 90, 0,1)
+hrs_samp[, "eGFR_CKD"] <- ifelse(hrs_samp$avg_eGFR >= 30, 0,1)
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 
@@ -91,15 +91,20 @@ for(i in 1:nrow(subsets_data)){
   quintiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 6), type = 5)
   quartiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 5), type = 5)
   
+  # eGFR quartiles
+  quartiles_G <- quantile(test$avg_eGFR, prob = seq(0, 1, length = 5), type = 5)
+  
   for(j in 1:nrow(test)){
     test[j, "decile_cat"] <- min(which(test$avg_CYSC[j] <= deciles)) - 1
     test[j, "quintile_cat"] <- min(which(test$avg_CYSC[j] <= quintiles)) - 1
     test[j, "quartile_cat"] <- min(which(test$avg_CYSC[j] <= quartiles)) - 1
+    test[j, "quartile_eGFR"] <- min(which(test$avg_eGFR[j] <= quartiles_G)) - 1
   }
   
   test[test$decile_cat == 0, "decile_cat"] <- 1
   test[test$quintile_cat == 0, "quintile_cat"] <- 1
   test[test$quartile_cat == 0, "quartile_cat"] <- 1
+   test[test$quartile_eGFR == 0, "quartile_eGFR"] <- 1
   
   # #Sanity check
   # View(test[, c("decile_cat", "avg_CYSC")])
@@ -248,6 +253,28 @@ for(i in 1:nrow(subsets_data)){
   
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results) 
+  
+  #eGFR quartile
+   print("eGFR (quartile)")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          as.factor(quartile_eGFR), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+
+  # quartile eGFR + smoking + diabetes
+   print("quartile eGFR + smoking status, diabetes")
+   
+  model_avg_cysc <-
+    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
+          smoker + Odiabe + 
+          as.factor(quartile_eGFR), family = poisson(link = "log"), data = test)
+  
+  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
+  print(results)
+  
   
 }
 

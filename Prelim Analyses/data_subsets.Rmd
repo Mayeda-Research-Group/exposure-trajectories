@@ -24,8 +24,11 @@ options(scipen = 999)
 ```
 
 ```{r import data}
-hrs_samp <- read_csv(paste0("C:/Users/yingyan_wu/Dropbox/",#"/Users/CrystalShaw/Dropbox/Projects/"
-                            "exposure_trajectories/data/",
+#Changing directories here will change them throughout the script
+path_to_dropbox <- "~/Dropbox/Projects"
+
+hrs_samp <- read_csv(paste0(path_to_dropbox,
+                            "/exposure_trajectories/data/",
                             "hrs_samp_3cysc.csv")) %>% 
   mutate("log_avg_CYSC" = log(avg_CYSC), 
          "decile_cat" = 0, 

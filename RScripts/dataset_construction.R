@@ -16,6 +16,10 @@ options(scipen = 999)
 # Crystal's directory: /Users/CrystalShaw
 #                     ~/Dropbox/Projects
 
+#Changing diretories here will change them throughout the script
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
+
 #---- source scripts ----
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
@@ -45,7 +49,7 @@ number_waves <- seq(8, 12, by = 1) #biomarker sample
 
 #---- read in data ----
 hrs_tracker <- 
-  read_sas(paste0("C:/Users/yingyan_wu/Box/HRS/tracker/trk2018_3/", 
+  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018_3/", 
                   "trk2018tr_r.sas7bdat")) %>% 
   select("HHID", "PN", "OIWTYPE", "OALIVE", "PIWTYPE", "PALIVE", "QIWTYPE", 
          "QALIVE") %>% 
@@ -60,9 +64,9 @@ for(i in 1:length(years)){
   
   if(i != length(years)){
     dataframes_list[[i]] <-  
-      read_da_dct(paste0("C:/Users/yingyan_wu/Box/HRS/biomarker_data/biomkr", 
+      read_da_dct(paste0(path_to_box, "/Box/HRS/biomarker_data/biomkr", 
                          year, "/BIOMK", year, "BL_R.da"),
-                  paste0("C:/Users/yingyan_wu/Box/HRS/biomarker_data/biomkr", 
+                  paste0(path_to_box, "/Box/HRS/biomarker_data/biomkr", 
                          year, "/BIOMK", year, "BL_R.dct"), HHIDPN = TRUE) %>%
       mutate_at("HHIDPN", as.numeric) %>% 
       #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
@@ -73,8 +77,8 @@ for(i in 1:length(years)){
   } else{
     #2014 early release biomarker data
     dataframes_list[[i]] <-  read_da_dct(
-      "C:/Users/yingyan_wu/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da",
-      "C:/Users/yingyan_wu/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct", 
+      paste0(path_to_box, "/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.da"),
+      paste0(path_to_box, "/Box/HRS/biomarker_data/BIOMK14BL/BIOMK14BL.dct"), 
       HHIDPN = TRUE) %>%
       mutate_at("HHIDPN", as.numeric) %>% 
       #Select variables of interest: ID, adjusted Cystatin C, adjusted HbA1c,
@@ -141,7 +145,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "ltactx"),
                     paste0("r", number_waves, "diabe"))
 
-RAND <- read_dta(paste0("C:/Users/yingyan_wu/Box/HRS/RAND_longitudinal/STATA/", 
+RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 
                  col_select = all_of(rand_variables)) 
 
@@ -156,9 +160,9 @@ for(i in (length(years) + 1):length(dataframes_list)){
   if(i == length(dataframes_list)){
     year = 18
     dataframes_list[[i]] <-
-        read_da_dct(paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+        read_da_dct(paste0(path_to_box,"/Box/HRS/core_files/h", year,
                            "core/h", year, "da/H", year, "IO_R.da"),
-                    paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+                    paste0(path_to_box, "/Box/HRS/core_files/h", year,
                            "core/h", year, "sta/H", year, "IO_R.dct"),
                     HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>%
       #Select variables of interest: ID, alive status
@@ -168,14 +172,14 @@ for(i in (length(years) + 1):length(dataframes_list)){
     year <- years[i - length(years)]
     dataframes_list[[i]] <-
       left_join(
-        read_da_dct(paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
                            "core/h", year, "da/H", year, "C_R.da"),
-                    paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+                    paste0(path_to_box, "/Box/HRS/core_files/h", year,
                            "core/h", year, "sta/H", year, "C_R.dct"),
                     HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
-        read_da_dct(paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
                            "core/h", year, "da/H", year, "N_R.da"),
-                    paste0("C:/Users/yingyan_wu/Box/HRS/core_files/h", year,
+                    paste0(path_to_box, "/Box/HRS/core_files/h", year,
                            "core/h", year, "sta/H", year, "N_R.dct"),
                     HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
         by = "HHIDPN") %>%
@@ -198,7 +202,7 @@ for(i in (length(years) + 1):length(dataframes_list)){
 }
 
 #Anusha Vable's CSES index
-cSES <- read_dta(paste0("C:/Users/yingyan_wu/Dropbox/exposure_trajectories/data/", 
+cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                         "cSES measures/cses_measures.dta"), 
                  col_select = c("hhid", "pn", "cses_index")) %>% 
   unite(col = "HHIDPN", c("hhid", "pn"), sep = "") %>% 
@@ -564,8 +568,8 @@ colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"
 
 #---- save dataset ----
 #3 Cystatin C measures
-write_csv(hrs_samp, paste0("C:/Users/yingyan_wu/Dropbox/",
-                           "exposure_trajectories/data/",
+write_csv(hrs_samp, paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/",
                            "hrs_samp_3cysc.csv"))
 
 

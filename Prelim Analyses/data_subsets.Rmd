@@ -214,6 +214,12 @@ for(i in 1:nrow(subsets_data)){
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results)
   
+   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
+    filter(term == "as.factor(quartile_cat)4")
+   subsets_data[i, "RR (CysC quartile)"] <- round(results$estimate, 2)
+   subsets_data[i, "lower CI (CysC quartile)"] <- round(results$conf.low, 2)
+   subsets_data[i, "Upper CI (CysC quartile)"] <- round(results$conf.high, 2)
+  
    # Using log avg CysC
    print("Using Log CysC")
    
@@ -234,6 +240,12 @@ for(i in 1:nrow(subsets_data)){
   
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results)
+  
+   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
+    filter(term == "log_avg_CYSC")
+   subsets_data[i, "RR (log CysC)"] <- round(results$estimate, 2)
+   subsets_data[i, "lower CI (log CysC)"] <- round(results$conf.low, 2)
+   subsets_data[i, "Upper CI (log CysC)"] <- round(results$conf.high, 2)
   
   # Using CysC estimated eGFR (category)
    print("Using CysC estimated eGFR category")
@@ -256,6 +268,13 @@ for(i in 1:nrow(subsets_data)){
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results) 
   
+      results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
+     filter(term == "as.factor(eGFR_CKD)1")
+   subsets_data[i, "RR (eGFR_CKD)"] <- round(results$estimate, 2)
+   subsets_data[i, "lower CI (eGFR_CKD)"] <- round(results$conf.low, 2)
+   subsets_data[i, "Upper CI (eGFR_CKD)"] <- round(results$conf.high, 2)
+ 
+   
   #eGFR quartile
    print("eGFR (quartile)")
    
@@ -277,6 +296,11 @@ for(i in 1:nrow(subsets_data)){
   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
   print(results)
   
+    results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
+     filter(term == "as.factor(quartile_eGFR)1")
+   subsets_data[i, "RR (eGFR quartile)"] <- round(results$estimate, 2)
+   subsets_data[i, "lower CI (eGFR quartile)"] <- round(results$conf.low, 2)
+   subsets_data[i, "Upper CI (eGFR quartile)"] <- round(results$conf.high, 2)
   
 }
 

@@ -104,8 +104,10 @@ for(i in 1:nrow(subsets_data)){
   test[test$decile_cat == 0, "decile_cat"] <- 1
   test[test$quintile_cat == 0, "quintile_cat"] <- 1
   test[test$quartile_cat == 0, "quartile_cat"] <- 1
-   test[test$quartile_eGFR == 0, "quartile_eGFR"] <- 1
+  test[test$quartile_eGFR == 0, "quartile_eGFR"] <- 1
   
+  test$quartile_eGFR <- relevel(as.factor(test$quartile_eGFR), ref = "4")
+   
   # #Sanity check
   # View(test[, c("decile_cat", "avg_CYSC")])
   # table(test$decile_cat)

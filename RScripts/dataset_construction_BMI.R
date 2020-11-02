@@ -43,7 +43,7 @@ source(here::here("RScripts", "measured_self_report.R"))
 
 # years <- c("06", "08", "10", "12", "14") #biomarker sample
 # letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample 
-# number_waves <- seq(8, 12, by = 1) #biomarker sample
+number_waves <- seq(8, 13, by = 1) 
 
 #---- read in HRS tracker ----
 hrs_tracker <- 
@@ -85,7 +85,7 @@ hrs_tracker <-
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
-                    paste0("r", c(number_waves, 13), "agem_e"), "raedyrs", 
+                    paste0("r", c(number_waves), "agem_e"), "raedyrs", 
                     "raedegrm", 
                     paste0("r", number_waves, "pmwght"), 
                     paste0("r", number_waves, "weight"),

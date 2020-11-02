@@ -127,21 +127,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
+hrs_samp <- join_all(list(hrs_tracker, RAND, cSES), 
                      by = "HHIDPN", type = "left") 
-
-#---- number of CysC visits ----
-hrs_samp %<>%
-  mutate("num_CysC_visits" = hrs_samp %>% 
-           dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(1, function(x) sum(1 - is.na(x)))) 
-
-# #Sanity Check
-# View(hrs_samp %>% dplyr::select(contains(c("CYSC_ADJ", "num_CysC_visits"))))
-# table(hrs_samp$num_CysC_visits, useNA = "ifany")
-
-#keep people with 3 Cystatin C visits-- complete cases
-hrs_samp %<>% filter(num_CysC_visits == 3)
 
 #---- death ----
 #death indicators: RAND dates of death get us to 2016 use QALIVE for 2018

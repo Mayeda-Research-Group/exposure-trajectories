@@ -198,7 +198,7 @@ hrs_samp %<>%
 #hrs_samp <- hrs_samp[-c(still_missing), ]
 
 #Drop RAND age variables
-hrs_samp %<>% dplyr::select(-paste0("r", c(number_waves, 13), "agem_e"))
+hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))
 
 #---- gender ----
 hrs_samp %<>% 

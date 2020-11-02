@@ -181,21 +181,26 @@ hrs_samp[, paste0(number_waves, "age_y_int")] <- floor(age_m/12)
 # View(hrs_samp[, c(paste0(number_waves, "age_y"), 
 #                   paste0(number_waves, "age_y_int"))])
 
-#Check those missing age data-- this person has no data for interview date or 
-#birthdate, so I'm dropping them
+#Check those missing age data-- these people have no birthdate data so I am 
+# dropping them
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+sum(is.na(hrs_samp[still_missing, "Bday"])) == length(still_missing)
+hrs_samp <- hrs_samp[-c(still_missing), ]
 
 #Impute data of death for those who are dead in 2018
 hrs_samp %<>% 
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
-                                Page_y_int + 2, age_death_y))
+                                `13age_y_int` + 2, age_death_y))
 
 # #Sanity check
-# View(hrs_samp[, c("age_death_y", "death2016", "death2018", "Page_y_int")])
-
-# #Now there's no one missing age data
-#hrs_samp <- hrs_samp[-c(still_missing), ]
+# View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
+# table(hrs_samp$age_death_y, useNA = "ifany")
+# sum(table(hrs_samp$age_death_y))
+# table(hrs_samp$QALIVE %in% c(5, 6))
+# #I think there's a one person discrepancy between RAND's death data and 
+# # HRS's QALIVE variable-- check this after all the other data cleaning steps
+# table(hrs_samp$death2018, hrs_samp$age_death_y)
 
 #Drop RAND age variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))

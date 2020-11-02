@@ -276,8 +276,10 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"),
 
 #---- weight ----
 hrs_samp %<>% 
-  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmwght"), 
-                             paste0("r", number_waves, "weight"), "weight"))
+  cbind(measured_self_report(hrs_samp, 
+                             paste0("r", seq(8, 13, by = 1), "pmwght"), 
+                             paste0("r", number_waves, "weight"), "weight", 
+                             number_waves))
 
 # #Checking weird weight values (from YW's analysis)
 # View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
@@ -324,20 +326,6 @@ hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
                                paste0("r", number_waves, "pmbmi")))
 
-#---- waist measure ----
-# #Checking weird weight values (from YW's analysis)
-# View(hrs_samp %>% filter(HHIDPN %in% c(21587040, 52985020, 55000040, 75475020, 
-#                                        76110040, 78203040)) %>%
-#        dplyr::select(c("HHIDPN", paste0("r", number_waves, "pmwaist"))))
-
-#Set the weird measures to NA
-hrs_samp[which(hrs_samp$HHIDPN == 21587040), "r10pmwaist"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 52985020), "r9pmwaist"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 55000040), "r10pmwaist"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 75475020), "r12pmwaist"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 76110040), "r11pmwaist"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 78203040), "r12pmwaist"] <- NA
-
 #---- smoking ----
 hrs_samp %<>% 
   mutate("smoker" = hrs_samp %>% 
@@ -365,27 +353,11 @@ reformat[reformat == 8 | reformat == 9] <- NA
 
 hrs_samp[, med_vars] <- reformat
 
-#---- Fix column names for easy column select in analyses ----
-#Change numeric waves to letter waves
-variables <- c("bpsys", "bpdia", "pmwaist", "drinkn", "drinkd",  
-               paste0(c("vg", "md", "lt"), "actx"), "hibp", "heart", "strok", 
-               "diab", "cancr", "diabe")
-
-for(var in variables){
-  colnames(hrs_samp)[which(colnames(hrs_samp) %in% 
-                             paste0("r", number_waves, var))] <- 
-    paste0(letter_waves, var)
-}
-
-#Inconsistency in capitalization
-colnames(hrs_samp)[which(colnames(hrs_samp) == "KHDl_ADJ")] <- "KHDL_ADJ"
-
 #---- save dataset ----
 #3 Cystatin C measures
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
                            "hrs_samp_3cysc.csv"))
-
 
 # #Survival through age 70 and at least one cystatin c measure in [60, 70)
 # write_csv(hrs_samp, paste0("C:/Users/yingyan_wu/Dropbox//",

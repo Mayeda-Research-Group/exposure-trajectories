@@ -173,13 +173,13 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
   apply(., 1, impute_ages) %>% t() 
 
 #Exact ages
-hrs_samp[, paste0(c(letter_waves, "P"), "age_y")] <- age_m/12
+hrs_samp[, paste0(number_waves, "age_y")] <- age_m/12
 #Ages rounded down to nearest year
-hrs_samp[, paste0(c(letter_waves, "P"), "age_y_int")] <- floor(age_m/12)
+hrs_samp[, paste0(number_waves, "age_y_int")] <- floor(age_m/12)
 
 # #Sanity check
-# View(hrs_samp[, c(c(letter_waves, "P"), "age_y"), 
-#                   c(letter_waves, "P"), "age_y_int"))])
+# View(hrs_samp[, c(paste0(number_waves, "age_y"), 
+#                   paste0(number_waves, "age_y_int"))])
 
 #Check those missing age data-- this person has no data for interview date or 
 #birthdate, so I'm dropping them

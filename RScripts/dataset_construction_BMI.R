@@ -276,26 +276,29 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"),
 
 #---- weight ----
 hrs_samp %<>% 
-  cbind(measured_self_report(hrs_samp, 
-                             paste0("r", seq(8, 13, by = 1), "pmwght"), 
-                             paste0("r", number_waves, "weight"), "weight", 
-                             number_waves))
+  cbind(measured_self_report(data = hrs_samp, 
+                             measured_cols = 
+                               paste0("r", seq(8, 13, by = 1), "pmwght"), 
+                             self_cols = 
+                               paste0("r", number_waves, "weight"), 
+                             derived_variable = "weight",
+                             measured_waves_start = 8, all_waves_end = 13))
 
-# #Checking weird weight values (from YW's analysis)
-# View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
-#        dplyr::select(c(paste0(letter_waves, "weight"),
-#                        paste0(letter_waves, "weight_measured"))))
-
-#Set the weird measures to NA
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight"] <- NA
-
-#Fix measured indicators
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight_measured"] <- 0
+# # #Checking weird weight values (from YW's analysis)
+# # View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
+# #        dplyr::select(c(paste0(letter_waves, "weight"),
+# #                        paste0(letter_waves, "weight_measured"))))
+# 
+# #Set the weird measures to NA
+# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight"] <- NA
+# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight"] <- NA
+# 
+# #Fix measured indicators
+# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "Mweight_measured"] <- 0
+# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "Nweight_measured"] <- 0
 
 #Drop RAND's weight variables
-hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmwght"), 
+hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
                                paste0("r", number_waves, "weight")))
 
 #---- BMI ----
@@ -337,21 +340,6 @@ hrs_samp %<>%
 
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
-
-#---- meds ----
-med_vars <- colnames(hrs_samp)[str_detect(colnames(hrs_samp), pattern = "rx")]
-
-reformat <- hrs_samp[, med_vars]
-
-# #Sanity check
-# which(reformat == 5)
-# which(reformat == 8)
-# which(reformat == 9)
-
-reformat[reformat == 5] <- 0
-reformat[reformat == 8 | reformat == 9] <- NA
-
-hrs_samp[, med_vars] <- reformat
 
 #---- save dataset ----
 #3 Cystatin C measures

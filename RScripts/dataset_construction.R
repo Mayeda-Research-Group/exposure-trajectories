@@ -10,7 +10,7 @@ p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled",
 options(scipen = 999)
 
 #---- Note ----
-# Since the difference between win and OS, put subsituted directory here
+# Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
 #                      C:/Users/yingyan_wu/Dropbox
 # Crystal's directory: /Users/CrystalShaw

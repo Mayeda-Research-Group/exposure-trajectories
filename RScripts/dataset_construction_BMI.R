@@ -60,53 +60,54 @@ hrs_tracker <-
 ##               birth year, birth date, death month, death year, death date,
 ##               age data in months (biomarker waves), years of education, 
 ##               highest degree (masked),  
-## Health: weight (kg; measured),
+## Health: weight (kg; measured; waves 8+),
 ##         weight (kg; self-report),
-##         height (m; measured),
+##         height (m; measured; waves 8+),
 ##         height (m; self-report),
-##         BMI (measured),
+##         BMI (measured; waves 8+),
 ##         BMI (self-report), 
 ##         waist circumference,
-##         BP (systolic), 
-##         BP (diastolic), 
+##         BP (systolic; waves 8+), 
+##         BP (diastolic; waves 8+), 
 ##         reports high blood pressure this wave,
 ##         reports diabetes this wave,
+##         diabetes ever/never,
 ##         reports cancer this wave,
 ##         reports stroke this wave,
 ##         reports heart problems this wave
-##        diabetes ever/never
+##        
 ## Health Behaviors: current smoker 
-##                   number of days drinking per week
-##                   number of drinks per day
-##                   frequency of vigorous/moderate/light physical activity
+##                   number of days drinking per week (waves 3+)
+##                   number of drinks per day (waves 3+)
+##                   frequency of vigr/modr/light physical activity (waves 7+)
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
 rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
-                    paste0("r", c(number_waves), "agem_e"), "raedyrs", 
+                    paste0("r", number_waves, "agem_e"), "raedyrs", 
                     "raedegrm", 
-                    paste0("r", number_waves, "pmwght"), 
+                    paste0("r", seq(8, 13, by = 1), "pmwght"), 
                     paste0("r", number_waves, "weight"),
-                    paste0("r", number_waves, "pmhght"), 
+                    paste0("r", seq(8, 13, by = 1), "pmhght"), 
                     paste0("r", number_waves, "height"),
                     paste0("r", number_waves, "bmi"), 
-                    paste0("r", number_waves, "pmbmi"),
-                    paste0("r", number_waves, "pmwaist"),
-                    paste0("r", number_waves, "bpsys"), 
-                    paste0("r", number_waves, "bpdia"),
+                    paste0("r", seq(8, 13, by = 1), "pmbmi"),
+                    paste0("r", seq(8, 13, by = 1), "pmwaist"),
+                    paste0("r", seq(8, 13, by = 1), "bpsys"), 
+                    paste0("r", seq(8, 13, by = 1), "bpdia"),
                     paste0("r", number_waves, "hibp"),
                     paste0("r", number_waves, "diab"),
+                    paste0("r", number_waves, "diabe"),
                     paste0("r", number_waves, "cancr"),
                     paste0("r", number_waves, "strok"), 
                     paste0("r", number_waves, "heart"),
                     paste0("r", number_waves, "smoken"), 
-                    paste0("r", number_waves, "drinkd"),
-                    paste0("r", number_waves, "drinkn"),
-                    paste0("r", number_waves, "vgactx"),
-                    paste0("r", number_waves, "mdactx"), 
-                    paste0("r", number_waves, "ltactx"),
-                    paste0("r", number_waves, "diabe"))
+                    paste0("r", seq(3, 13, by = 1), "drinkd"),
+                    paste0("r", seq(3, 13, by = 1), "drinkn"),
+                    paste0("r", seq(7, 13, by = 1), "vgactx"),
+                    paste0("r", seq(7, 13, by = 1), "mdactx"), 
+                    paste0("r", seq(7, 13, by = 1), "ltactx"))
 
 RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 

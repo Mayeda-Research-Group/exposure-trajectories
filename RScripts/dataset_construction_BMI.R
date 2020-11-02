@@ -232,9 +232,8 @@ hrs_samp %<>%
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
-#1st def: 1 person missing race/ethnicity
-#2nd def: no people missing race/ethnicity data so I am dropping them
-hrs_samp %<>% #filter(unknown_race_eth == 0) %>% 
+#26 people missing race/ethnicity data
+hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
   dplyr::select(-c("rahispan", "raracem"))
 
@@ -242,84 +241,15 @@ hrs_samp %<>% #filter(unknown_race_eth == 0) %>%
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 
-#There is one person missing years of education, so I'm going to drop them
-#Second def has 5 people missing race/ethnicity
+#There are 114 people missing years of education, so I'm going to drop them
 hrs_samp %<>% filter(!is.na(raedyrs))
 
 #---- cSES index ----
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
 
-# #There are 19 people missing the cSES index so I am dropping them
-# #2nd def: there are no people missing cses index
-#  hrs_samp %<>% filter(!is.na(cses_index))
-
-#---- CysC measures ----
-#average of all available CysC measures
-hrs_samp[, "avg_CYSC"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains("CYSC_ADJ")) %>% 
-  rowMeans(na.rm = TRUE)
-#change NaN to NA for individuals with no measures of CYSC
-hrs_samp$avg_CYSC[is.nan(hrs_samp$avg_CYSC)] <- NA
-#z score the measures
-hrs_samp[, "avg_CYSC_zscore"] <- 
-  (hrs_samp$avg_CYSC - mean(hrs_samp$avg_CYSC, na.rm = TRUE))/
-  sd(hrs_samp$avg_CYSC, na.rm = TRUE)
-
-#last CysC measure
-hrs_samp[, "last_CYSC"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains("CYSC_ADJ")) %>% 
-  apply(., 1, function(x) non_missing(x, first = FALSE))
-
-#z score the measures
-hrs_samp[, "last_CYSC_zscore"] <- 
-  (hrs_samp$last_CYSC - mean(hrs_samp$last_CYSC, na.rm = TRUE))/
-  sd(hrs_samp$last_CYSC, na.rm = TRUE)
-
-#wave of first CysC measure
-hrs_samp[, "first_CYSC_wave"] <-
-  hrs_samp %>%
-  dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(., 1, function(x) letter_waves[min(which(!is.na(x)))])
-
-#wave of last CysC measure
-hrs_samp[, "last_CYSC_wave"] <-
-  hrs_samp %>%
-  dplyr::select(contains("CYSC_ADJ")) %>%
-  apply(., 1, function(x) letter_waves[max(which(!is.na(x)))])
-
-#age at first CysC measure
-#restrict sample to those age-eligible at their first Cystatin C measure
-hrs_samp %<>% 
-  mutate("first_CYSC_age" = case_when(first_CYSC_wave == "K" ~ Kage_y_int,
-                                      first_CYSC_wave == "L" ~ Lage_y_int, 
-                                      first_CYSC_wave == "M" ~ Mage_y_int,
-                                      first_CYSC_wave == "N" ~ Nage_y_int, 
-                                      first_CYSC_wave == "O" ~ Oage_y_int)) %>% 
-  filter(first_CYSC_age >= 50)
-
-#age at last CysC measure
-hrs_samp %<>% 
-  mutate("last_CYSC_age" = case_when(last_CYSC_wave == "K" ~ Kage_y_int,
-                                     last_CYSC_wave == "L" ~ Lage_y_int, 
-                                     last_CYSC_wave == "M" ~ Mage_y_int,
-                                     last_CYSC_wave == "N" ~ Nage_y_int, 
-                                     last_CYSC_wave == "O" ~ Oage_y_int))
-
-# #sanity Check
-# View(hrs_samp %>% 
-#        dplyr::select(c(contains("CYSC_ADJ"), "avg_CYSC", "last_CYSC")))
-
-#---- follow-up time ----
-hrs_samp[, "fu_time"] <- hrs_samp[, "last_CYSC_age"] - 
-  hrs_samp[, "first_CYSC_age"]
-hrs_samp$fu_time[is.na(hrs_samp$fu_time)] <- 0
-
-# #Sanity Check
-# View(hrs_samp %>% dplyr::select(contains("CYSC_ADJ"), contains("CYSC_age"), 
-#                                 contains("age_y_int"), "fu_time"))
+#There are 11,165 people missing the cSES index so I am dropping them
+hrs_samp %<>% filter(!is.na(cses_index))
 
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights if 

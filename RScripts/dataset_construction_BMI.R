@@ -24,7 +24,6 @@ path_to_dropbox <- "~/Dropbox/Projects"
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "impute_ages.R"))
-source(here::here("RScripts", "cysc_between_60_70.R"))
 source(here::here("RScripts", "measured_self_report.R"))
 
 #---- wave mapping between HRS and RAND ----

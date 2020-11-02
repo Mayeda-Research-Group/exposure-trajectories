@@ -1,10 +1,9 @@
 ---
 title: "Exposure Trajectories"
-subtitle: "Data Subsets"
-author: "Crystal Shaw"
+subtitle: "Data Subsets: BMI --> Mortality"
 date: "`r format(Sys.time(), '%m/%d/%y')`"
 output: 
-rmarkdown::word_document:
+rmarkdown::html:
   theme: paper
 ---
 
@@ -25,7 +24,11 @@ options(scipen = 999)
 
 ```{r import data}
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox/"
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+path_to_dropbox <- "~/Dropbox/Projects"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",

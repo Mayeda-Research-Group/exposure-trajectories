@@ -130,21 +130,19 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 hrs_samp <- join_all(list(hrs_tracker, RAND, cSES), 
                      by = "HHIDPN", type = "left") 
 
+#---- remove people who were not sampled in 2018 ----
+hrs_samp %<>% filter(!is.na(QALIVE))
+
 #---- death ----
 #death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
-hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1))
-hrs_samp %<>% 
-  mutate("death2018_old" = ifelse((death2016 == 0 & is.na(alive2018)) | 
-                                death2016 == 1, 1, 0)) %>% 
-  mutate("death2018" = ifelse(QALIVE %in% c(5, 6), 1, 0))
-
+hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1), 
+                     "death2018" = ifelse(QALIVE %in% c(5, 6), 1, 0))
 
 # #Sanity check
 # #1 = alive; 2 = presumed alive; 5 = known deceased this wave; 
 # #6 = known deceased prior wave 
 # table(hrs_samp$QALIVE, useNA = "ifany")
 # table(hrs_samp$death2016, useNA = "ifany")
-# table(hrs_samp$death2018_old, useNA = "ifany")
 # table(hrs_samp$death2018, useNA = "ifany")
 
 #format RAND dates with lubridate

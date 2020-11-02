@@ -346,6 +346,9 @@ hrs_samp %<>%
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
+#---- how many people have BMI at all waves ----
+BMI_data <- hrs_samp %>% dplyr::select(paste0(seq(1, 13, by = 1), "BMI"))
+
 #---- save dataset ----
 #3 Cystatin C measures
 write_csv(hrs_samp, paste0(path_to_dropbox,

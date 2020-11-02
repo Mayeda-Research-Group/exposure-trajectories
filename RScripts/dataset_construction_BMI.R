@@ -303,8 +303,13 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"),
 
 #---- BMI ----
 hrs_samp %<>% 
-  cbind(measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"), 
-                             paste0("r", number_waves, "bmi"), "BMI"))
+  cbind(measured_self_report(data = hrs_samp, 
+                             measured_cols = 
+                               paste0("r", seq(8, 13, by = 1), "pmbmi"), 
+                             self_cols = 
+                               paste0("r", number_waves, "bmi"), 
+                             derived_variable = "BMI", 
+                             measured_waves_start = 8, all_waves_end = 13))
 
 # #Sanity check-- I had an issue with this observation that led to my finding
 # #               a bug in my measured_self_report code
@@ -317,17 +322,17 @@ hrs_samp %<>%
 #        dplyr::select(c(paste0(letter_waves, "BMI"),
 #                        paste0(letter_waves, "BMI_measured"))))
 
-#Set the weird measures to NA-- consistent with weight 
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI"] <- NA
-
-#Fix measured indicators
-hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
+# #Set the weird measures to NA-- consistent with weight 
+# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI"] <- NA
+# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI"] <- NA
+# 
+# #Fix measured indicators
+# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- 0
+# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
-                               paste0("r", number_waves, "pmbmi")))
+                               paste0("r", seq(8, 13, by = 1), "pmbmi")))
 
 #---- smoking ----
 hrs_samp %<>% 

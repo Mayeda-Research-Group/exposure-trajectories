@@ -186,7 +186,7 @@ hrs_samp[, paste0(c(letter_waves, "P"), "age_y_int")] <- floor(age_m/12)
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
 
-#Impute data of death for assumed dead in 2018
+#Impute data of death for those who are dead in 2018
 hrs_samp %<>% 
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
                                 Page_y_int + 2, age_death_y))
@@ -197,31 +197,8 @@ hrs_samp %<>%
 # #Now there's no one missing age data
 #hrs_samp <- hrs_samp[-c(still_missing), ]
 
-#Flag observations with observed ages at least 70yo up to 2014 HRS
-hrs_samp %<>% 
-  mutate("alive_70" = ifelse(Oage_y >= 70, 1, 0))
-
-# #Sanity Check
-# View(hrs_samp %>% dplyr::select(c(paste0(c(letter_waves, "P"), "age_y"), 
-#"alive_70")))
-
 #Drop RAND age variables
 hrs_samp %<>% dplyr::select(-paste0("r", c(number_waves, 13), "agem_e"))
-
-#---- age at CysC ----
-#Flag CysC measures between ages [60-70)
-hrs_samp[, "cysc_between_60_70"] <- 
-  hrs_samp %>% 
-  dplyr::select(contains(c("CYSC_ADJ", "age_y"))) %>% 
-  apply(., 1, cysc_between_60_70)
-
-# #Sanity Check
-# table(hrs_samp$cysc_between_60_70, useNA = "ifany")
-
-# #Restrict to those with Cystatin C measures in [60-70)-- may not need this step
-# hrs_samp %<>% filter(cysc_between_60_70 == 1) %>%
-#   #Restrict to survivors to age 70
-#   filter(alive_70 == 1)
 
 #---- gender ----
 hrs_samp %<>% 

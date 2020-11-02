@@ -43,14 +43,13 @@ source(here::here("RScripts", "measured_self_report.R"))
 
 # years <- c("06", "08", "10", "12", "14") #biomarker sample
 # letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample 
-number_waves <- seq(8, 13, by = 1) 
+number_waves <- seq(1, 13, by = 1) 
 
 #---- read in HRS tracker ----
 hrs_tracker <- 
   read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018_3/", 
                   "trk2018tr_r.sas7bdat")) %>% 
-  select("HHID", "PN", "OIWTYPE", "OALIVE", "PIWTYPE", "PALIVE", "QIWTYPE", 
-         "QALIVE") %>% 
+  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>% 
   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
   mutate_at("HHIDPN", as.numeric)
 

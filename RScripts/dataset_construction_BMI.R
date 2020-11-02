@@ -252,11 +252,11 @@ hrs_samp %<>% filter(!is.na(raedyrs))
 hrs_samp %<>% filter(!is.na(cses_index))
 
 #---- height ----
-#Create a "best" height variable by taking the median of measured heights if 
-#available or first self-reported height
+#Create a "best" height variable by taking the median of measured heights 
+# (waves 8+) if available or first self-reported height
 hrs_samp %<>% 
   mutate("med_height" = hrs_samp %>% 
-           dplyr::select(paste0("r", number_waves, "pmhght")) %>%
+           dplyr::select(paste0("r", seq(8, 13, by = 1), "pmhght")) %>%
            apply(1, function(x) median(x, na.rm = TRUE)), 
          "self_height" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "height")) %>%
@@ -265,12 +265,12 @@ hrs_samp %<>%
   mutate("height" = ifelse(height_measured == 1, med_height, self_height))
 
 # #Sanity check
-# View(hrs_samp[, c(paste0("r", number_waves, "pmhght"),
+# View(hrs_samp[, c(paste0("r", seq(8, 13, by = 1), "pmhght"),
 #                   paste0("r", number_waves, "height"),
 #                   "med_height", "self_height", "height_measured", "height")])
   
 #Drop RAND's height variables + extra derived variables
-hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "pmhght"), 
+hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
                                paste0("r", number_waves, "height"), 
                                "med_height", "self_height"))
 

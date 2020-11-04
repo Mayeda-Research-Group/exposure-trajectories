@@ -51,244 +51,36 @@ hrs_samp %<>%
 # summary(hrs_samp$avg_BMI)
 # summary(hrs_samp$med_BMI)
 ```
-Distributions of age at last Cystatin C Measure overlayed with age at death
+Distributions of age at last BMI Measure overlayed with age at death. I think we decided last time that we would use study time as our timescale so the overlap matters less?  
 
-```{r create subsets}
-subsets_data <- data.frame("Cys1_start_age" = rep(seq(60, 71, by = 1), 7)) %>% 
-  mutate("Cys1_end_age" = c(seq(60, 71, by = 1) + 4, seq(60, 71, by = 1) + 5, 
-                            seq(60, 71, by = 1) + 6, seq(60, 71, by = 1) + 7, 
-                            seq(60, 71, by = 1) + 8, seq(60, 71, by = 1) + 9, 
-                            seq(60, 71, by = 1) + 10)) %>% 
-  mutate("range" = Cys1_end_age - Cys1_start_age, 
-         "n" = NA, "Cys3_age_range" = NA, "Cys3_mean_age" = NA, 
-         "Cys3_med_age" = NA, 
-         "death2018_n" = NA, "death2018_p" = NA, 
-         "death2018_age_range" = NA, "RR" = NA, "CI_RR" = NA)
+Do we want to use a tighter age band for the first BMI wave, though?
 
-for(i in 1:nrow(subsets_data)){
-  #data
-  test <- hrs_samp %>% 
-    filter(Kage_y_int %in% 
-             seq(as.numeric(subsets_data[i, "Cys1_start_age"]), 
-                 as.numeric(subsets_data[i, "Cys1_end_age"]), by = 1))
-  
-  #Cystatin C deciles
-  deciles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 11), type = 5)
-  quintiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 6), type = 5)
-  quartiles <- quantile(test$avg_CYSC, prob = seq(0, 1, length = 5), type = 5)
-  
-  # eGFR quartiles
-  quartiles_G <- quantile(test$avg_eGFR, prob = seq(0, 1, length = 5), type = 5)
-  
-  for(j in 1:nrow(test)){
-    test[j, "decile_cat"] <- min(which(test$avg_CYSC[j] <= deciles)) - 1
-    test[j, "quintile_cat"] <- min(which(test$avg_CYSC[j] <= quintiles)) - 1
-    test[j, "quartile_cat"] <- min(which(test$avg_CYSC[j] <= quartiles)) - 1
-    test[j, "quartile_eGFR"] <- min(which(test$avg_eGFR[j] <= quartiles_G)) - 1
-  }
-  
-  test[test$decile_cat == 0, "decile_cat"] <- 1
-  test[test$quintile_cat == 0, "quintile_cat"] <- 1
-  test[test$quartile_cat == 0, "quartile_cat"] <- 1
-  test[test$quartile_eGFR == 0, "quartile_eGFR"] <- 1
-  
-  test$quartile_eGFR <- relevel(as.factor(test$quartile_eGFR), ref = "4")
-   
-  # #Sanity check
-  # View(test[, c("decile_cat", "avg_CYSC")])
-  # table(test$decile_cat)
-  # table(test$quintile_cat)
-  # table(test$quartile_cat)
-  
-  # #masking deaths
-  # dead_2018 <- which(test$death2018 == 1)
-  # mask_50 <- sample(dead_2018, floor(0.5*length(dead_2018)))
-  # mask_25 <- sample(dead_2018, floor(0.25*length(dead_2018)))
-  # 
-  # test %<>% mutate("death2018_75" = death2018, 
-  #                  "death2018_50" = death2018)
-  # test[mask_25, "death2018_75"] <- 0
-  # test[mask_50, "death2018_50"] <- 0
-  
-  
-  #filling in table
-  subsets_data[i, "n"] <- nrow(test)
-  subsets_data[i, "Cys3_age_range"] <- 
-    paste0("[", min(test$Oage_y_int), ", ", max(test$Oage_y_int), "]")
-  subsets_data[i, "Cys3_mean_age"] <- mean(test$Oage_y_int)
-  subsets_data[i, "Cys3_med_age"] <- median(test$Oage_y_int)
-  
-  subsets_data[i, "death2018_n"] <- sum(test$death2018)
-  subsets_data[i, "death2018_p"] <- round(mean(test$death2018), 2)
-  subsets_data[i, "death2018_age_range"] <- 
-    paste0("[", min(test$age_death_y, na.rm = TRUE), ", ", 
-           max(test$age_death_y, na.rm = TRUE), "]")
-  
-  # death_75 <- test %>% filter(death2018_75 == 1)
-  # subsets_data[i, "death2018_75_n"] <- sum(test$death2018_75)
-  # subsets_data[i, "death2018_75_p"] <- round(mean(test$death2018_75), 2)
-  # subsets_data[i, "death2018_75_age_range"] <- 
-  #   paste0("[", min(death_75$age_death_y, na.rm = TRUE), ", ", 
-  #          max(death_75$age_death_y, na.rm = TRUE), "]")
-  # 
-  # death_50 <- test %>% filter(death2018_50 == 1)
-  # subsets_data[i, "death2018_50_n"] <- sum(test$death2018_50)
-  # subsets_data[i, "death2018_50_p"] <- round(mean(test$death2018_50), 2)
-  # subsets_data[i, "death2018_50_age_range"] <- 
-  #   paste0("[", min(death_50$age_death_y, na.rm = TRUE), ", ", 
-  #          max(death_50$age_death_y, na.rm = TRUE), "]")
-  
-  #Plots
-  plot_data <- test %>% 
-    dplyr::select("Oage_y_int", "death2018", "age_death_y")
-  
-  print(paste0("First CysC ages: [", subsets_data[i, "Cys1_start_age"], 
-                   ", ", subsets_data[i, "Cys1_end_age"], "]"))  
-  
-  print(ggplot(data = plot_data) + 
-          geom_bar(aes(x = Oage_y_int, fill = "Last CysC Wave"), stat = "count", 
-                   color = "lightblue", fill = "lightblue") + 
-          geom_bar(aes(x = age_death_y, fill = "Death by 2018"), stat = "count", 
-                   alpha = 0.5) +
-          theme_minimal() + xlab("Age") + 
-          ggtitle("Age at death overlayed on Age at last Cystatin C measure") +
-          # the labels must match what you specified above
-          scale_fill_manual(name = "", 
-                            values = c("Last CysC Wave" = "lightblue", 
-                                       "Death by 2018" = "gray")))
-  
-  # #Logistic Regression Model
-  # model_avg_cysc <-
-  # glm(death2018 ~ Oage_y + female + hispanic + black + other + avg_CYSC,
-  #     family = binomial(link = "logit"), data = test)
-  # 
-  # results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
-  #   filter(term == "avg_CYSC")
-  # 
-  # subsets_data[i, "OR"] <- round(results$estimate, 2)
-  # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ", 
-  #                                 round(results$conf.high, 2), "]")
-  
-  # #Model diagnostics
-  # pchisq(model_avg_cysc$deviance, df = model_avg_cysc$df.residual,
-  #        lower.tail = FALSE)
-  # plot(model_avg_cysc)
-  
-  
-  #Relative Risk Regression
-   print("Variables: age, gender, race, CysC (quartile)")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          as.factor(quartile_cat), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-  # subsets_data[i, "RR"] <- round(results$estimate, 2)
-  # subsets_data[i, "CI"] <- paste0("[", round(results$conf.low, 2), ", ",
-  #                                 round(results$conf.high, 2), "]")
+```{r age distributions}
+plot_data <- hrs_samp %>% 
+  dplyr::select("4age_y_int")
 
-  # Adding smoking+diabetes into RR model
-   print("Variables + smoking status, diabetes")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          smoker + Odiabe + 
-          as.factor(quartile_cat), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
-    filter(term == "as.factor(quartile_cat)4")
-   subsets_data[i, "RR (CysC quartile)"] <- round(results$estimate, 2)
-   subsets_data[i, "lower CI (CysC quartile)"] <- round(results$conf.low, 2)
-   subsets_data[i, "Upper CI (CysC quartile)"] <- round(results$conf.high, 2)
-  
-   # Using log avg CysC
-   print("Using Log CysC")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other +
-          log_avg_CYSC, family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-   # Using log avg CysC + smoking + diabetes
-   print("Using Log CysC + smoking + diabetes")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          smoker + Odiabe + 
-          log_avg_CYSC, family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-   results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
-    filter(term == "log_avg_CYSC")
-   subsets_data[i, "RR (log CysC)"] <- round(results$estimate, 2)
-   subsets_data[i, "lower CI (log CysC)"] <- round(results$conf.low, 2)
-   subsets_data[i, "Upper CI (log CysC)"] <- round(results$conf.high, 2)
-  
-  # Using CysC estimated eGFR (category)
-   print("Using CysC estimated eGFR category")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other +
-          as.factor(eGFR_CKD), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-   # Using eGFR category + smoking + diabetes
-   print("Using eGFR category + smoking + diabetes")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          smoker + Odiabe + 
-          as.factor(eGFR_CKD), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results) 
-  
-      results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
-     filter(term == "as.factor(eGFR_CKD)1")
-   subsets_data[i, "RR (eGFR_CKD)"] <- round(results$estimate, 2)
-   subsets_data[i, "lower CI (eGFR_CKD)"] <- round(results$conf.low, 2)
-   subsets_data[i, "Upper CI (eGFR_CKD)"] <- round(results$conf.high, 2)
- 
-   
-  #eGFR quartile
-   print("eGFR (quartile)")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          as.factor(quartile_eGFR), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
+ggplot(data = plot_data) + 
+  geom_bar(aes(x = `4age_y_int`, fill = "First BMI Wave"), stat = "count", 
+           color = "lightblue", fill = "lightblue") + 
+  theme_minimal() + xlab("Age") + 
+  ggtitle("Age at first BMI measure")
 
-  # quartile eGFR + smoking + diabetes
-   print("quartile eGFR + smoking status, diabetes")
-   
-  model_avg_cysc <-
-    glm(death2018 ~ Oage_y + female + hispanic + black + other + 
-          smoker + Odiabe + 
-          as.factor(quartile_eGFR), family = poisson(link = "log"), data = test)
-  
-  results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) 
-  print(results)
-  
-    results <- tidy(model_avg_cysc, exponentiate = TRUE, conf.int = TRUE) %>%
-     filter(term == "as.factor(quartile_eGFR)1")
-   subsets_data[i, "RR (eGFR quartile)"] <- round(results$estimate, 2)
-   subsets_data[i, "lower CI (eGFR quartile)"] <- round(results$conf.low, 2)
-   subsets_data[i, "Upper CI (eGFR quartile)"] <- round(results$conf.high, 2)
-  
-}
+plot_data <- hrs_samp %>% 
+  dplyr::select("9age_y_int", "death2018", "age_death_y")
 
-write_csv(subsets_data, "exp_traj_subsets_RR_regression_avg_CysC.csv")            
+ggplot(data = plot_data) + 
+  geom_bar(aes(x = `9age_y_int`, fill = "Last BMI Wave"), stat = "count", 
+           color = "lightblue", fill = "lightblue") + 
+  geom_bar(aes(x = age_death_y, fill = "Death by 2018"), stat = "count", 
+           alpha = 0.5) +
+  theme_minimal() + xlab("Age") + 
+  ggtitle("Age at death overlayed on Age at last BMI measure") +
+  # the labels must match what you specified above
+  scale_fill_manual(name = "", 
+                    values = c("Last BMI Wave" = "lightblue", 
+                               "Death by 2018" = "gray"))
+```
+
+```{r models}
+          
 ```

@@ -32,41 +32,24 @@ path_to_dropbox <- "~/Dropbox/Projects"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
-                            "hrs_samp_3cysc.csv")) %>% 
-  mutate("log_avg_CYSC" = log(avg_CYSC), 
-         "decile_cat" = 0, 
-         "quartile_cat" = 0)
+                            "hrs_samp_6BMI_waves4-9.csv")) 
+```
 
-#eGFR calculation
-hrs_samp[, "KeGFR"] <- ifelse(hrs_samp$female == 1, 
-                              133*pmin(hrs_samp$KCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$KCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Kage_y*0.932, 
-                              133*pmin(hrs_samp$KCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$KCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Kage_y)
+```{r create new variables}
+hrs_samp %<>% 
+  mutate("avg_BMI" = hrs_samp %>% 
+           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+           rowMeans(.),
+         #Median doesn't look that different from the avg_BMI
+         "med_BMI" = hrs_samp %>% 
+           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+           apply(., 1, function(x) median(x)))
 
-hrs_samp[, "MeGFR"] <- ifelse(hrs_samp$female == 1, 
-                              133*pmin(hrs_samp$MCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$MCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Mage_y*0.932, 
-                              133*pmin(hrs_samp$MCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$MCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Mage_y)
-
-hrs_samp[, "OeGFR"] <- ifelse(hrs_samp$female == 1, 
-                              133*pmin(hrs_samp$OCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$OCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Oage_y*0.932, 
-                              133*pmin(hrs_samp$OCYSC_ADJ/0.8, 1)^-0.499*
-                                pmax(hrs_samp$OCYSC_ADJ/0.8, 1)^-1.328*
-                                0.996^hrs_samp$Oage_y)
-
-hrs_samp[, "avg_eGFR"] <-  hrs_samp %>% 
-  dplyr::select(contains("eGFR")) %>% 
-  rowMeans(na.rm = TRUE)
-
-hrs_samp[, "eGFR_CKD"] <- ifelse(hrs_samp$avg_eGFR >= 30, 0,1)
+# #Sanity check
+# View(hrs_samp %>% 
+#        dplyr::select(paste0(seq(4, 9, by = 1), "BMI"), "avg_BMI", "med_BMI"))
+# summary(hrs_samp$avg_BMI)
+# summary(hrs_samp$med_BMI)
 ```
 Distributions of age at last Cystatin C Measure overlayed with age at death
 

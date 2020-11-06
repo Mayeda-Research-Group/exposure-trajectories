@@ -239,11 +239,21 @@ hrs_samp %<>% filter(unknown_race_eth == 0) %>%
   dplyr::select(-c("rahispan", "raracem"))
 
 #---- education ----
-# #Sanity check
-# table(is.na(hrs_samp$raedyrs))
-
 #There are 114 people missing years of education, so I'm going to drop them
 hrs_samp %<>% filter(!is.na(raedyrs))
+
+#Create education categories
+hrs_samp %<>% 
+  mutate("ed_cat" = case_when(raedyrs < 12 ~ "Less than HS", 
+                              raedyrs == 12 ~ "HS", 
+                              raedyrs > 12 & raedyrs < 16 ~ "Some College", 
+                              raedyrs == 16 ~ "Bachelors", 
+                              raedyrs > 16 ~ "Grad Studies"))
+
+# #Sanity check
+# table(is.na(hrs_samp$raedyrs))
+# table(hrs_samp$raedyrs)
+table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
 
 #---- cSES index ----
 # #Sanity check
@@ -418,6 +428,7 @@ hrs_samp %<>% mutate("drop" = drop$drop) %>%
   filter(`4age_y_int` >= 50)
 
 #---- marital status ----
+#Create marital status categories
 hrs_samp %<>% 
   mutate("r9mstat_cat" = 
            case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 

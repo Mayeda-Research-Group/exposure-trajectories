@@ -285,13 +285,13 @@ hrs_samp %<>%
                              derived_variable = "weight",
                              measured_waves_start = 8, all_waves_end = 13))
 
-#Checking weird weight values (from YW's analysis)
-weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020, 
-                  75888040, 76793010, 79557010, 112747020, 146359010, 207810010, 
-                  208021020, 208024010, 210114010)
-
-View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
-       dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "weight"))))
+# #Checking weird weight values (from YW's analysis)
+# weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020, 
+#                   75888040, 76793010, 79557010, 112747020, 146359010, 207810010, 
+#                   208021020, 208024010, 210114010)
+# 
+# View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
+#        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "weight"))))
 
 #Set the weird measures to NA
 hrs_samp[which(hrs_samp$HHIDPN %in% 
@@ -333,18 +333,29 @@ hrs_samp %<>%
 #        dplyr::select(c(paste0(letter_waves, "BMI"),
 #                        paste0(letter_waves, "BMI_measured"))))
        
-# #Checking weird BMI values (from YW's analysis)
-# View(hrs_samp %>% filter(HHIDPN %in% c(20480010, 203788021)) %>%
-#        dplyr::select(c(paste0(letter_waves, "BMI"),
-#                        paste0(letter_waves, "BMI_measured"))))
+#Set the weird measures to NA-- consistent with weight
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9BMI"] <- NA
 
-# #Set the weird measures to NA-- consistent with weight 
-# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI"] <- NA
-# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI"] <- NA
-# 
-# #Fix measured indicators
-# hrs_samp[which(hrs_samp$HHIDPN == 20480010), "MBMI_measured"] <- 0
-# hrs_samp[which(hrs_samp$HHIDPN == 203788021), "NBMI_measured"] <- 0
+#Fix measured indicators
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9BMI_measured"] <- 0
+
+# #Sanity check
+# View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
+#        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "BMI"))))
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 

@@ -41,8 +41,6 @@ source(here::here("RScripts", "measured_self_report.R"))
 # 2014 | O | 12
 # 2016 | P | 13
 
-# years <- c("06", "08", "10", "12", "14") #biomarker sample
-# letter_waves <- LETTERS[seq(from = 11, to = 15)] #biomarker sample 
 number_waves <- seq(1, 13, by = 1) 
 
 #---- read in HRS tracker ----

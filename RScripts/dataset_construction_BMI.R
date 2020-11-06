@@ -459,6 +459,8 @@ hrs_samp %<>%
 #                                 "drinking9_cat") %>% 
 #        filter(drinking9_cat == "Heavy Drinking"))
 
+# table(hrs_samp$drinking9_cat, useNA = "ifany")
+
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",

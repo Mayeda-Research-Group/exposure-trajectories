@@ -87,6 +87,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     "rabyear", "rabdate", "radmonth", "radyear", "raddate",
                     paste0("r", number_waves, "agem_e"), "raedyrs", 
                     "raedegrm", 
+                    paste0("r", number_waves, "mstat"),
                     paste0("r", seq(8, 13, by = 1), "pmwght"), 
                     paste0("r", number_waves, "weight"),
                     paste0("r", seq(8, 13, by = 1), "pmhght"), 
@@ -347,39 +348,39 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- Looking for optimal subset ----
-#Drop those who are not age-eligible for HRS at the start of follow-up
-subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>% 
-  set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures", 
-                 "sample_size", "min_age", "max_age", "death_2018", 
-                 "prop_dead"))
+# #Drop those who are not age-eligible for HRS at the start of follow-up
+# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>% 
+#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures", 
+#                  "sample_size", "min_age", "max_age", "death_2018", 
+#                  "prop_dead"))
+# 
+# index = 0
+# for(i in 1:9){
+#   for(j in (i + 4):13){
+#     index = index + 1
+#     subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
+#     subsets_data[index, "num_measures"] = j - i + 1
+#     
+#     data_subset <- hrs_samp %>% 
+#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018", 
+#                     paste0(i, "age_y_int")) %>% 
+#       na.omit() 
+#     data_subset[, "too_young"] = 
+#       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
+#     
+#     data_subset %<>% filter(too_young == 0)
+#     
+#     subsets_data[index, "sample_size"] = nrow(data_subset)
+#     subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "death_2018"] = sum(data_subset$death2018)
+#     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
+#   }
+# }
 
-index = 0
-for(i in 1:9){
-  for(j in (i + 4):13){
-    index = index + 1
-    subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
-    subsets_data[index, "num_measures"] = j - i + 1
-    
-    data_subset <- hrs_samp %>% 
-      dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018", 
-                    paste0(i, "age_y_int")) %>% 
-      na.omit() 
-    data_subset[, "too_young"] = 
-      ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
-    
-    data_subset %<>% filter(too_young == 0)
-    
-    subsets_data[index, "sample_size"] = nrow(data_subset)
-    subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
-    subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
-    subsets_data[index, "death_2018"] = sum(data_subset$death2018)
-    subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
-  }
-}
-
-#Best subset was waves 4-9
-write_csv(subsets_data, here::here("Prelim Analyses", "exp_BMI_out_mortality", 
-                             "BMI_complete_subsets.csv"))
+# #Best subset was waves 4-9
+# write_csv(subsets_data, here::here("Prelim Analyses", "exp_BMI_out_mortality", 
+#                              "BMI_complete_subsets.csv"))
 
 drop <- hrs_samp %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
   mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0))
@@ -389,6 +390,17 @@ hrs_samp %<>% mutate("drop" = drop$drop) %>%
   filter(drop == 0) %>% 
   #drop those <50 at start of follow-up
   filter(`4age_y_int` >= 50)
+
+#---- marital status ----
+hrs_samp %<>% 
+  mutate("r9mstat_cat" = 
+           case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
+                     r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+                     r9mstat == 7 ~ "Widowed"))
+
+# #Sanity check
+# table(hrs_samp$r9mstat, useNA = "ifany")
+# table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,

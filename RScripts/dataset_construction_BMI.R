@@ -439,6 +439,26 @@ hrs_samp %<>%
 # table(hrs_samp$r9mstat, useNA = "ifany")
 # table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 
+#---- drinking ----
+#interested in wave9 drinking status (last BMI wave)
+hrs_samp %<>% 
+  mutate("drinks_per_week9" = r9drinkd*r9drinkn,
+         "drinking9_cat" = 
+           case_when(drinks_per_week9 == 0 ~ "No Drinking", 
+                     (drinks_per_week9 >= 7 | r9drinkn >= 3) & 
+                       female == 1 ~ "Heavy Drinking", 
+                     (drinks_per_week9 >= 14 | r9drinkn >= 4) & 
+                       female == 0 ~ "Heavy Drinking", 
+                     (drinks_per_week9 >= 1 & drinks_per_week9 < 7) & 
+                       female == 1 ~ "Moderate Drinking", 
+                     (drinks_per_week9 >= 1 & drinks_per_week9 < 14) & 
+                       female == 0 ~ "Moderate Drinking"))
+
+# #Sanity Check
+# View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female", 
+#                                 "drinking9_cat") %>% 
+#        filter(drinking9_cat == "Heavy Drinking"))
+
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",

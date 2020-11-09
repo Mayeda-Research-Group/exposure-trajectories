@@ -16,7 +16,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "broom")
+p_load("here", "tidyverse", "magrittr", "broom", "kableExtra")
 
 #No scientific notation
 options(scipen = 9)
@@ -58,6 +58,9 @@ hrs_samp %<>%
 # summary(hrs_samp$med_BMI)
 # table(hrs_samp$avg_BMI_cat, useNA = "ifany")
 ```
+
+### Age Data
+
 Distributions of age at last BMI Measure overlayed with age at death. I think we decided last time that we would use study time as our timescale so the overlap matters less?  
 
 Do we want to use a tighter age band for the first BMI wave, though?
@@ -88,13 +91,18 @@ ggplot(data = plot_data) +
                                "Death by 2018" = "gray"))
 ```
 
+### Models
+Sample size: n = `r nrow(hrs_samp)`  
+Proportion dead by 2018: `r round(mean(hrs_samp$death2018), 2)`
+
 ```{r models}
 model1_avg_BMI_cat <- 
   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
           as.factor(avg_BMI_cat), family = poisson(link = "log"), 
       data = hrs_samp)
   
-tidy(model1_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE) 
+kable(tidy(model1_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+  kableExtra::kable_styling()
 
 model2_avg_BMI_cat <- 
   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
@@ -102,5 +110,6 @@ model2_avg_BMI_cat <-
         as.factor(r9mstat_cat), family = poisson(link = "log"), 
       data = hrs_samp)
   
-View(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE))
+kable(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+  kableExtra::kable_styling()
 ```

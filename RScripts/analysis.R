@@ -53,7 +53,41 @@ E1_wide <- BMI_data_wide %>%
 
 #---- E1 Truth ----
 #True effect of BMI at wave 9 on mortality by 2018
+E1_wide %<>% 
+  mutate("9BMI_cat" = case_when(`9BMI` < 18.5 ~ "Underweight", 
+                                `9BMI` >= 18.5 & `9BMI` < 25 ~ "Normal", 
+                                `9BMI` >= 25 & `9BMI` < 30 ~ "Overweight", 
+                                `9BMI` >= 30 ~ "Obese"), 
+         "avg_BMI" = BMI_data_wide %>% 
+           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+           rowMeans(.), 
+         "avg_BMI_cat" = case_when(avg_BMI < 18.5 ~ "Underweight", 
+                                   avg_BMI >= 18.5 & avg_BMI < 25 ~ "Normal", 
+                                   avg_BMI >= 25 & avg_BMI < 30 ~ "Overweight", 
+                                   avg_BMI >= 30 ~ "Obese"))
 
+E1_truth_cont <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                       other + cses_index + ed_cat + smoker + 
+                       as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                       `9BMI`, family = poisson(link = "log"), 
+                     data = E1_wide)
+tidy(E1_truth_cont, exponentiate = TRUE, conf.int = TRUE)
+
+E1_truth_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                      other + #cses_index + ed_cat + 
+                      smoker + 
+                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                      `9BMI_cat`, family = poisson(link = "log"), 
+                    data = E1_wide)
+tidy(E1_truth_cat, exponentiate = TRUE, conf.int = TRUE)
+
+test_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                      other + cses_index + ed_cat + 
+                      smoker + 
+                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                      `avg_BMI_cat`, family = poisson(link = "log"), 
+                    data = E1_wide)
+tidy(test_cat, exponentiate = TRUE, conf.int = TRUE)
 
 # #Sanity check-- amount missingness in each variable
 # colSums(is.na(E1_wide))

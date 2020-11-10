@@ -39,17 +39,12 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
 
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
-#---- E1 Def: Cystatin C at age XX ----
+#---- E1 Def: BMI at wave 9 ----
+E1_wide <- BMI_data_wide %>% 
+  dplyr::select(-one_of(paste0(seq(4, 8, by = 1), "BMI")))
 
-#---- E1: Complete Data ----
-#Choosing age 68 because that's where we have a lot of data (n = 770)
-in_sample <- imputation_data_long %>% 
-  dplyr::filter(age_y_int == 68 & !is.na(log_CysC))
-
-E1 <- imputation_data_long %>% dplyr::filter(HHIDPN %in% in_sample$HHIDPN)
-
-# #Sanity check
-# length(unique(E1$HHIDPN))
+# #Sanity check-- amount missingness in each variable
+# colSums(is.na(E1_wide))
 
 #Create missing indicator by variable
 can_mask <- which(E1$age_y_int == 68)

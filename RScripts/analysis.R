@@ -39,9 +39,20 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
 
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
+#---- Table XX shell: Effect Estimates ----
+
+
+
 #---- E1 Def: BMI at wave 9 ----
 E1_wide <- BMI_data_wide %>% 
   dplyr::select(-one_of(paste0(seq(4, 8, by = 1), "BMI")))
+
+# #Distribution of BMI-- this is really symmetric
+# hist(E1_wide$`9BMI`)
+
+#---- E1 Truth ----
+#True effect of BMI at wave 9 on mortality by 2018
+
 
 # #Sanity check-- amount missingness in each variable
 # colSums(is.na(E1_wide))

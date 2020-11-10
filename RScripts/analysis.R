@@ -23,16 +23,21 @@ BMI_data_wide <-
                             drinking9_cat = col_factor(),
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
-                            smoker = col_integer())) 
+                            smoker = col_integer()))
 
-#---- Indicate observed Cystatin C ----
-#only interested in observed if they are in age range [60, 69]
-imputation_data_long %<>% 
-  mutate("observed" = ifelse(!is.na(log_CysC) & age_y_int < 70, 1, 0))
+#---- Select variables of interest ----
+ID <- "HHIDPN"
 
-#Sanity check-- only ages [61, 69] should have a 1
-obs_by_age <- imputation_data_long %>% dplyr::group_by(age_y_int) %>%
-  summarize_at("observed", ~sum(. == 1))
+imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 
+                     "hispanic", "white", "black", "other", "height", 
+                     "r9mstat_cat", "smoker", "drinking9_cat", "ed_cat", 
+                     "cses_index", "death2018")
+
+model_vars <- c("9age_y_int", "female", "hispanic", "white", "black", 
+                "other", "r9mstat_cat","smoker", "drinking9_cat", "ed_cat", 
+                "cses_index")
+
+BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
 #---- E1 Def: Cystatin C at age XX ----
 

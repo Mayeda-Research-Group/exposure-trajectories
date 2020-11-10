@@ -40,8 +40,9 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
 #---- Table XX shell: Effect Estimates ----
-
-
+tableXX_effect_ests <- 
+  data.frame("Rownames" = c(NA, NA, "MCAR", "10%", "25%", "50%"),
+             "Truth" = c("pt. est.", "(95% CI)", rep(NA, 4))) 
 
 #---- E1 Def: BMI at wave 9 ----
 E1_wide <- BMI_data_wide %>% 

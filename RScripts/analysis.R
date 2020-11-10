@@ -12,20 +12,15 @@ options(scipen = 999)
 set.seed(20200819)
 
 #---- Read in analytical sample ----
-# imputation_data_wide <- 
-#   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-#                   "exposure_trajectories/data/", 
-#                   "imputation_data_wide.csv"), 
-#            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-#                             death = col_factor(), female = col_factor(), 
-#                             hispanic = col_factor(), black = col_factor(), 
-#                             other = col_factor())) 
-imputation_data_long <- 
+BMI_data_wide <- 
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
-                  "imputation_data_long.csv"), 
+                  "hrs_samp_6BMI_waves4-9.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_integer(), 
-                            Wave = col_factor(), death = col_integer(), 
+                            death2018 = col_integer(), DOD = col_character(), 
+                            Bday = col_character(), ed_cat = col_factor(), 
+                            drop = col_logical(), r9mstat_cat = col_factor(),
+                            drinking9_cat = col_factor(),
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer())) 

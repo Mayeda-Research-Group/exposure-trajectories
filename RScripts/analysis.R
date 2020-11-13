@@ -33,8 +33,11 @@ BMI_data_wide %<>% filter(`4age_y_int` <= 90)
 
 # #Sanity check
 # hist(BMI_data_wide$`4age_y_int`)
+# test <- BMI_data_wide %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+#   is.na() %>% sum()
 
 #---- Sample sizes ----
+nrow(BMI_data_wide)
 
 #---- Select variables of interest ----
 ID <- "HHIDPN"

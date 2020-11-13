@@ -25,6 +25,10 @@ BMI_data_wide <-
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
 
+#---- Cap age at baseline at 90 ----
+
+#---- Sample sizes ----
+
 #---- Select variables of interest ----
 ID <- "HHIDPN"
 

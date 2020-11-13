@@ -26,9 +26,13 @@ BMI_data_wide <-
                             smoker = col_integer()))
 
 #---- Cap age at baseline at 90 ----
-table(BMI_data$`4BMI`, useNA = "ifany")
+# #Sanity check
+# max(BMI_data_wide$`4age_y_int`)
 
-BMI_data_wide
+BMI_data_wide %<>% filter(`4age_y_int` <= 90)
+
+# #Sanity check
+# hist(BMI_data_wide$`4age_y_int`)
 
 #---- Sample sizes ----
 

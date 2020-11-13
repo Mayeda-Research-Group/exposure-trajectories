@@ -26,6 +26,9 @@ BMI_data_wide <-
                             smoker = col_integer()))
 
 #---- Cap age at baseline at 90 ----
+table(BMI_data$`4BMI`, useNA = "ifany")
+
+BMI_data_wide
 
 #---- Sample sizes ----
 

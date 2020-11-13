@@ -383,9 +383,9 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- Looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
-# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>% 
-#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures", 
-#                  "sample_size", "min_age", "max_age", "death_2018", 
+# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
+#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures",
+#                  "sample_size", "min_age", "max_age", "death_2018",
 #                  "prop_dead"))
 # 
 # index = 0
@@ -394,14 +394,14 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #     index = index + 1
 #     subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
 #     subsets_data[index, "num_measures"] = j - i + 1
-#     
-#     data_subset <- hrs_samp %>% 
-#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018", 
-#                     paste0(i, "age_y_int")) %>% 
-#       na.omit() 
-#     data_subset[, "too_young"] = 
+# 
+#     data_subset <- hrs_samp %>%
+#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018",
+#                     paste0(i, "age_y_int")) %>%
+#       na.omit()
+#     data_subset[, "too_young"] =
 #       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
-#     
+# 
 #     data_subset %<>% filter(too_young == 0)
 #     
 #     subsets_data[index, "sample_size"] = nrow(data_subset)

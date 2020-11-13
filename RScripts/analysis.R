@@ -37,7 +37,42 @@ BMI_data_wide %<>% filter(`4age_y_int` <= 90)
 #   is.na() %>% sum()
 
 #---- Sample sizes ----
-nrow(BMI_data_wide)
+num_people = nrow(BMI_data_wide)
+num_obs = num_people*6
+
+#stratified by age at baseline
+by_age_baseline <- data.frame("start" = seq(50, 85, by = 5)) %>%
+  mutate("end" = start + 4, 
+         "n" = 0)
+by_age_baseline[nrow(by_age_baseline), "end"] <- 90
+
+for(i in 1:nrow(by_age_baseline)){
+  by_age_baseline[i, "n"] <- BMI_data_wide %>% 
+    filter(`4age_y_int` %in% 
+             seq(by_age_baseline[i, "start"], 
+                 by_age_baseline[i, "end"], by = 1)) %>% nrow()
+}
+
+#stratified by overall age
+overall_ages <- BMI_data_wide %>% 
+  dplyr::select(paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
+  pivot_longer(everything())
+
+by_age_overall <- data.frame("start" = seq(50, 95, by = 5)) %>%
+  mutate("end" = start + 4, 
+         "n" = 0)
+by_age_overall[nrow(by_age_overall), "end"] <- 100
+
+for(i in 1:nrow(by_age_overall)){
+  by_age_overall[i, "n"] <- overall_ages %>% 
+    filter(value %in% 
+             seq(by_age_overall[i, "start"], 
+                 by_age_overall[i, "end"], by = 1)) %>% nrow()
+}
+
+# #Sanity check
+# sum(by_age_baseline$n)
+# sum(by_age_overall$n)
 
 #---- Select variables of interest ----
 ID <- "HHIDPN"

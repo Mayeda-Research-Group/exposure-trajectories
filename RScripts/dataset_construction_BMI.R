@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -73,7 +73,7 @@ hrs_tracker <-
 ##         reports cancer this wave,
 ##         reports stroke this wave,
 ##         reports heart problems this wave
-##        
+##         CESD (depression; from wave 2-13)
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
 ##                   number of drinks per day (waves 3+)
@@ -106,7 +106,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
                     paste0("r", seq(7, 13, by = 1), "vgactx"),
                     paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    paste0("r", seq(7, 13, by = 1), "ltactx"))
+                    paste0("r", seq(7, 13, by = 1), "ltactx"),
+                    paste0("r", seq(2, 13, by = 1), "cesd"))
 
 RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 

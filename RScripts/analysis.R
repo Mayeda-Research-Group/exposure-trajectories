@@ -127,6 +127,12 @@ E1_BMI_data_wide %<>%
 # View(E1_BMI_data_wide)
 
 #---- ****death indicators ----
+# #Sanity check
+# max(E1_BMI_data_wide$age_death_y, na.rm = TRUE)
+# min(E1_BMI_data_wide$age_death_y, na.rm = TRUE)
+
+#No analyses in [50, 54] because we need this as the first "previous wave"
+#Thus death ages start at [65, 69]
 for(i in seq(50, 80, by = 5)){
   E1_BMI_data_wide[, paste0("BMI_", i, "-", (i + 4))] = 
     apply(E1_BMI_data_wide %>% 

@@ -16,8 +16,11 @@ path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
                             "hrs_samp_6BMI_waves4-9.csv"))
+set.seed(62283)
+sub_hrs_samp <- dplyr::sample_n(hrs_samp, 1000)
+
 #----BMI trajectory ----
-bmi_data <- hrs_samp %>% 
+bmi_data <- sub_hrs_samp %>% 
   dplyr::select("HHIDPN", contains("age_y_int"), contains("BMI"), 
                                       -contains("BMI_measured"))
 bmi_temp <- bmi_data%>%
@@ -41,12 +44,12 @@ bmi_temp_2 <- bmi_data%>%
       dplyr::select(-"oldvar",-contains("age_y_int"))
 
 bmi_long <- merge(bmi_temp, bmi_temp_2, by=c("HHIDPN", "wave") )
-
-p <- ggplot(bmi_long, aes(x=age, y=BMI, group=HHIDPN))
-p+geom_point()+geom_line()
+bmi_long$HHIDPN <- as.factor(bmi_long$HHIDPN)
+p <- ggplot(bmi_long, aes(x=age, y=BMI, group=HHIDPN, color = HHIDPN))
+p+geom_point()+geom_line()+theme(legend.position = "none")
 
 #----CESD trajectory ----
-cesd_data <- hrs_samp %>% 
+cesd_data <- sub_hrs_samp %>% 
   dplyr::select("HHIDPN", contains("age_y_int"), contains("cesd"))
 cesd_temp <- cesd_data%>%
   tidyr::gather(oldvar, age, `4age_y_int`:`9age_y_int`, factor_key=TRUE )%>%
@@ -70,8 +73,8 @@ cesd_temp_2 <- cesd_data%>%
 
 cesd_long <- merge(cesd_temp, cesd_temp_2, by=c("HHIDPN", "wave") )
 
-p_cesd <- ggplot(cesd_long, aes(x=age, y=cesd, group=HHIDPN))
-p_cesd+geom_point()+geom_line()
+p_cesd <- ggplot(cesd_long, aes(x=age, y=cesd, group=HHIDPN, color = as.factor(HHIDPN)))
+p_cesd+geom_point()+geom_line()+theme(legend.position = "none")
 
 
 #---- test ----

@@ -16,8 +16,16 @@ path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
                             "hrs_samp_6BMI_waves4-9.csv"))
+#---- Obtain a random subset ----
 set.seed(62283)
 sub_hrs_samp <- dplyr::sample_n(hrs_samp, 1000)
+
+#---- Shuffle the order of the colors----
+require(scales)
+n <- length(levels(as.factor(sub_hrs_samp$HHIDPN)))# number of colors
+cols <- hue_pal(h = c(0, 360) + 15, 
+                c = 100, l = 65, 
+                h.start = 0, direction = 1)(n)[order(sample(1:n, n))] 
 
 #----BMI trajectory ----
 bmi_data <- sub_hrs_samp %>% 
@@ -46,7 +54,8 @@ bmi_temp_2 <- bmi_data%>%
 bmi_long <- merge(bmi_temp, bmi_temp_2, by=c("HHIDPN", "wave") )
 bmi_long$HHIDPN <- as.factor(bmi_long$HHIDPN)
 p <- ggplot(bmi_long, aes(x=age, y=BMI, group=HHIDPN, color = HHIDPN))
-p+geom_point()+geom_line()+theme(legend.position = "none")
+p+geom_point()+geom_line()+theme(legend.position = "none")+
+  scale_color_manual(values = cols)
 
 #----CESD trajectory ----
 cesd_data <- sub_hrs_samp %>% 
@@ -74,38 +83,7 @@ cesd_temp_2 <- cesd_data%>%
 cesd_long <- merge(cesd_temp, cesd_temp_2, by=c("HHIDPN", "wave") )
 
 p_cesd <- ggplot(cesd_long, aes(x=age, y=cesd, group=HHIDPN, color = as.factor(HHIDPN)))
-p_cesd+geom_point()+geom_line()+theme(legend.position = "none")
+p_cesd+geom_point()+geom_line()+theme(legend.position = "none")+
+  scale_color_manual(values = cols) 
 
 
-#---- test ----
-# bmi_test <- data.frame(HHIDPN = c(1,2,3,4,5), `4BMI` = c(15,14,16,17,18), 
-#                        `5BMI` = c(20,21,22,25,27),`6BMI` = c(1,2,3,4,5),
-#                        `7BMI` = c(6,7,8,9,10), `8BMI` = c(11,12,13,14,110),
-#                        `9BMI` = c(31,32,33,34,35),
-#                        `4age` = c(55,57,58,50,70), `5age` = c(57,59,60,52,72),
-#                        `6age` = c(59,61,62,54,74),`7age` = c(61,63,64,56,76),
-#                        `8age` = c(63,65,66,58,78),`9age` = c(65,67,68,60,80))
-# bmi_temp <- bmi_test%>%
-#   tidyr::gather(oldvar, age, X4age:X9age, factor_key=TRUE )%>%
-#     mutate("wave" = ifelse(oldvar =="X4age", 4, 
-#                       ifelse(oldvar=="X5age",5,
-#                         ifelse(oldvar=="X6age",6,
-#                          ifelse(oldvar=="X7age",7,
-#                            ifelse(oldvar=="X8age",8,
-#                              ifelse(oldvar=="X9age",9,0)))))))%>%
-#       dplyr::select(-"oldvar",-contains("BMI"))
-# 
-# bmi_temp_2 <- bmi_test%>%
-#   tidyr::gather(oldvar, BMI, X4BMI:X9BMI, factor_key=TRUE)%>%
-#     mutate("wave" = ifelse(oldvar =="X4BMI", 4, 
-#                       ifelse(oldvar=="X5BMI",5,
-#                        ifelse(oldvar=="X6BMI",6,
-#                         ifelse(oldvar=="X7BMI",7,
-#                          ifelse(oldvar=="X8BMI",8,
-#                           ifelse(oldvar=="X9BMI",9,0)))))))%>%
-#     dplyr::select(-"oldvar",-contains("age"))
-# 
-# bmi_long <- merge(bmi_temp, bmi_temp_2, by=c("HHIDPN", "wave") )
-# 
-# p <- ggplot(bmi_long, aes(x=age, y=BMI, group=HHIDPN))+geom_point()+geom_line()
-# p

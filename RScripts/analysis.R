@@ -16,7 +16,7 @@ BMI_data_wide <-
   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
                   "exposure_trajectories/data/", 
                   "hrs_samp_6BMI_waves4-9.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_integer(), 
+           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death2018 = col_integer(), DOD = col_character(), 
                             Bday = col_character(), ed_cat = col_factor(), 
                             drop = col_logical(), r9mstat_cat = col_factor(),
@@ -74,8 +74,31 @@ for(i in 1:nrow(by_age_overall)){
 # sum(by_age_baseline$n)
 # sum(by_age_overall$n)
 
-#---- Select variables of interest ----
-ID <- "HHIDPN"
+#---- E1 Def: Average BMI within 5-year age bands ----
+#Effect of E1 on mortality within a decade of the end of follow-up
+
+#---- **Format dataset ----
+for_dataset <- c("HHIDPN", "4age_y_int", "4BMI", "age_death_y")
+
+E1_BMI_data_long <- BMI_data_wide %>% 
+  dplyr::select(all_of(for_dataset)) %>% 
+  set_colnames(c("HHIDPN", "age_BMI_y", "BMI", "age_death_y"))
+
+for(wave in 5:9){
+  for_dataset <- c("HHIDPN", paste0(wave, "age_y_int"), paste0(wave, "BMI"), 
+                   "age_death_y")
+  
+  subset <- BMI_data_wide %>% dplyr::select(all_of(for_dataset)) %>% 
+    set_colnames(c("HHIDPN", "age_BMI_y", "BMI", "age_death_y"))
+  
+  E1_BMI_data_long %<>% rbind(subset)
+}
+
+# #Sanity check
+# nrow(E1_BMI_data_long)
+# View(E1_BMI_data_long)
+
+
 
 imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 
                      "hispanic", "white", "black", "other", "height", 

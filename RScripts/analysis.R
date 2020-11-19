@@ -95,8 +95,34 @@ for(wave in 5:9){
 }
 
 # #Sanity check
-# nrow(E1_BMI_data_long)
+# dim(E1_BMI_data_long)
 # View(E1_BMI_data_long)
+
+E1_BMI_data_wide <- E1_BMI_data_long %>% 
+  pivot_wider(names_from = age_BMI_y, values_from = BMI, 
+              names_prefix = "BMI_")
+
+# #Sanity check
+# dim(E1_BMI_data_wide)
+# colnames(E1_BMI_data_wide)
+
+#---- **Average BMI within age bands ----
+for(i in seq(50, 80, by = 5)){
+  E1_BMI_data_wide[, paste0("BMI_", i, "-", (i + 4))] = 
+    apply(E1_BMI_data_wide %>% 
+            dplyr::select(paste0("BMI_", seq(i, (i + 4), by = 1))), 
+          1, function(x) mean(x, na.rm = TRUE))
+}
+
+#Get rid of columns for individual ages
+E1_BMI_data_wide %<>% 
+  dplyr::select(-paste0("BMI_", 
+                        seq(min(E1_BMI_data_long$age_BMI_y), 
+                            max(E1_BMI_data_long$age_BMI_y), by = 1)))
+
+# #Sanity check
+# View(E1_BMI_data_wide)
+
 
 
 

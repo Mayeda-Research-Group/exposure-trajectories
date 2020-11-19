@@ -77,7 +77,7 @@ for(i in 1:nrow(by_age_overall)){
 #---- E1 Def: Average BMI within 5-year age bands ----
 #Effect of E1 on mortality within a decade of the end of follow-up
 
-#---- **Format dataset ----
+#---- **format dataset ----
 for_dataset <- c("HHIDPN", "4age_y_int", "4BMI", "age_death_y")
 
 E1_BMI_data_long <- BMI_data_wide %>% 
@@ -106,11 +106,14 @@ E1_BMI_data_wide <- E1_BMI_data_long %>%
 # dim(E1_BMI_data_wide)
 # colnames(E1_BMI_data_wide)
 
-#---- **Average BMI within age bands ----
-for(i in seq(50, 80, by = 5)){
-  E1_BMI_data_wide[, paste0("BMI_", i, "-", (i + 4))] = 
+#---- ****average BMI within age bands ----
+for(i in seq(50, 95, by = 5)){
+  if(i == 95){j = max(E1_BMI_data_long$age_BMI_y)} 
+  else{j = i + 4}
+  
+  E1_BMI_data_wide[, paste0("BMI_", i, "-", j)] = 
     apply(E1_BMI_data_wide %>% 
-            dplyr::select(paste0("BMI_", seq(i, (i + 4), by = 1))), 
+            dplyr::select(paste0("BMI_", seq(i, j, by = 1))), 
           1, function(x) mean(x, na.rm = TRUE))
 }
 
@@ -122,6 +125,14 @@ E1_BMI_data_wide %<>%
 
 # #Sanity check
 # View(E1_BMI_data_wide)
+
+#---- ****death indicators ----
+for(i in seq(50, 80, by = 5)){
+  E1_BMI_data_wide[, paste0("BMI_", i, "-", (i + 4))] = 
+    apply(E1_BMI_data_wide %>% 
+            dplyr::select(paste0("BMI_", seq(i, (i + 4), by = 1))), 
+          1, function(x) mean(x, na.rm = TRUE))
+}
 
 
 

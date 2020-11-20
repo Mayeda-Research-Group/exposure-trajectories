@@ -95,24 +95,24 @@ Look at whether models for median CES-D give us tight enough CI
 This model categorizes elevated depressive symptoms based on median of all 6 CESD measures
 
 ```{r RRmodel1: median CESD}
-model1_elevated_depress_sx_med <- 
+RRmodel1_elevated_depress_sx_med <- 
   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
           elevated_depress_sx_med, family = poisson(link = "log"), 
       data = hrs_samp)
   
-kable(tidy(model1_elevated_depress_sx_med, exponentiate = TRUE, 
+kable(tidy(RRmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
 This model categorizes elevated depressive symptoms based on last CESD measure  
 
 ```{r RRmodel1: last CESD}
-model1_elevated_depress_sx_last <- 
+RRmodel1_elevated_depress_sx_last <- 
   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
           elevated_depress_sx_last, family = poisson(link = "log"), 
       data = hrs_samp)
   
-kable(tidy(model1_elevated_depress_sx_last, exponentiate = TRUE, 
+kable(tidy(RRmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
@@ -145,15 +145,36 @@ kable(tidy(model1_elevated_depress_sx_last, exponentiate = TRUE,
 ```
 
 ## Time-to-Event
-These analyses are more in line with what researchers would actually conduct.
+These analyses are more in line with what researchers would actually conduct. I did a really rough approximation of survival time by using the difference between a participant's age at last interview and their age at death. We can use actual dates in the real analysis if we want.
+
+```{r format survival data}
+hrs_samp %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
+  mutate(survtime = ifelse(is.na(survtime), `9age_y_int` + 10, survtime), 
+         observed = ifelse(is.na(age_death_y), 0, 1))
+
+#Sanity check
+View(hrs_samp %>% dplyr::select("age_death_y", "9age_y_int", "survtime", 
+                                "observed"))
+```
+
+This model categorizes elevated depressive symptoms based on median CESD measure  
 
 ```{r TTEmodel1: median CESD}
-model1_elevated_depress_sx_med <- 
-  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
-          elevated_depress_sx_med, family = poisson(link = "log"), 
-      data = hrs_samp)
+TTEmodel1_elevated_depress_sx_med <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_med, data = hrs_samp)
   
-kable(tidy(model1_elevated_depress_sx_med, exponentiate = TRUE, 
+kable(tidy(TTEmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
+This model categorizes elevated depressive symptoms based on median last measure
+
+```{r TTEmodel1: last CESD}
+TTEmodel1_elevated_depress_sx_last <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_last, data = hrs_samp)
+  
+kable(tidy(TTEmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+```

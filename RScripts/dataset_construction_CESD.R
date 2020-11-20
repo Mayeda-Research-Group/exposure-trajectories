@@ -1,0 +1,468 @@
+#---- Package loading + options ----
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled", 
+       "lubridate")
+
+#No scientific notation
+options(scipen = 999)
+
+#---- Note ----
+# Since the difference between win and OS, put substituted directory here
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+
+#Changing directories here will change them throughout the script
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
+
+#---- source scripts ----
+source(here::here("RScripts", "non_missing.R"))
+source(here::here("RScripts", "impute_ages.R"))
+source(here::here("RScripts", "measured_self_report.R"))
+
+#---- wave mapping between HRS and RAND ----
+#Wave Year | HRS Core Data | RAND
+# 1992 | V | 1
+# 1994 | W | 2
+# 1996 | E | 3
+# 1998 | F | 4
+# 2000 | G | 5
+# 2002 | H | 6
+# 2004 | J | 7
+# 2006 | K | 8
+# 2008 | L | 9
+# 2010 | M | 10
+# 2012 | N | 11
+# 2014 | O | 12
+# 2016 | P | 13
+
+number_waves <- seq(1, 13, by = 1) 
+
+#---- read in HRS tracker ----
+hrs_tracker <- 
+  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018_3/", 
+                  "trk2018tr_r.sas7bdat")) %>% 
+  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>% 
+  unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
+  mutate_at("HHIDPN", as.numeric)
+
+#---- read in RAND file ----
+#reading in STATA file because SAS file wouldn't load
+#Variables of interest: 
+## Demographics: HHIDPN, gender, race, hispanic, birth month, 
+##               birth year, birth date, death month, death year, death date,
+##               age data in months (biomarker waves), years of education, 
+##               highest degree (masked),  
+## Health: weight (kg; measured; waves 8+),
+##         weight (kg; self-report),
+##         height (m; measured; waves 8+),
+##         height (m; self-report),
+##         BMI (measured; waves 8+),
+##         BMI (self-report), 
+##         waist circumference,
+##         BP (systolic; waves 8+), 
+##         BP (diastolic; waves 8+), 
+##         reports high blood pressure this wave,
+##         reports diabetes this wave,
+##         diabetes ever/never,
+##         reports cancer this wave,
+##         reports stroke this wave,
+##         reports heart problems this wave
+##         CESD (depression; from wave 2-13)
+## Health Behaviors: current smoker 
+##                   number of days drinking per week (waves 3+)
+##                   number of drinks per day (waves 3+)
+##                   frequency of vigr/modr/light physical activity (waves 7+)
+## 
+# Note: Dates are formatted as SAS dates (days from January 1, 1960)
+
+rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth", 
+                    "rabyear", "rabdate", "radmonth", "radyear", "raddate",
+                    paste0("r", number_waves, "agem_e"), "raedyrs", 
+                    "raedegrm", 
+                    paste0("r", number_waves, "mstat"),
+                    paste0("r", seq(8, 13, by = 1), "pmwght"), 
+                    paste0("r", number_waves, "weight"),
+                    paste0("r", seq(8, 13, by = 1), "pmhght"), 
+                    paste0("r", number_waves, "height"),
+                    paste0("r", number_waves, "bmi"), 
+                    paste0("r", seq(8, 13, by = 1), "pmbmi"),
+                    paste0("r", seq(8, 13, by = 1), "pmwaist"),
+                    paste0("r", seq(8, 13, by = 1), "bpsys"), 
+                    paste0("r", seq(8, 13, by = 1), "bpdia"),
+                    paste0("r", number_waves, "hibp"),
+                    paste0("r", number_waves, "diab"),
+                    paste0("r", number_waves, "diabe"),
+                    paste0("r", number_waves, "cancr"),
+                    paste0("r", number_waves, "strok"), 
+                    paste0("r", number_waves, "heart"),
+                    paste0("r", number_waves, "smoken"), 
+                    paste0("r", seq(3, 13, by = 1), "drinkd"),
+                    paste0("r", seq(3, 13, by = 1), "drinkn"),
+                    paste0("r", seq(7, 13, by = 1), "vgactx"),
+                    paste0("r", seq(7, 13, by = 1), "mdactx"), 
+                    paste0("r", seq(7, 13, by = 1), "ltactx"),
+                    paste0("r", seq(2, 13, by = 1), "cesd"))
+
+RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
+                        "randhrs1992_2016v2.dta"), 
+                 col_select = all_of(rand_variables)) 
+
+colnames(RAND)[1] <- "HHIDPN" #For merging
+
+#Remove labeled data format
+val_labels(RAND) <- NULL
+
+#---- read in Anusha Vable's CSES index ----
+cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                        "cSES measures/cses_measures.dta"), 
+                 col_select = c("hhid", "pn", "cses_index")) %>% 
+  unite(col = "HHIDPN", c("hhid", "pn"), sep = "") %>% 
+  mutate_at("HHIDPN", as.numeric)
+
+#---- merge datasets ----
+#Use this to subset RAND data
+hrs_samp <- join_all(list(hrs_tracker, RAND, cSES), 
+                     by = "HHIDPN", type = "left") 
+
+#---- remove people who were not sampled in 2018 ----
+hrs_samp %<>% filter(!is.na(QALIVE))
+
+#---- death ----
+#death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
+hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1), 
+                     "death2018" = ifelse(QALIVE %in% c(5, 6), 1, 0))
+
+# #Sanity check
+# #1 = alive; 2 = presumed alive; 5 = known deceased this wave; 
+# #6 = known deceased prior wave 
+# table(hrs_samp$QALIVE, useNA = "ifany")
+# table(hrs_samp$death2016, useNA = "ifany")
+# table(hrs_samp$death2018, useNA = "ifany")
+
+#format RAND dates with lubridate
+hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"), 
+                     "Bday" = as.Date(hrs_samp$rabdate, origin = "1960-01-01"))
+
+# #Sanity check
+# View(hrs_samp[, c("Bday", "rabmonth", "rabyear")] %>% na.omit())
+# View(hrs_samp[, c("DOD", "radmonth", "radyear")] %>% na.omit())
+
+#age at death
+hrs_samp %<>% 
+  mutate("age_death_d" = difftime(DOD, Bday, units = "days"), 
+         "age_death_y" = floor(as.numeric(age_death_d/365.25)))
+
+# #Sanity check
+# View(hrs_samp[, c("Bday", "DOD", "age_death_y")] %>% na.omit())
+# View(hrs_samp[, c("age_death_y", "death2016", "death2018")] %>% 
+#        filter(death2018 == 1))
+
+#Drop RAND birth date, death date variables, and derived death in days
+hrs_samp %<>% dplyr::select(-c("rabmonth", "rabyear", "rabdate", 
+                               "radmonth", "radyear", "raddate", 
+                               "age_death_d"))
+
+#---- age ----
+age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
+  apply(., 1, impute_ages) %>% t() 
+
+#Exact ages
+hrs_samp[, paste0(number_waves, "age_y")] <- age_m/12
+#Ages rounded down to nearest year
+hrs_samp[, paste0(number_waves, "age_y_int")] <- floor(age_m/12)
+
+# #Sanity check
+# View(hrs_samp[, c(paste0(number_waves, "age_y"), 
+#                   paste0(number_waves, "age_y_int"))])
+
+#Check those missing age data-- these people have no birthdate data so I am 
+# dropping them
+still_missing <- 
+  which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+sum(is.na(hrs_samp[still_missing, "Bday"])) == length(still_missing)
+hrs_samp <- hrs_samp[-c(still_missing), ]
+
+#Impute data of death for those who are dead in 2018
+hrs_samp %<>% 
+  mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
+                                `13age_y_int` + 2, age_death_y))
+
+# #Sanity check
+# View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
+# table(hrs_samp$age_death_y, useNA = "ifany")
+# sum(table(hrs_samp$age_death_y))
+# table(hrs_samp$QALIVE %in% c(5, 6))
+# #I think there's a one person discrepancy between RAND's death data and 
+# # HRS's QALIVE variable-- check this after all the other data cleaning steps
+# table(hrs_samp$death2018, hrs_samp$age_death_y)
+
+#Drop RAND age variables
+hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))
+
+#---- gender ----
+hrs_samp %<>% 
+  mutate("female" = ifelse(ragender == 2, 1, 0))
+
+# #sanity check
+# table(hrs_samp$female, hrs_samp$ragender, useNA = "ifany")
+
+#Drop RAND gender variable 
+hrs_samp %<>% dplyr::select(-ragender)
+
+#---- race-eth ----
+#Code any hispanic as 1, else 0
+hrs_samp %<>% 
+  mutate("hispanic" = ifelse(rahispan == 0 | is.na(rahispan), 0, 1)) %>% 
+  mutate("white" = ifelse(raracem == 1 & hispanic == 0, 1, 0)) %>%
+  mutate("black" = ifelse(raracem == 2 & hispanic == 0, 1, 0)) %>% 
+  mutate("other" = ifelse(raracem == 3 & hispanic == 0, 1, 0)) %>% 
+  mutate("unknown_race_eth" = ifelse(is.na(raracem) & hispanic == 0, 1, 0))
+
+# #Sanity check
+# table(hrs_samp$hispanic, hrs_samp$rahispan, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$black, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$other, useNA = "ifany")
+# table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
+#       useNA = "ifany")
+# table(hrs_samp$unknown_race_eth, useNA = "ifany")
+
+#26 people missing race/ethnicity data
+hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
+  #Drop the RAND rahispan variable (recoded as hispanic) and race variables
+  dplyr::select(-c("rahispan", "raracem"))
+
+#---- education ----
+#There are 114 people missing years of education, so I'm going to drop them
+hrs_samp %<>% filter(!is.na(raedyrs))
+
+#Create education categories
+hrs_samp %<>% 
+  mutate("ed_cat" = case_when(raedyrs < 12 ~ "Less than HS", 
+                              raedyrs == 12 ~ "HS", 
+                              raedyrs > 12 & raedyrs < 16 ~ "Some College", 
+                              raedyrs == 16 ~ "Bachelors", 
+                              raedyrs > 16 ~ "Grad Studies"))
+
+# #Sanity check
+# table(is.na(hrs_samp$raedyrs))
+# table(hrs_samp$raedyrs)
+table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
+
+#---- cSES index ----
+# #Sanity check
+# table(is.na(hrs_samp$cses_index))
+
+#There are 11,165 people missing the cSES index so I am dropping them
+hrs_samp %<>% filter(!is.na(cses_index))
+
+#---- height ----
+#Create a "best" height variable by taking the median of measured heights 
+# (waves 8+) if available or first self-reported height
+hrs_samp %<>% 
+  mutate("med_height" = hrs_samp %>% 
+           dplyr::select(paste0("r", seq(8, 13, by = 1), "pmhght")) %>%
+           apply(1, function(x) median(x, na.rm = TRUE)), 
+         "self_height" = hrs_samp %>% 
+           dplyr::select(paste0("r", number_waves, "height")) %>%
+           apply(1, function(x) x[min(which(!is.na(x)))])) %>% 
+  mutate("height_measured" = ifelse(!is.na(med_height), 1, 0)) %>% 
+  mutate("height" = ifelse(height_measured == 1, med_height, self_height))
+
+# #Sanity check
+# View(hrs_samp[, c(paste0("r", seq(8, 13, by = 1), "pmhght"),
+#                   paste0("r", number_waves, "height"),
+#                   "med_height", "self_height", "height_measured", "height")])
+  
+#Drop RAND's height variables + extra derived variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
+                               paste0("r", number_waves, "height"), 
+                               "med_height", "self_height"))
+
+#---- weight ----
+hrs_samp %<>% 
+  cbind(measured_self_report(data = hrs_samp, 
+                             measured_cols = 
+                               paste0("r", seq(8, 13, by = 1), "pmwght"), 
+                             self_cols = 
+                               paste0("r", number_waves, "weight"), 
+                             derived_variable = "weight",
+                             measured_waves_start = 8, all_waves_end = 13))
+
+# #Checking weird weight values (from YW's analysis)
+# weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020, 
+#                   75888040, 76793010, 79557010, 112747020, 146359010, 207810010, 
+#                   208021020, 208024010, 210114010)
+# 
+# View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
+#        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "weight"))))
+
+#Set the weird measures to NA
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4weight"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7weight"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9weight"] <- NA
+
+#Fix measured indicators
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4weight_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7weight_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9weight_measured"] <- 0
+
+#Drop RAND's weight variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
+                               paste0("r", number_waves, "weight")))
+
+#---- BMI ----
+hrs_samp %<>% 
+  cbind(measured_self_report(data = hrs_samp, 
+                             measured_cols = 
+                               paste0("r", seq(8, 13, by = 1), "pmbmi"), 
+                             self_cols = 
+                               paste0("r", number_waves, "bmi"), 
+                             derived_variable = "BMI", 
+                             measured_waves_start = 8, all_waves_end = 13))
+
+# #Sanity check-- I had an issue with this observation that led to my finding
+# #               a bug in my measured_self_report code
+# View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
+#        dplyr::select(c(paste0(letter_waves, "BMI"),
+#                        paste0(letter_waves, "BMI_measured"))))
+       
+#Set the weird measures to NA-- consistent with weight
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI"] <- NA
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9BMI"] <- NA
+
+#Fix measured indicators
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(12738020, 16381010, 46769010, 73050020, 
+                   146359010, 208024010)), "4BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI_measured"] <- 0
+hrs_samp[which(hrs_samp$HHIDPN %in% 
+                 c(31605040, 76793010, 79557010, 112747020, 
+                   207810010, 208021020, 210114010)), "9BMI_measured"] <- 0
+
+# #Sanity check
+# View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
+#        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "BMI"))))
+
+#Drop RAND's BMI variables
+hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
+                               paste0("r", seq(8, 13, by = 1), "pmbmi")))
+
+#---- smoking ----
+hrs_samp %<>% 
+  mutate("smoker" = hrs_samp %>% 
+           dplyr::select(paste0("r", number_waves, "smoken")) %>%
+           apply(1, function(x) x[min(which(!is.na(x)))]))
+
+# #Sanity check
+# View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoker")])
+
+#Drop RAND's smoking variables
+hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
+
+#---- Looking for optimal subset ----
+# #Drop those who are not age-eligible for HRS at the start of follow-up
+# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
+#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures",
+#                  "sample_size", "min_age", "max_age", "death_2018",
+#                  "prop_dead"))
+# 
+# index = 0
+# for(i in 1:9){
+#   for(j in (i + 4):13){
+#     index = index + 1
+#     subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
+#     subsets_data[index, "num_measures"] = j - i + 1
+# 
+#     data_subset <- hrs_samp %>%
+#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018",
+#                     paste0(i, "age_y_int")) %>%
+#       na.omit()
+#     data_subset[, "too_young"] =
+#       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
+# 
+#     data_subset %<>% filter(too_young == 0)
+#     
+#     subsets_data[index, "sample_size"] = nrow(data_subset)
+#     subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "death_2018"] = sum(data_subset$death2018)
+#     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
+#   }
+# }
+
+# #Best subset was waves 4-9
+# write_csv(subsets_data, here::here("Prelim Analyses", "exp_BMI_out_mortality", 
+#                              "BMI_complete_subsets.csv"))
+
+drop <- hrs_samp %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0))
+
+hrs_samp %<>% mutate("drop" = drop$drop) %>%
+  #drop those with missing BMI observations in these waves
+  filter(drop == 0) %>% 
+  #drop those <50 at start of follow-up
+  filter(`4age_y_int` >= 50)
+
+#---- marital status ----
+#Create marital status categories
+hrs_samp %<>% 
+  mutate("r9mstat_cat" = 
+           case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
+                     r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+                     r9mstat == 7 ~ "Widowed"))
+
+# #Sanity check
+# table(hrs_samp$r9mstat, useNA = "ifany")
+# table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
+
+#---- drinking ----
+#interested in wave9 drinking status (last BMI wave)
+hrs_samp %<>% 
+  mutate("drinks_per_week9" = r9drinkd*r9drinkn,
+         "drinking9_cat" = 
+           case_when(drinks_per_week9 == 0 ~ "No Drinking", 
+                     (drinks_per_week9 >= 7 | r9drinkn >= 3) & 
+                       female == 1 ~ "Heavy Drinking", 
+                     (drinks_per_week9 >= 14 | r9drinkn >= 4) & 
+                       female == 0 ~ "Heavy Drinking", 
+                     (drinks_per_week9 >= 1 & drinks_per_week9 < 7) & 
+                       female == 1 ~ "Moderate Drinking", 
+                     (drinks_per_week9 >= 1 & drinks_per_week9 < 14) & 
+                       female == 0 ~ "Moderate Drinking"))
+
+# #Sanity Check
+# View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female", 
+#                                 "drinking9_cat") %>% 
+#        filter(drinking9_cat == "Heavy Drinking"))
+
+# table(hrs_samp$drinking9_cat, useNA = "ifany")
+
+#---- save dataset ----
+write_csv(hrs_samp, paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/",
+                           "hrs_samp_6BMI_waves4-9.csv"))
+
+

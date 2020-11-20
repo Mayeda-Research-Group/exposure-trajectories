@@ -252,7 +252,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
-table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
 
 #---- cSES index ----
 # #Sanity check

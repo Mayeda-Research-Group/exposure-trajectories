@@ -385,24 +385,24 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #---- Looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
 # subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
-#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures",
+#   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",
 #                  "sample_size", "min_age", "max_age", "death_2018",
 #                  "prop_dead"))
 # 
 # index = 0
-# for(i in 1:9){
+# for(i in 2:9){
 #   for(j in (i + 4):13){
 #     index = index + 1
-#     subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
+#     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
 #     subsets_data[index, "num_measures"] = j - i + 1
-# 
+#     
 #     data_subset <- hrs_samp %>%
-#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018",
+#       dplyr::select(paste0("r", seq(i, j, by = 1), "cesd"), "death2018",
 #                     paste0(i, "age_y_int")) %>%
 #       na.omit()
 #     data_subset[, "too_young"] =
 #       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
-# 
+#     
 #     data_subset %<>% filter(too_young == 0)
 #     
 #     subsets_data[index, "sample_size"] = nrow(data_subset)
@@ -412,16 +412,16 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
 #   }
 # }
-
+# 
 # #Best subset was waves 4-9
-# write_csv(subsets_data, here::here("Prelim Analyses", "exp_BMI_out_mortality", 
-#                              "BMI_complete_subsets.csv"))
+# write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
+#                              "CESD_complete_subsets.csv"))
 
-drop <- hrs_samp %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
   mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0))
 
 hrs_samp %<>% mutate("drop" = drop$drop) %>%
-  #drop those with missing BMI observations in these waves
+  #drop those with missing CESD observations in these waves
   filter(drop == 0) %>% 
   #drop those <50 at start of follow-up
   filter(`4age_y_int` >= 50)
@@ -463,6 +463,6 @@ hrs_samp %<>%
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
-                           "hrs_samp_6BMI_waves4-9.csv"))
+                           "hrs_samp_6CESD_waves4-9.csv"))
 
 

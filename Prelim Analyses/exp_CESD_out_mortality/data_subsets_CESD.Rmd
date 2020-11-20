@@ -19,7 +19,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "broom", "kableExtra")
+p_load("here", "tidyverse", "magrittr", "broom", "kableExtra", "survival")
 
 #No scientific notation
 options(scipen = 9)
@@ -142,5 +142,18 @@ kable(tidy(model1_elevated_depress_sx_last, exponentiate = TRUE,
 #   
 # kable(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
 #   kableExtra::kable_styling()
+```
+
+## Time-to-Event
+These analyses are more in line with what researchers would actually conduct.
+
+```{r TTEmodel1: median CESD}
+model1_elevated_depress_sx_med <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_med, family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(model1_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 

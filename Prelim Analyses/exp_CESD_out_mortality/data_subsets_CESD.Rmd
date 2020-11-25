@@ -43,8 +43,8 @@ hrs_samp %<>%
   mutate("med_CESD" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
            apply(., 1, function(x) median(x))) %>% 
-  mutate("elevated_depress_sx_med" = ifelse(med_CESD > 3, 1, 0), 
-         "elevated_depress_sx_last" = ifelse(r9cesd > 3, 1, 0))
+  mutate("elevated_depress_sx_med" = ifelse(med_CESD > 4, 1, 0), 
+         "elevated_depress_sx_last" = ifelse(r9cesd > 4, 1, 0))
 
 # #Sanity check
 # View(hrs_samp %>%

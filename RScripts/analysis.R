@@ -11,10 +11,21 @@ options(scipen = 999)
 
 set.seed(20200819)
 
+#---- Note ----
+# Since the difference between win and OS, put substituted directory here
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+
+#Changing directories here will change them throughout the script
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
+
 #---- Read in analytical sample ----
 BMI_data_wide <- 
-  read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-                  "exposure_trajectories/data/", 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
                   "hrs_samp_6BMI_waves4-9.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death2018 = col_integer(), DOD = col_character(), 
@@ -133,12 +144,24 @@ E1_BMI_data_wide %<>%
 
 #No analyses in [50, 54] because we need this as the first "previous wave"
 #Thus death ages start at [65, 69]
-for(i in seq(50, 80, by = 5)){
-  E1_BMI_data_wide[, paste0("BMI_", i, "-", (i + 4))] = 
+for(i in seq(65, 105, by = 5)){
+  if(i == 105){j = max(E1_BMI_data_long$age_death_y, na.rm = TRUE)} 
+  else{j = i + 4}
+  
+  E1_BMI_data_wide[, paste0("death_by_", i, "-", j)] = 
     apply(E1_BMI_data_wide %>% 
-            dplyr::select(paste0("BMI_", seq(i, (i + 4), by = 1))), 
-          1, function(x) mean(x, na.rm = TRUE))
+            dplyr::select("age_death_y"), 
+          1, function(x) ifelse(x > j | is.na(x), 0, 1))
 }
+
+# #Sanity check
+# View(E1_BMI_data_wide %>% dplyr::select("age_death_y", contains("death_by_")))
+
+#---- ****save formatted dataset ----
+write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
+                                   "/exposure_trajectories/data/",
+                                   "E1_BMI_data_wide.csv"))
+
 
 
 

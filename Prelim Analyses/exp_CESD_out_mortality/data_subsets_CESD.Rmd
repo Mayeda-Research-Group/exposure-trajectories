@@ -31,7 +31,7 @@ options(scipen = 9)
 #                      C:/Users/yingyan_wu/Dropbox
 # Crystal's directory: /Users/CrystalShaw
 #                     ~/Dropbox/Projects
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
@@ -102,6 +102,15 @@ RRmodel1_elevated_depress_sx_med <-
   
 kable(tidy(RRmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+RRmodel2_elevated_depress_sx_med <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_med + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat)
+        , family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel2_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
 This model categorizes elevated depressive symptoms based on last CESD measure  
@@ -113,6 +122,15 @@ RRmodel1_elevated_depress_sx_last <-
       data = hrs_samp)
   
 kable(tidy(RRmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+RRmodel2_elevated_depress_sx_last <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_last + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat)
+        , family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel2_elevated_depress_sx_last, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
@@ -166,6 +184,14 @@ TTEmodel1_elevated_depress_sx_med <-
   
 kable(tidy(TTEmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+TTEmodel2_elevated_depress_sx_med <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_med
+        + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), data = hrs_samp)
+  
+kable(tidy(TTEmodel2_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
 This model categorizes elevated depressive symptoms based on median last measure
@@ -176,5 +202,13 @@ TTEmodel1_elevated_depress_sx_last <-
           other + elevated_depress_sx_last, data = hrs_samp)
   
 kable(tidy(TTEmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+TTEmodel2_elevated_depress_sx_last <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_last + 
+        smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), data = hrs_samp)
+  
+kable(tidy(TTEmodel2_elevated_depress_sx_last, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```

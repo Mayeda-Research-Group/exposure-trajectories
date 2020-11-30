@@ -152,9 +152,9 @@ hrs_samp %<>% mutate(survtime = age_death_y - `9age_y_int`) %>%
   mutate(survtime = ifelse(is.na(survtime), `9age_y_int` + 10, survtime), 
          observed = ifelse(is.na(age_death_y), 0, 1))
 
-#Sanity check
-View(hrs_samp %>% dplyr::select("age_death_y", "9age_y_int", "survtime", 
-                                "observed"))
+# #Sanity check
+# View(hrs_samp %>% dplyr::select("age_death_y", "9age_y_int", "survtime", 
+#                                 "observed"))
 ```
 
 This model categorizes elevated depressive symptoms based on median CESD measure  

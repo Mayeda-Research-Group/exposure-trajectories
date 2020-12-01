@@ -207,7 +207,8 @@ kable(tidy(TTEmodel1_elevated_depress_sx_last, exponentiate = TRUE,
 TTEmodel2_elevated_depress_sx_last <- 
   coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
           other + elevated_depress_sx_last + 
-        smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), data = hrs_samp)
+        smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), 
+        data = hrs_samp)
   
 kable(tidy(TTEmodel2_elevated_depress_sx_last, exponentiate = TRUE, 
            conf.int = TRUE)) %>% kableExtra::kable_styling()

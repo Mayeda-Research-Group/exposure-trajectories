@@ -172,7 +172,7 @@ for(i in seq(65, 105, by = 5)){
 
 # #Sanity check
 # View(E1_BMI_data_wide %>% dplyr::select("age_death_y", contains("death_by_")))
-colSums(!is.na(E1_BMI_data_wide))
+# colSums(!is.na(E1_BMI_data_wide))
 
 #---- ****time-invariant covariates ----
 time_invariant <- c("HHIDPN", "female", "white", "black", "hispanic", "other", 
@@ -182,6 +182,9 @@ E1_BMI_data_wide %<>%
   left_join(., BMI_data_wide %>% dplyr::select(all_of(time_invariant)), 
             by = "HHIDPN")
 
+# #Sanity check
+# dim(E1_BMI_data_wide)
+# colnames(E1_BMI_data_wide)
 
 #---- ****save formatted dataset ----
 write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,

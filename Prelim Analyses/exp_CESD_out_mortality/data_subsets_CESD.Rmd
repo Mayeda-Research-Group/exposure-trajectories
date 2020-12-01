@@ -31,7 +31,7 @@ options(scipen = 9)
 #                      C:/Users/yingyan_wu/Dropbox
 # Crystal's directory: /Users/CrystalShaw
 #                     ~/Dropbox/Projects
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
@@ -194,7 +194,7 @@ kable(tidy(TTEmodel2_elevated_depress_sx_med, exponentiate = TRUE,
            conf.int = TRUE)) %>% kableExtra::kable_styling()
 ```
 
-This model categorizes elevated depressive symptoms based on median last measure
+This model categorizes elevated depressive symptoms based on last measure
 
 ```{r TTEmodel1: last CESD}
 TTEmodel1_elevated_depress_sx_last <- 

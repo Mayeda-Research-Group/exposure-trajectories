@@ -126,7 +126,18 @@ for(i in seq(50, 95, by = 5)){
     apply(E1_BMI_data_wide %>% 
             dplyr::select(paste0("BMI_", seq(i, j, by = 1))), 
           1, function(x) mean(x, na.rm = TRUE))
+  
+  E1_BMI_data_wide[, paste0("BMI_", i, "-", j, "_cat")] = 
+    apply(E1_BMI_data_wide %>% 
+            dplyr::select(paste0("BMI_", i, "-", j)), 
+          1, function(x) case_when(x < 18.5 ~ "Underweight", 
+                                   x >= 18.5 & x < 25 ~ "Normal", 
+                                   x >= 25 & x < 30 ~ "Overweight", 
+                                   x >= 30 ~ "Obese"))
 }
+
+#Sanity check
+View(E1_BMI_data_wide %>% dplyr::select(contains("BMI_")))
 
 #Get rid of columns for individual ages
 E1_BMI_data_wide %<>% 
@@ -134,8 +145,7 @@ E1_BMI_data_wide %<>%
                         seq(min(E1_BMI_data_long$age_BMI_y), 
                             max(E1_BMI_data_long$age_BMI_y), by = 1)))
 
-# #Sanity check
-# View(E1_BMI_data_wide)
+
 
 #---- ****death indicators ----
 # #Sanity check

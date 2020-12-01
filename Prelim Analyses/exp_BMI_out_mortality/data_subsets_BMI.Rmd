@@ -32,7 +32,7 @@ path_to_dropbox <- "~/Dropbox/Projects"
 
 hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "/exposure_trajectories/data/",
-                            "hrs_samp_6BMI_waves4-9.csv")) 
+                            "E1_BMI_data_wide.csv")) 
 ```
 
 ```{r create new variables}

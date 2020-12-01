@@ -108,6 +108,7 @@ for(wave in 5:9){
 # #Sanity check
 # dim(E1_BMI_data_long)
 # View(E1_BMI_data_long)
+# colSums(!is.na(E1_BMI_data_long))
 
 E1_BMI_data_wide <- E1_BMI_data_long %>% 
   pivot_wider(names_from = age_BMI_y, values_from = BMI, 
@@ -116,6 +117,7 @@ E1_BMI_data_wide <- E1_BMI_data_long %>%
 # #Sanity check
 # dim(E1_BMI_data_wide)
 # colnames(E1_BMI_data_wide)
+# colSums(!is.na(E1_BMI_data_wide))
 
 #---- ****average BMI within age bands ----
 for(i in seq(50, 95, by = 5)){
@@ -134,6 +136,12 @@ for(i in seq(50, 95, by = 5)){
                                    x >= 18.5 & x < 25 ~ "Normal", 
                                    x >= 25 & x < 30 ~ "Overweight", 
                                    x >= 30 ~ "Obese"))
+  # #Sanity check
+  # test <- E1_BMI_data_wide %>% 
+  #   dplyr::select(paste0("BMI_", i, "-", j), 
+  #                 paste0("BMI_", seq(i, j, by = 1)))
+  # View(test)
+  # colSums(!is.na(test))
 }
 
 # #Sanity check
@@ -164,6 +172,16 @@ for(i in seq(65, 105, by = 5)){
 
 # #Sanity check
 # View(E1_BMI_data_wide %>% dplyr::select("age_death_y", contains("death_by_")))
+colSums(!is.na(E1_BMI_data_wide))
+
+#---- ****time-invariant covariates ----
+time_invariant <- c("HHIDPN", "female", "white", "black", "hispanic", "other", 
+                    "smoker")
+
+E1_BMI_data_wide %<>% 
+  left_join(., BMI_data_wide %>% dplyr::select(all_of(time_invariant)), 
+            by = "HHIDPN")
+
 
 #---- ****save formatted dataset ----
 write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,

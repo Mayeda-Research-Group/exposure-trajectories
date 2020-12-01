@@ -35,62 +35,6 @@ hrs_samp <- read_csv(paste0(path_to_dropbox,
                             "E1_BMI_data_wide.csv")) 
 ```
 
-```{r create new variables}
-hrs_samp %<>% 
-  mutate("avg_BMI" = hrs_samp %>% 
-           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
-           rowMeans(.),
-         #Median doesn't look that different from the avg_BMI
-         "med_BMI" = hrs_samp %>% 
-           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
-           apply(., 1, function(x) median(x))) %>% 
-  mutate("avg_BMI_cat" = 
-           case_when(avg_BMI < 18.5 ~ "Underweight", 
-                     avg_BMI >= 18.5 & avg_BMI < 25 ~ "Normal", 
-                     avg_BMI >= 25 & avg_BMI < 30 ~ "Overweight", 
-                     avg_BMI >= 30 ~ "Obese"))
-
-# #Sanity check
-# View(hrs_samp %>%
-#        dplyr::select(paste0(seq(4, 9, by = 1), "BMI"), "avg_BMI", 
-#                      "med_BMI", "avg_BMI_cat"))
-# summary(hrs_samp$avg_BMI)
-# summary(hrs_samp$med_BMI)
-# table(hrs_samp$avg_BMI_cat, useNA = "ifany")
-```
-
-### Age Data
-
-Distributions of age at last BMI Measure overlayed with age at death. I think we decided last time that we would use study time as our timescale so the overlap matters less?  
-
-Do we want to use a tighter age band for the first BMI wave, though?
-
-```{r age distributions}
-plot_data <- hrs_samp %>% 
-  dplyr::select("4age_y_int")
-
-ggplot(data = plot_data) + 
-  geom_bar(aes(x = `4age_y_int`, fill = "First BMI Wave"), stat = "count", 
-           color = "lightblue", fill = "lightblue") + 
-  theme_minimal() + xlab("Age") + 
-  ggtitle("Age at first BMI measure")
-
-plot_data <- hrs_samp %>% 
-  dplyr::select("9age_y_int", "death2018", "age_death_y")
-
-ggplot(data = plot_data) + 
-  geom_bar(aes(x = `9age_y_int`, fill = "Last BMI Wave"), stat = "count", 
-           color = "lightblue", fill = "lightblue") + 
-  geom_bar(aes(x = age_death_y, fill = "Death by 2018"), stat = "count", 
-           alpha = 0.5) +
-  theme_minimal() + xlab("Age") + 
-  ggtitle("Age at death overlayed on Age at last BMI measure") +
-  # the labels must match what you specified above
-  scale_fill_manual(name = "", 
-                    values = c("Last BMI Wave" = "lightblue", 
-                               "Death by 2018" = "gray"))
-```
-
 ### Models
 Sample size: n = `r nrow(hrs_samp)`  
 Proportion dead by 2018: `r round(mean(hrs_samp$death2018), 2)`

@@ -194,6 +194,8 @@ write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
                                    "/exposure_trajectories/data/",
                                    "E1_BMI_data_wide.csv"))
 
+#---- E2 Def: Latent Classes ----
+
 
 
 

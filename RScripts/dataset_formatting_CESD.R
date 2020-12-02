@@ -181,13 +181,13 @@ for(i in seq(65, 105, by = 5)){
 time_invariant <- c("HHIDPN", "female", "white", "black", "hispanic", "other", 
                     "smoker")
 
-E1_BMI_data_wide %<>% 
-  left_join(., BMI_data_wide %>% dplyr::select(all_of(time_invariant)), 
+E1_CESD_data_wide %<>% 
+  left_join(., CESD_data_wide %>% dplyr::select(all_of(time_invariant)), 
             by = "HHIDPN")
 
 # #Sanity check
-# dim(E1_BMI_data_wide)
-# colnames(E1_BMI_data_wide)
+# dim(E1_CESD_data_wide)
+# colnames(E1_CESD_data_wide)
 
 #---- ****save formatted dataset ----
 write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
@@ -195,6 +195,8 @@ write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
                                    "E1_BMI_data_wide.csv"))
 
 #---- E2 Def: Latent Classes ----
+E2_CESD_data_wide <- E1_CESD_data_wide 
+
 
 
 

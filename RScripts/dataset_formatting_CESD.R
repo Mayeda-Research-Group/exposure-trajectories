@@ -22,7 +22,7 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- Read in analytical sample ----
-BMI_data_wide <- 
+CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "hrs_samp_6CESD_waves4-9.csv"), 
@@ -37,9 +37,9 @@ BMI_data_wide <-
 
 #---- Cap age at baseline at 90 ----
 # #Sanity check
-# max(BMI_data_wide$`4age_y_int`)
+# max(CESD_data_wide$`4age_y_int`)
 
-BMI_data_wide %<>% filter(`4age_y_int` <= 90)
+CESD_data_wide %<>% filter(`4age_y_int` <= 90)
 
 # #Sanity check
 # hist(BMI_data_wide$`4age_y_int`)
@@ -47,8 +47,9 @@ BMI_data_wide %<>% filter(`4age_y_int` <= 90)
 #   is.na() %>% sum()
 
 #---- Sample sizes ----
-num_people = nrow(BMI_data_wide)
-num_obs = num_people*6
+num_people = nrow(CESD_data_wide)
+num_obs = sum(!is.na(CESD_data_wide %>% 
+                       dplyr::select(paste0("r", seq(4, 9), "cesd"))))
 
 #stratified by age at baseline
 by_age_baseline <- data.frame("start" = seq(50, 85, by = 5)) %>%
@@ -57,21 +58,21 @@ by_age_baseline <- data.frame("start" = seq(50, 85, by = 5)) %>%
 by_age_baseline[nrow(by_age_baseline), "end"] <- 90
 
 for(i in 1:nrow(by_age_baseline)){
-  by_age_baseline[i, "n"] <- BMI_data_wide %>% 
+  by_age_baseline[i, "n"] <- CESD_data_wide %>% 
     filter(`4age_y_int` %in% 
              seq(by_age_baseline[i, "start"], 
                  by_age_baseline[i, "end"], by = 1)) %>% nrow()
 }
 
 #stratified by overall age
-overall_ages <- BMI_data_wide %>% 
+overall_ages <- CESD_data_wide %>% 
   dplyr::select(paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
   pivot_longer(everything())
 
 by_age_overall <- data.frame("start" = seq(50, 95, by = 5)) %>%
   mutate("end" = start + 4, 
          "n" = 0)
-by_age_overall[nrow(by_age_overall), "end"] <- 100
+by_age_overall[nrow(by_age_overall), "end"] <- max(overall_ages$value)
 
 for(i in 1:nrow(by_age_overall)){
   by_age_overall[i, "n"] <- overall_ages %>% 
@@ -84,75 +85,78 @@ for(i in 1:nrow(by_age_overall)){
 # sum(by_age_baseline$n)
 # sum(by_age_overall$n)
 
-#---- E1 Def: Average BMI within 5-year age bands ----
+#---- E1 Def: Median CESD within 5-year age bands ----
 #Effect of E1 on mortality within a decade of the end of follow-up
 
 #---- **format dataset ----
-for_dataset <- c("HHIDPN", "4age_y_int", "4BMI", "age_death_y")
+for_dataset <- c("HHIDPN", "4age_y_int", "r4cesd", "age_death_y")
 
-E1_BMI_data_long <- BMI_data_wide %>% 
+E1_CESD_data_long <- CESD_data_wide %>% 
   dplyr::select(all_of(for_dataset)) %>% 
-  set_colnames(c("HHIDPN", "age_BMI_y", "BMI", "age_death_y"))
+  set_colnames(c("HHIDPN", "age_CESD_y", "CESD", "age_death_y"))
 
 for(wave in 5:9){
-  for_dataset <- c("HHIDPN", paste0(wave, "age_y_int"), paste0(wave, "BMI"), 
+  for_dataset <- c("HHIDPN", paste0(wave, "age_y_int"), 
+                   paste0("r", wave, "cesd"), 
                    "age_death_y")
   
-  subset <- BMI_data_wide %>% dplyr::select(all_of(for_dataset)) %>% 
-    set_colnames(c("HHIDPN", "age_BMI_y", "BMI", "age_death_y"))
+  subset <- CESD_data_wide %>% dplyr::select(all_of(for_dataset)) %>% 
+    set_colnames(c("HHIDPN", "age_CESD_y", "CESD", "age_death_y"))
   
-  E1_BMI_data_long %<>% rbind(subset)
+  E1_CESD_data_long %<>% rbind(subset)
 }
 
 # #Sanity check
-# dim(E1_BMI_data_long)
-# View(E1_BMI_data_long)
-# colSums(!is.na(E1_BMI_data_long))
+# dim(E1_CESD_data_long)
+# View(E1_CESD_data_long)
+# colSums(!is.na(E1_CESD_data_long))
 
-E1_BMI_data_wide <- E1_BMI_data_long %>% 
-  pivot_wider(names_from = age_BMI_y, values_from = BMI, 
-              names_prefix = "BMI_")
+E1_CESD_data_wide <- E1_CESD_data_long %>% 
+  pivot_wider(names_from = age_CESD_y, values_from = CESD, 
+              names_prefix = "CESD_")
 
 # #Sanity check
-# dim(E1_BMI_data_wide)
-# colnames(E1_BMI_data_wide)
-# colSums(!is.na(E1_BMI_data_wide))
+# dim(E1_CESD_data_wide)
+# colnames(E1_CESD_data_wide)
+# colSums(!is.na(E1_CESD_data_wide))
 
-#---- ****average BMI within age bands ----
+#---- ****average CESD within age bands ----
 for(i in seq(50, 95, by = 5)){
-  if(i == 95){j = max(E1_BMI_data_long$age_BMI_y)} 
+  if(i == 95){j = max(E1_CESD_data_long$age_CESD_y)} 
   else{j = i + 4}
   
-  E1_BMI_data_wide[, paste0("BMI_", i, "-", j)] = 
-    apply(E1_BMI_data_wide %>% 
-            dplyr::select(paste0("BMI_", seq(i, j, by = 1))), 
+  E1_CESD_data_wide[, paste0("CESD_", i, "-", j)] = 
+    apply(E1_CESD_data_wide %>% 
+            dplyr::select(paste0("CESD_", seq(i, j, by = 1))), 
           1, function(x) mean(x, na.rm = TRUE))
   
-  E1_BMI_data_wide[, paste0("BMI_", i, "-", j, "_cat")] = 
-    apply(E1_BMI_data_wide %>% 
-            dplyr::select(paste0("BMI_", i, "-", j)), 
-          1, function(x) case_when(x < 18.5 ~ "Underweight", 
-                                   x >= 18.5 & x < 25 ~ "Normal", 
-                                   x >= 25 & x < 30 ~ "Overweight", 
-                                   x >= 30 ~ "Obese"))
+  E1_CESD_data_wide[, paste0("CESD_", i, "-", j, "_elev_dep_sx")] = 
+    apply(E1_CESD_data_wide %>% 
+            dplyr::select(paste0("CESD_", i, "-", j)), 
+          1, function(x) case_when(x < 4 ~ 0, 
+                                   x >= 4 ~ 1))
   # #Sanity check
-  # test <- E1_BMI_data_wide %>% 
-  #   dplyr::select(paste0("BMI_", i, "-", j), 
-  #                 paste0("BMI_", seq(i, j, by = 1)))
+  # test <- E1_CESD_data_wide %>% 
+  #   dplyr::select(paste0("CESD_", i, "-", j), 
+  #                 paste0("CESD_", seq(i, j, by = 1)))
   # View(test)
   # colSums(!is.na(test))
 }
 
 # #Sanity check
-# View(E1_BMI_data_wide %>% dplyr::select(contains("BMI_")))
+# View(E1_CESD_data_wide %>% dplyr::select(contains("CESD_")))
 
 #Get rid of columns for individual ages
-E1_BMI_data_wide %<>% 
-  dplyr::select(-paste0("BMI_", 
-                        seq(min(E1_BMI_data_long$age_BMI_y), 
-                            max(E1_BMI_data_long$age_BMI_y), by = 1)))
+E1_CESD_data_wide %<>% 
+  dplyr::select(-paste0("CESD_", 
+                        seq(min(E1_CESD_data_long$age_CESD_y), 
+                            max(E1_CESD_data_long$age_CESD_y), by = 1)))
 
-#---- ****death indicators ----
+# #Count people
+# colSums(!is.na(E1_CESD_data_wide %>% dplyr::select(contains("CESD_"))))
+
+#---- ****death indicator ----
+#Choose the age bands
 # #Sanity check
 # max(E1_BMI_data_wide$age_death_y, na.rm = TRUE)
 # min(E1_BMI_data_wide$age_death_y, na.rm = TRUE)

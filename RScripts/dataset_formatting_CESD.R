@@ -106,7 +106,7 @@ CESD_data_wide %<>%
 
 #---- E2a Def: Cumulative Exposure (number occasions) ----
 #Number of occasions with elevated depressive symptoms in HRS waves 4-9
-elevated_cesd <- CESD_data_wide %<>% 
+elevated_cesd <- CESD_data_wide %>% 
   dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
 
 elevated_cesd <- (elevated_cesd > 4)*1
@@ -134,8 +134,11 @@ CESD_data_wide %<>%
 
 #---- Survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
-  mutate(survtime = ifelse(is.na(survtime), `9age_y_int` + 10, survtime), 
+  mutate(survtime = ifelse(is.na(survtime), 10, survtime), 
          observed = ifelse(is.na(age_death_y), 0, 1))
+
+# #Sanity check
+# View(CESD_data_wide %>% dplyr::select("age_death_y", "survtime", "observed"))
 
 #---- Figures ----
 plot_data <- CESD_data_wide %>% 

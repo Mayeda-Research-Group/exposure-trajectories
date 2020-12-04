@@ -87,15 +87,21 @@ for(i in 1:nrow(by_age_overall)){
 
 #---- E1a Def: CESD at HRS wave 4 (1998) ----
 #Effect of E1a on survival to HRS wave 14 (2018) 
+CESD_data_wide %<>% 
+  mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0))
 
+# #Sanity check
+# table(CESD_data_wide$r4cesd, CESD_data_wide$r4cesd_elevated, useNA = "ifany")
+
+#---- E2 Def: Latent Classes ----
+E2_CESD_data_wide <- E1_CESD_data_wide 
+
+#---- O1a: Survival times from HRS wave 4 (1998) to HRS wave 14 (2018) ----
 
 #---- ****save formatted dataset ----
 write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
                                    "/exposure_trajectories/data/",
                                    "E1_BMI_data_wide.csv"))
-
-#---- E2 Def: Latent Classes ----
-E2_CESD_data_wide <- E1_CESD_data_wide 
 
 
 

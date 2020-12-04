@@ -10,6 +10,9 @@ options(scipen = 999)
 
 set.seed(20200819)
 
+#---- color palette ----
+light_blue <- "#B4DAE5FF"
+
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
@@ -115,12 +118,36 @@ CESD_data_wide %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
 # head(CESD_data_wide$total_elevated_cesd)
 
 #---- E2b Def: Cumulative Exposure (average CESD score) ----
+CESD_data_wide %<>% 
+  mutate("avg_cesd" = CESD_data_wide %<>% 
+           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+           rowMeans(), 
+         "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+
+# #Sanity check
+# View(CESD_data_wide %<>% 
+#        dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"), "avg_cesd", 
+#                      "avg_cesd_elevated"))
+# plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
 
 #---- E3 Def: Latent Classes
 
 #---- O1a: Survival times from HRS wave 4 (1998) to HRS wave 14 (2018) ----
 
-#---- ****save formatted dataset ----
+#---- Figures ----
+plot_data <- CESD_data_wide %>% 
+  dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+  pivot_longer(everything())
+
+ggplot(data = plot_data, aes(value)) + 
+  geom_bar(color = light_blue, fill = light_blue) + 
+  theme_minimal() + xlab("CES-D Score")
+ggsave(filename = "all_CESD.jpeg", device = "jpeg", width = 7, height = 5, 
+       units = "in", 
+       path = paste0(path_to_dropbox,
+                     "/exposure_trajectories/manuscript/figures/"))
+
+#---- save formatted dataset ----
 write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
                                    "/exposure_trajectories/data/",
                                    "E1_BMI_data_wide.csv"))

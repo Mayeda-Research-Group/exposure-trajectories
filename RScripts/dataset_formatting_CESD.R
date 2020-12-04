@@ -93,8 +93,30 @@ CESD_data_wide %<>%
 # #Sanity check
 # table(CESD_data_wide$r4cesd, CESD_data_wide$r4cesd_elevated, useNA = "ifany")
 
-#---- E2 Def: Latent Classes ----
-E2_CESD_data_wide <- E1_CESD_data_wide 
+#---- E1b Def: CESD at HRS wave 9 (2008) ----
+#Effect of E1a on survival to HRS wave 14 (2018) 
+CESD_data_wide %<>% 
+  mutate("r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0))
+
+# #Sanity check
+# table(CESD_data_wide$r9cesd, CESD_data_wide$r9cesd_elevated, useNA = "ifany")
+
+#---- E2a Def: Cumulative Exposure (number occasions) ----
+#Number of occasions with elevated depressive symptoms in HRS waves 4-9
+elevated_cesd <- CESD_data_wide %<>% 
+  dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
+
+elevated_cesd <- (elevated_cesd > 4)*1
+
+CESD_data_wide %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+
+# #Sanity check
+# head(elevated_cesd)
+# head(CESD_data_wide$total_elevated_cesd)
+
+#---- E2b Def: Cumulative Exposure (average CESD score) ----
+
+#---- E3 Def: Latent Classes
 
 #---- O1a: Survival times from HRS wave 4 (1998) to HRS wave 14 (2018) ----
 

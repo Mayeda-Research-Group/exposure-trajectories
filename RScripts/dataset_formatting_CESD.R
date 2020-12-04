@@ -119,7 +119,7 @@ CESD_data_wide %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
 
 #---- E2b Def: Cumulative Exposure (average CESD score) ----
 CESD_data_wide %<>% 
-  mutate("avg_cesd" = CESD_data_wide %<>% 
+  mutate("avg_cesd" = CESD_data_wide %>% 
            dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
            rowMeans(), 
          "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
@@ -132,7 +132,10 @@ CESD_data_wide %<>%
 
 #---- E3 Def: Latent Classes
 
-#---- O1a: Survival times from HRS wave 4 (1998) to HRS wave 14 (2018) ----
+#---- Survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
+CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
+  mutate(survtime = ifelse(is.na(survtime), `9age_y_int` + 10, survtime), 
+         observed = ifelse(is.na(age_death_y), 0, 1))
 
 #---- Figures ----
 plot_data <- CESD_data_wide %>% 

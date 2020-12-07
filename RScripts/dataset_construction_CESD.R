@@ -427,6 +427,34 @@ hrs_samp %<>% mutate("drop" = drop$drop) %>%
   filter(`4age_y_int` >= 50)
 
 #---- marital status ----
+#Variable check
+table(hrs_samp$r4mstat, useNA = "ifany")
+table(hrs_samp$r9mstat, useNA = "ifany")
+
+#Impute r4mstat with closest non-missing value
+hrs_samp %<>% 
+  mutate("r4mstat_impute" = 
+           ifelse(is.na(r4mstat), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("r", seq(1, 3), "mstat")) %>% 
+                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+                  r4mstat)) %>% 
+  mutate("r4mstat_impute" = 
+           ifelse(is.na(r4mstat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("r", seq(5, 13), "mstat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  r4mstat_impute))
+
+# #Sanity check
+# sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
+# View(hrs_samp %>% 
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+#                      "r4mstat_impute"))
+# View(hrs_samp %>% 
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+#                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
+  
 #Create marital status categories
 hrs_samp %<>% 
   mutate("r9mstat_cat" = 
@@ -434,16 +462,35 @@ hrs_samp %<>%
                      r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
                      r9mstat == 7 ~ "Widowed"), 
          "r4mstat_cat" = 
-           case_when(r4mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
-                     r4mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-                     r4mstat == 7 ~ "Widowed"))
+           case_when(r4mstat_impute %in% c(1, 2, 3) ~ "Married/Partnered", 
+                     r4mstat_impute %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+                     r4mstat_impute == 7 ~ "Widowed"))
 
-# #Sanity check
-# table(hrs_samp$r9mstat, useNA = "ifany")
-# table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
+#Sanity check
+table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
+table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 
 #---- drinking ----
-#interested in wave9 drinking status (last BMI wave)
+drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
+  head(hrs_samp %>% dplyr::select(contains("drinkn")))
+
+for(i in 3:13){
+  hrs_samp %>% mutate(paste0("drinks_per_week", i) = )
+}
+
+for(i in 1:ncol(drinks_per_week_mat)){
+  hrs_samp[, paste0("drinking", (i = 2), "_cat")] = 
+    case_when(drinks_per_week_mat[, i] == 0 ~ "No Drinking", 
+              (drinks_per_week_mat >= 7 | r9drinkn >= 3) & 
+                female == 1 ~ "Heavy Drinking", 
+              (drinks_per_week_mat >= 14 | r9drinkn >= 4) & 
+                female == 0 ~ "Heavy Drinking", 
+              (drinks_per_week_mat >= 1 & drinks_per_week_mat < 7) & 
+                female == 1 ~ "Moderate Drinking", 
+              (drinks_per_week_mat >= 1 & drinks_per_week_mat < 14) & 
+                female == 0 ~ "Moderate Drinking")
+    
+}
 hrs_samp %<>% 
   mutate("drinks_per_week9" = r9drinkd*r9drinkn,
          "drinking9_cat" = 

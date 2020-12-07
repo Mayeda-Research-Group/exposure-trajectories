@@ -473,54 +473,75 @@ table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 #---- drinking ----
 drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
   head(hrs_samp %>% dplyr::select(contains("drinkn")))
+ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
 
-for(i in 3:13){
-  hrs_samp %>% mutate(paste0("drinks_per_week", i) = )
-}
+drinking_cat_mat <- 
+  matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+  set_colnames(paste0("drinking", seq(3, 13), "_cat"))
 
-for(i in 1:ncol(drinks_per_week_mat)){
-  hrs_samp[, paste0("drinking", (i = 2), "_cat")] = 
-    case_when(drinks_per_week_mat[, i] == 0 ~ "No Drinking", 
-              (drinks_per_week_mat >= 7 | r9drinkn >= 3) & 
-                female == 1 ~ "Heavy Drinking", 
-              (drinks_per_week_mat >= 14 | r9drinkn >= 4) & 
-                female == 0 ~ "Heavy Drinking", 
-              (drinks_per_week_mat >= 1 & drinks_per_week_mat < 7) & 
-                female == 1 ~ "Moderate Drinking", 
-              (drinks_per_week_mat >= 1 & drinks_per_week_mat < 14) & 
-                female == 0 ~ "Moderate Drinking")
-    
+for(i in 1:ncol(drinking_cat_mat)){
+  for(j in 1:nrow(drinking_cat_mat)){
+    drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
+      case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
+                (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
+                  hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
+                (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
+                  hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
+                (drinks_per_week_mat[j, i] >= 1 & 
+                   drinks_per_week_mat[j, i] < 7) & 
+                  hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
+                (drinks_per_week_mat[j, i] >= 1 & 
+                   drinks_per_week_mat[j, i] < 14) & 
+                  hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
+  }
 }
-hrs_samp %<>% 
-  mutate("drinks_per_week9" = r9drinkd*r9drinkn,
-         "drinking9_cat" = 
-           case_when(drinks_per_week9 == 0 ~ "No Drinking", 
-                     (drinks_per_week9 >= 7 | r9drinkn >= 3) & 
-                       female == 1 ~ "Heavy Drinking", 
-                     (drinks_per_week9 >= 14 | r9drinkn >= 4) & 
-                       female == 0 ~ "Heavy Drinking", 
-                     (drinks_per_week9 >= 1 & drinks_per_week9 < 7) & 
-                       female == 1 ~ "Moderate Drinking", 
-                     (drinks_per_week9 >= 1 & drinks_per_week9 < 14) & 
-                       female == 0 ~ "Moderate Drinking"), 
-         "drinks_per_week4" = r4drinkd*r4drinkn,
-         "drinking4_cat" = 
-           case_when(drinks_per_week4 == 0 ~ "No Drinking", 
-                     (drinks_per_week4 >= 7 | r4drinkn >= 3) & 
-                       female == 1 ~ "Heavy Drinking", 
-                     (drinks_per_week4 >= 14 | r4drinkn >= 4) & 
-                       female == 0 ~ "Heavy Drinking", 
-                     (drinks_per_week4 >= 1 & drinks_per_week4 < 7) & 
-                       female == 1 ~ "Moderate Drinking", 
-                     (drinks_per_week4 >= 1 & drinks_per_week4 < 14) & 
-                       female == 0 ~ "Moderate Drinking"))
 
 # #Sanity Check
-# View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female", 
-#                                 "drinking9_cat") %>% 
-#        filter(drinking9_cat == "Heavy Drinking"))
+# View(drinking_cat_mat)
 
-# table(hrs_samp$drinking9_cat, useNA = "ifany")
+hrs_samp %<>% cbind(drinking_cat_mat)
+
+#Sanity Check
+View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
+                                "drinking9_cat") %>%
+       filter(drinking9_cat == "Heavy Drinking"))
+
+#Variable check
+table(hrs_samp$drinking4_cat, useNA = "ifany")
+table(hrs_samp$drinking9_cat, useNA = "ifany")
+
+#Impute drinking4_cat and drinking9_cat with closest non-missing values
+hrs_samp %<>% 
+  mutate("drinking4_cat_impute" = 
+           ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
+  mutate("drinking4_cat_impute" = 
+           ifelse(is.na(drinking4_cat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  drinking4_cat_impute)) %>% 
+  mutate("drinking9_cat_impute" = 
+           ifelse(is.na(drinking9_cat), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
+                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+                  drinking9_cat)) %>% 
+  mutate("drinking9_cat_impute" = 
+           ifelse(is.na(drinking9_cat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  drinking9_cat_impute))
+
+# #Sanity check
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))))
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))) %>% 
+#        filter(is.na(drinking4_cat) | is.na(drinking9_cat)))
+# table(hrs_samp$drinking4_cat_impute, useNA = "ifany")
+# table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
+
+#Drop the one person who has no information on drinking behavior
+hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,

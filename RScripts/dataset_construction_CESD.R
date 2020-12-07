@@ -432,7 +432,11 @@ hrs_samp %<>%
   mutate("r9mstat_cat" = 
            case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
                      r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-                     r9mstat == 7 ~ "Widowed"))
+                     r9mstat == 7 ~ "Widowed"), 
+         "r4mstat_cat" = 
+           case_when(r4mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
+                     r4mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+                     r4mstat == 7 ~ "Widowed"))
 
 # #Sanity check
 # table(hrs_samp$r9mstat, useNA = "ifany")

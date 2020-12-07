@@ -34,8 +34,8 @@ CESD_data_wide <-
                             Bday = col_character(), ed_cat = col_factor(), 
                             drop = col_logical(), r4mstat_cat = col_factor(), 
                             r9mstat_cat = col_factor(), 
-                            drinking4_cat = col_factor(),
-                            drinking9_cat = col_factor(),
+                            drinking4_cat_impute = col_factor(),
+                            drinking9_cat_impute = col_factor(),
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))

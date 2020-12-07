@@ -154,9 +154,9 @@ ggsave(filename = "all_CESD.jpeg", device = "jpeg", width = 7, height = 5,
                      "/exposure_trajectories/manuscript/figures/"))
 
 #---- save formatted dataset ----
-write_csv(E1_BMI_data_wide, paste0(path_to_dropbox,
+write_csv(CESD_data_wide, paste0(path_to_dropbox,
                                    "/exposure_trajectories/data/",
-                                   "E1_BMI_data_wide.csv"))
+                                   "CESD_data_wide.csv"))
 
 
 

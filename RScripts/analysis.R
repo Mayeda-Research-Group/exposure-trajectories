@@ -43,7 +43,7 @@ CESD_vars <- c("HHIDPN", "4age_y", "9age_y", "female", "hispanic", "black",
                "other", "smoker", "drinking4_cat_impute", 
                "drinking9_cat_impute", "r4mstat_cat", "r9mstat_cat", 
                "r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
-               "total_elevated_cesd")
+               "total_elevated_cesd", "survtime", "observed")
 
 CESD_subset <- CESD_data_wide %>% dplyr::select(all_of(CESD_vars))
 
@@ -53,17 +53,26 @@ colSums(is.na(CESD_subset))
 #---- Table XX shell: Effect Estimates ----
 table_effect_ests <- 
   data.frame("Scenario" = c("CES-D Wave 4", "CES-D Wave 9", 
-                            "Number CES-D > 4", "Average CES-D", 
+                            "Total Elevated CES-D", "Average CES-D", 
                             "CES-D Latent Classes"),
-              "beta (95% CI)" = NA) 
+             "beta" = NA, "LCI" = NA, "UCI" = NA) 
 
 #---- Truth ----
 TTEmodel_CESD4 <- 
   coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
-          other + smoker + r4cesd_elevated, data = CESD_data_wide)
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          r4cesd_elevated, data = CESD_data_wide)
 
-kable(tidy(TTEmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
-           conf.int = TRUE)) %>% kableExtra::kable_styling()
+TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
+                               exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 4"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
+                         c("estimate", "conf.low", "conf.high")]
+
+#---- save tables ----
+
 
 
 #---- OLD CODE ----

@@ -466,9 +466,9 @@ hrs_samp %<>%
                      r4mstat_impute %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
                      r4mstat_impute == 7 ~ "Widowed"))
 
-#Sanity check
-table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
-table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
+# #Sanity check
+# table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
+# table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 
 #---- drinking ----
 drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*

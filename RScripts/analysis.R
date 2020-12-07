@@ -23,18 +23,47 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- Read in analytical sample ----
-BMI_data_wide <- 
+CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
-                  "hrs_samp_6BMI_waves4-9.csv"), 
+                  "CESD_data_wide.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
                             death2018 = col_integer(), DOD = col_character(), 
                             Bday = col_character(), ed_cat = col_factor(), 
-                            drop = col_logical(), r9mstat_cat = col_factor(),
-                            drinking9_cat = col_factor(),
+                            drop = col_logical(), r4mstat_cat = col_factor(), 
+                            r9mstat_cat = col_factor(),
+                            drinking4_cat_impute = col_factor(),
+                            drinking9_cat_impute = col_factor(),
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
+
+#---- Choose variables ----
+CESD_vars <- c("HHIDPN", "4age_y", "9age_y", "female", "hispanic", "black", 
+               "other", "smoker", "drinking4_cat_impute", 
+               "drinking9_cat_impute", "r4mstat_cat", "r9mstat_cat", 
+               "r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
+               "total_elevated_cesd")
+
+CESD_subset <- CESD_data_wide %>% dplyr::select(all_of(CESD_vars))
+
+#---- Check missingness ----
+colSums(is.na(CESD_subset))
+
+#---- Table XX shell: Effect Estimates ----
+table_effect_ests <- 
+  data.frame("Scenario" = c("CES-D Wave 4", "CES-D Wave 9", 
+                            "Number CES-D > 4", "Average CES-D", 
+                            "CES-D Latent Classes"),
+              "beta (95% CI)" = NA) 
+
+#---- Truth ----
+TTEmodel_CESD4 <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + r4cesd_elevated, data = CESD_data_wide)
+
+kable(tidy(TTEmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
 
 
 #---- OLD CODE ----
@@ -49,10 +78,7 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
 
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
-#---- Table XX shell: Effect Estimates ----
-tableXX_effect_ests <- 
-  data.frame("Rownames" = c(NA, NA, "MCAR", "10%", "25%", "50%"),
-             "Truth" = c("pt. est.", "(95% CI)", rep(NA, 4))) 
+
 
 #---- E1 Def: BMI at wave 9 ----
 E1_wide <- BMI_data_wide %>% 

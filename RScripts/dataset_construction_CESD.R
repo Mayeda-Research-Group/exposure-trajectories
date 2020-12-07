@@ -455,6 +455,17 @@ hrs_samp %<>%
                      (drinks_per_week9 >= 1 & drinks_per_week9 < 7) & 
                        female == 1 ~ "Moderate Drinking", 
                      (drinks_per_week9 >= 1 & drinks_per_week9 < 14) & 
+                       female == 0 ~ "Moderate Drinking"), 
+         "drinks_per_week4" = r4drinkd*r4drinkn,
+         "drinking4_cat" = 
+           case_when(drinks_per_week4 == 0 ~ "No Drinking", 
+                     (drinks_per_week4 >= 7 | r4drinkn >= 3) & 
+                       female == 1 ~ "Heavy Drinking", 
+                     (drinks_per_week4 >= 14 | r4drinkn >= 4) & 
+                       female == 0 ~ "Heavy Drinking", 
+                     (drinks_per_week4 >= 1 & drinks_per_week4 < 7) & 
+                       female == 1 ~ "Moderate Drinking", 
+                     (drinks_per_week4 >= 1 & drinks_per_week4 < 14) & 
                        female == 0 ~ "Moderate Drinking"))
 
 # #Sanity Check

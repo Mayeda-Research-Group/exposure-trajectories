@@ -472,7 +472,7 @@ hrs_samp %<>%
 
 #---- drinking ----
 drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
-  head(hrs_samp %>% dplyr::select(contains("drinkn")))
+  (hrs_samp %>% dplyr::select(contains("drinkn")))
 ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
 
 drinking_cat_mat <- 

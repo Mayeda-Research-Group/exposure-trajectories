@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
-       "ResourceSelection", "survival")
+       "ResourceSelection", "survival", "openxlsx")
 
 #No scientific notation
 options(scipen = 999)
@@ -115,8 +115,10 @@ table_effect_ests[which(table_effect_ests$Scenario == "Average CES-D"),
                             c("estimate", "conf.low", "conf.high")]
 
 #---- save tables ----
-
-
+table_list <- list("Table XX" = table_effect_ests)
+write.xlsx(table_list, file = paste0(path_to_dropbox, 
+                                     "/exposure_trajectories/manuscript/", 
+                                     "tables/main_text_tables.xlsx"))
 
 #---- OLD CODE ----
 imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 

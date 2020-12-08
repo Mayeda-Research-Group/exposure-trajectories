@@ -133,7 +133,7 @@ CESD_data_wide %<>%
 # plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
 
 #---- E3 Def: Latent Classes ----
-#Model is based off of example in Proust et al. JSS 2017 
+#Model is based off of example in Proust-Lima et al. JSS 2017 
 CESD_data_long <- CESD_data_wide %>% 
   dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
   pivot_longer(cols = contains("age"), 

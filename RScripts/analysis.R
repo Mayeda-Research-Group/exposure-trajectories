@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
-       "ResourceSelection")
+       "ResourceSelection", "survival")
 
 #No scientific notation
 options(scipen = 999)
@@ -58,6 +58,7 @@ table_effect_ests <-
              "beta" = NA, "LCI" = NA, "UCI" = NA) 
 
 #---- Truth ----
+#---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
   coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
           other + smoker + drinking4_cat_impute + r4mstat_cat + 
@@ -70,6 +71,48 @@ table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 4"),
                   c("beta", "LCI", "UCI")] <- 
   TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
                          c("estimate", "conf.low", "conf.high")]
+
+#---- **CES-D Wave 9 ----
+TTEmodel_CESD9 <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + smoker + drinking9_cat_impute + r9mstat_cat + 
+          r9cesd_elevated, data = CESD_data_wide)
+
+TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
+                               exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 9"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
+                         c("estimate", "conf.low", "conf.high")]
+
+#---- **Total Elevated CES-D ----
+TTEmodel_total_CESD <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          total_elevated_cesd, data = CESD_data_wide)
+
+TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
+                                    exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "Total Elevated CES-D"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
+                              c("estimate", "conf.low", "conf.high")]
+
+#---- **Average CES-D ----
+TTEmodel_avg_CESD <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          avg_cesd_elevated, data = CESD_data_wide)
+
+TTEmodel_avg_CESD_results <- tidy(TTEmodel_avg_CESD, 
+                                  exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "Average CES-D"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_avg_CESD_results[nrow(TTEmodel_avg_CESD_results), 
+                            c("estimate", "conf.low", "conf.high")]
 
 #---- save tables ----
 

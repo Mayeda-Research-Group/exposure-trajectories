@@ -115,6 +115,10 @@ table_effect_ests[which(table_effect_ests$Scenario == "Average CES-D"),
                             c("estimate", "conf.low", "conf.high")]
 
 #---- save tables ----
+#Round numbers in dataframe
+table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
+
+#Save results
 table_list <- list("Table XX" = table_effect_ests)
 write.xlsx(table_list, file = paste0(path_to_dropbox, 
                                      "/exposure_trajectories/manuscript/", 

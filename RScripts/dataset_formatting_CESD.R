@@ -132,7 +132,21 @@ CESD_data_wide %<>%
 #                      "avg_cesd_elevated"))
 # plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
 
-#---- E3 Def: Latent Classes
+#---- E3 Def: Latent Classes ----
+#Model is based off of example in Proust et al. JSS 2017 
+CESD_data_long <- CESD_data_wide %>% 
+  dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
+  pivot_longer(cols = contains("age"), 
+               names_to = "age_waves", values_to = "age") %>% 
+  cbind(CESD_data_wide %>% 
+          dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+          pivot_longer(cols = everything(), 
+                       names_to = "waves", values_to = "cesd")) %>% 
+  dplyr::select(-c("age_waves")) %>%
+  mutate("age_c65_decades" = (age - 65)/10)
+
+# #Sanity check-- 65 is close to the mean age
+# hist(CESD_data_long$age)
 
 #---- Survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 

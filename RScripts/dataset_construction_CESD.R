@@ -72,7 +72,12 @@ hrs_tracker <-
 ##         diabetes ever/never,
 ##         reports cancer this wave,
 ##         reports stroke this wave,
-##         reports heart problems this wave
+##         reports heart problems this wave，
+##         report memory prob this wv(4-9), 
+##         report AD this wv (10-13), report dementia this wv (10-13),
+##         report lung disease this wv,
+##         report arthritis since last wv (2-13),
+##         count of chronic conditions
 ##         CESD (depression; from wave 2-13)
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
@@ -101,6 +106,12 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "cancr"),
                     paste0("r", number_waves, "strok"), 
                     paste0("r", number_waves, "heart"),
+                    paste0("r", number_waves, "lung"),
+                    paste0("r", seq(4 ,9 , by = 1), "memry"),
+                    paste0("r", seq(10 ,13 , by = 1), "alzhe"),
+                    paste0("r", seq(10 ,13 , by = 1), "demen"),
+                    paste0("r", seq(2, 13, by = 1), "arthrs"),
+                    paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
@@ -118,6 +129,69 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
+#---- HRS Core files -- needed for medication;
+# TBC!
+# 98-00 medication in section B, 02-later medication in section C
+# memory problem medication starts from wave 2008
+years <- c("02", "04", "06", "08", "10", "12", "14", "16")#medication
+length(years)
+dataframes_list <- vector(mode = "list", length = (length(years)))
+
+for(i in (length(years) + 1):length(dataframes_list)){
+  if(i == length(dataframes_list)){
+    ##???
+  } if{
+    year <- years[i - length(years)]
+    dataframes_list[[i]] <-
+      left_join(
+        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", 98,
+                           "core/h", 98, "da/H", 98, "B_R.da"),
+                    paste0(path_to_box, "/Box/HRS/core_files/h", 98,
+                           "core/h", 98, "sta/H", 98, "B_R.dct"),
+         read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", 98,
+                            "core/h", 00, "da/H", 00, "B_R.da"),
+                     paste0(path_to_box, "/Box/HRS/core_files/h", 00,
+                            "core/h", 00, "sta/H", 00, "B_R.dct"),
+        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                           "core/h", year, "da/H", year, "C_R.da"),
+                    paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                           "core/h", year, "sta/H", year, "C_R.dct"),
+                    HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
+        by = "HHIDPN") %>%
+      #Select variables of interest: ID, diabetes meds (swallowed), 
+      #                              diabetes meds (insulin), 
+      #                              bp meds, lung meds,heart meds, stroke meds
+      #                              arthritis meds, memory problem rx
+      dplyr::select(HHIDPN, 
+                    contains("F1117"), contains("G1248"),contains("C011"),
+                    contains("F1118"), contains("G1249"), contains("C012"),
+                    contains("F1110"), contains("G1239"),contains("C006"),
+                    contains("F1151"), contains("G1284"),contains("C032"),
+                    contains("F1157"), contains("G1290"),contains("C037"),
+                    contains("F1184"), contains("G1317"),contains("C060"),
+                    contains("F1198"), contains("G1331"),contains("C074"),
+                     contains("C210")) %>%
+      set_colnames(c("HHIDPN", 
+                     paste0(letter_waves[i - length(years)],
+                            "diabetes_rx_swallowed"),
+                     paste0(letter_waves[i - length(years)],
+                            "diabetes_rx_insulin"), 
+                     paste0(letter_waves[i - length(years)],
+                            "bp_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "lung_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "heart_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "stroke_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "arthritis_rx"), 
+                     paste0(letter_waves[i - length(years)],
+                            "memory_rx")))
+  }
+}
+
+
 #---- read in Anusha Vable's CSES index ----
 cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                         "cSES measures/cses_measures.dta"), 
@@ -127,9 +201,9 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(list(hrs_tracker, RAND, cSES), 
+hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list, 
                      by = "HHIDPN", type = "left") 
-
+             
 #---- remove people who were not sampled in 2018 ----
 hrs_samp %<>% filter(!is.na(QALIVE))
 
@@ -297,7 +371,7 @@ hrs_samp %<>%
 # #Checking weird weight values (from YW's analysis)
 # weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020, 
 #                   75888040, 76793010, 79557010, 112747020, 146359010, 207810010, 
-#                   208021020, 208024010, 210114010)
+#                   208021020, 208024010, 210114010, 35201010, 25391010)
 # 
 # View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
 #        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "weight"))))
@@ -310,7 +384,8 @@ hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7weight"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
-                   207810010, 208021020, 210114010)), "9weight"] <- NA
+                   207810010, 208021020, 210114010, 35201010, 
+                      25391010)), "9weight"] <- NA
 
 #Fix measured indicators
 hrs_samp[which(hrs_samp$HHIDPN %in% 
@@ -320,7 +395,8 @@ hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7weight_measured"] <- 0
 hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight_measured"] <- 0
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
-                   207810010, 208021020, 210114010)), "9weight_measured"] <- 0
+                   207810010, 208021020, 210114010, 35201010, 
+                        25391010)), "9weight_measured"] <- 0
 
 #Drop RAND's weight variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 

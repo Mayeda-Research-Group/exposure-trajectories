@@ -145,8 +145,26 @@ CESD_data_long <- CESD_data_wide %>%
   dplyr::select(-c("age_waves")) %>%
   mutate("age_c65_decades" = (age - 65)/10)
 
+#Subject IDs have to be numeric
+CESD_data_long %<>% mutate_at("HHIDPN", as.numeric)
+
+msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+                 mixture = ~ 1,
+                 random = ~ age_c65_decades, 
+                 subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+                 ng = 4, maxiter = 500)
+
+summary(msplines1)
+
+msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+                  mixture = ~ age_c65_decades,
+                  random = ~ age_c65_decades, 
+                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+                  ng = 4, maxiter = 500)
+
 # #Sanity check-- 65 is close to the mean age
 # hist(CESD_data_long$age)
+# class(CESD_data_long$HHIDPN)
 
 #---- Survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 

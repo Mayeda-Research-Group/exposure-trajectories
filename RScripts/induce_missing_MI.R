@@ -39,10 +39,21 @@ CESD_data_wide <-
                             smoker = col_integer()))
 
 #---- select variables ----
+CESD_vars <- c("HHIDPN", "4age_y", "9age_y", "female", "hispanic", "black", 
+               "other", "smoker", "drinking4_cat_impute", 
+               "drinking9_cat_impute", "r4mstat_cat", "r9mstat_cat", 
+               "r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
+               "total_elevated_cesd", "survtime", "observed")
+
+CESD_subset <- CESD_data_wide %>% dplyr::select(all_of(CESD_vars))
+
+#---- Check missingness ----
+colSums(is.na(CESD_subset))
+
+#---- induce missingness ----
 CESD_only <- CESD_data_wide %>% 
   dplyr::select("HHIDPN", paste0("r", seq(4, 9), "cesd"))
 
-#---- induce missingness ----
 mcar10 <- CESD_only
 for(i in 2:ncol(mcar10)){
   mask <- sample(seq(1, nrow(mcar10)), size = ceiling(0.10*nrow(mcar10)), 
@@ -54,5 +65,9 @@ for(i in 2:ncol(mcar10)){
 # sum(is.na(mcar10))
 # floor(0.10*nrow(mcar10)*(ncol(mcar10) - 1))
 # table(rowSums(is.na(mcar10)))
+
+#---- MI ----
+
+#---- imputed exposure defs ----
 
 

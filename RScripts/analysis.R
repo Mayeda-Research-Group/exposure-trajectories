@@ -38,18 +38,6 @@ CESD_data_wide <-
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
 
-#---- Choose variables ----
-CESD_vars <- c("HHIDPN", "4age_y", "9age_y", "female", "hispanic", "black", 
-               "other", "smoker", "drinking4_cat_impute", 
-               "drinking9_cat_impute", "r4mstat_cat", "r9mstat_cat", 
-               "r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
-               "total_elevated_cesd", "survtime", "observed")
-
-CESD_subset <- CESD_data_wide %>% dplyr::select(all_of(CESD_vars))
-
-#---- Check missingness ----
-colSums(is.na(CESD_subset))
-
 #---- Table XX shell: Effect Estimates ----
 table_effect_ests <- 
   data.frame("Scenario" = c("CES-D Wave 4", "CES-D Wave 9", 

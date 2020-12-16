@@ -162,6 +162,8 @@ msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
                   subject = "HHIDPN", data = CESD_data_long, link = "splines", 
                   ng = 4, maxiter = 500)
 
+summary(msplines2)
+
 # #Sanity check-- 65 is close to the mean age
 # hist(CESD_data_long$age)
 # class(CESD_data_long$HHIDPN)

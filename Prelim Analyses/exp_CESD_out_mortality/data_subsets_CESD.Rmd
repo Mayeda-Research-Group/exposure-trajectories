@@ -1,0 +1,215 @@
+---
+title: "Exposure Trajectories"
+subtitle: "Data Subsets: CESD --> Mortality"
+date: "`r format(Sys.time(), '%m/%d/%y')`"
+output: 
+  html_document:
+    theme: paper
+    toc: true
+    toc_float: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r packages}
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("here", "tidyverse", "magrittr", "broom", "kableExtra", "survival")
+
+#No scientific notation
+options(scipen = 9)
+```
+
+```{r import data}
+#Changing directories here will change them throughout the script
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+path_to_dropbox <- "~/Dropbox/Projects"
+
+hrs_samp <- read_csv(paste0(path_to_dropbox,
+                            "/exposure_trajectories/data/",
+                            "hrs_samp_6CESD_waves4-9.csv")) 
+```
+
+```{r create new variables}
+hrs_samp %<>% 
+  mutate("med_CESD" = hrs_samp %>% 
+           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+           apply(., 1, function(x) median(x))) %>% 
+  mutate("elevated_depress_sx_med" = ifelse(med_CESD > 4, 1, 0), 
+         "elevated_depress_sx_last" = ifelse(r9cesd > 4, 1, 0))
+
+# #Sanity check
+# View(hrs_samp %>%
+#        dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"), "med_CESD", 
+#                      "elevated_depress_sx"))
+# 
+# summary(hrs_samp$med_CESD)
+# table(hrs_samp$elevated_depress_sx_med, useNA = "ifany")
+# table(hrs_samp$elevated_depress_sx_last, useNA = "ifany")
+```
+
+## Age Data
+
+Distributions of age at last CESD Measure overlayed with age at death. I think we decided last time that we would use study time as our timescale so the overlap matters less?  
+
+```{r age distributions}
+plot_data <- hrs_samp %>% 
+  dplyr::select("4age_y_int")
+
+ggplot(data = plot_data) + 
+  geom_bar(aes(x = `4age_y_int`, fill = "First CESD Wave"), stat = "count", 
+           color = "lightblue", fill = "lightblue") + 
+  theme_minimal() + xlab("Age") + 
+  ggtitle("Age at first CESD measure")
+
+plot_data <- hrs_samp %>% 
+  dplyr::select("9age_y_int", "death2018", "age_death_y")
+
+ggplot(data = plot_data) + 
+  geom_bar(aes(x = `9age_y_int`, fill = "Last CESD Wave"), stat = "count", 
+           color = "lightblue", fill = "lightblue") + 
+  geom_bar(aes(x = age_death_y, fill = "Death by 2018"), stat = "count", 
+           alpha = 0.5) +
+  theme_minimal() + xlab("Age") + 
+  ggtitle("Age at death overlayed on Age at last CESD measure") +
+  # the labels must match what you specified above
+  scale_fill_manual(name = "", 
+                    values = c("Last CESD Wave" = "lightblue", 
+                               "Death by 2018" = "gray"))
+```
+
+## Risk Regressions
+Sample size: n = `r nrow(hrs_samp)`  
+Proportion dead by 2018: `r round(mean(hrs_samp$death2018), 2)`  
+
+Look at whether models for median CES-D give us tight enough CI  
+
+This model categorizes elevated depressive symptoms based on median of all 6 CESD measures
+
+```{r RRmodel1: median CESD}
+RRmodel1_elevated_depress_sx_med <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_med, family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+RRmodel2_elevated_depress_sx_med <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_med + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat)
+        , family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel2_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+```
+
+This model categorizes elevated depressive symptoms based on last CESD measure  
+
+```{r RRmodel1: last CESD}
+RRmodel1_elevated_depress_sx_last <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_last, family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+RRmodel2_elevated_depress_sx_last <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          elevated_depress_sx_last + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat)
+        , family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(RRmodel2_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+```
+
+```{r RRmodel2: med CESD}
+# #@YW: please add other variables to this model based on the lit review and 
+# #     change to be consistent with med CESD model above), then we can 
+# #     uncomment this code
+# model2_avg_BMI_cat <- 
+#   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+#           as.factor(avg_BMI_cat) + smoker + as.factor(drinking9_cat) + 
+#         as.factor(r9mstat_cat), family = poisson(link = "log"), 
+#       data = hrs_samp)
+#   
+# kable(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+#   kableExtra::kable_styling()
+```
+
+```{r RRmodel2: last CESD}
+# #@YW: please add other variables to this model based on the lit review and 
+# #     change to be consistent with last CESD model above), then we can 
+# #     uncomment this code
+# model2_avg_BMI_cat <- 
+#   glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+#           as.factor(avg_BMI_cat) + smoker + as.factor(drinking9_cat) + 
+#         as.factor(r9mstat_cat), family = poisson(link = "log"), 
+#       data = hrs_samp)
+#   
+# kable(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+#   kableExtra::kable_styling()
+```
+
+## Time-to-Event
+These analyses are more in line with what researchers would actually conduct. I did a really rough approximation of survival time by using the difference between a participant's age at last interview and their age at death. We can use actual dates in the real analysis if we want.
+
+```{r format survival data}
+hrs_samp %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
+  mutate(survtime = ifelse(is.na(survtime), `9age_y_int` + 10, survtime), 
+         observed = ifelse(is.na(age_death_y), 0, 1))
+
+# #Sanity check
+# View(hrs_samp %>% dplyr::select("age_death_y", "9age_y_int", "survtime", 
+#                                 "observed"))
+```
+
+This model categorizes elevated depressive symptoms based on median CESD measure  
+
+```{r TTEmodel1: median CESD}
+TTEmodel1_elevated_depress_sx_med <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_med, data = hrs_samp)
+  
+kable(tidy(TTEmodel1_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+TTEmodel2_elevated_depress_sx_med <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_med
+        + smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), data = hrs_samp)
+  
+kable(tidy(TTEmodel2_elevated_depress_sx_med, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+```
+
+This model categorizes elevated depressive symptoms based on last measure
+
+```{r TTEmodel1: last CESD}
+TTEmodel1_elevated_depress_sx_last <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_last, data = hrs_samp)
+  
+kable(tidy(TTEmodel1_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+
+TTEmodel2_elevated_depress_sx_last <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + elevated_depress_sx_last + 
+        smoker + as.factor(drinking9_cat) + as.factor(r9mstat_cat), 
+        data = hrs_samp)
+  
+kable(tidy(TTEmodel2_elevated_depress_sx_last, exponentiate = TRUE, 
+           conf.int = TRUE)) %>% kableExtra::kable_styling()
+```

@@ -73,7 +73,7 @@ hrs_tracker <-
 ##         reports cancer this wave,
 ##         reports stroke this wave,
 ##         reports heart problems this wave
-##        
+##         CESD (depression; from wave 2-13)
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
 ##                   number of drinks per day (waves 3+)
@@ -106,7 +106,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
                     paste0("r", seq(7, 13, by = 1), "vgactx"),
                     paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    paste0("r", seq(7, 13, by = 1), "ltactx"))
+                    paste0("r", seq(7, 13, by = 1), "ltactx"),
+                    paste0("r", seq(2, 13, by = 1), "cesd"))
 
 RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 
@@ -251,7 +252,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
-table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
 
 #---- cSES index ----
 # #Sanity check
@@ -383,23 +384,23 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- Looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
-# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>% 
-#   set_colnames(c("BMI_start_wave", "BMI_end_wave", "num_measures", 
-#                  "sample_size", "min_age", "max_age", "death_2018", 
+# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
+#   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",
+#                  "sample_size", "min_age", "max_age", "death_2018",
 #                  "prop_dead"))
 # 
 # index = 0
-# for(i in 1:9){
+# for(i in 2:9){
 #   for(j in (i + 4):13){
 #     index = index + 1
-#     subsets_data[index, c("BMI_start_wave", "BMI_end_wave")] = c(i,j)
+#     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
 #     subsets_data[index, "num_measures"] = j - i + 1
 #     
-#     data_subset <- hrs_samp %>% 
-#       dplyr::select(paste0(seq(i, j, by = 1), "BMI"), "death2018", 
-#                     paste0(i, "age_y_int")) %>% 
-#       na.omit() 
-#     data_subset[, "too_young"] = 
+#     data_subset <- hrs_samp %>%
+#       dplyr::select(paste0("r", seq(i, j, by = 1), "cesd"), "death2018",
+#                     paste0(i, "age_y_int")) %>%
+#       na.omit()
+#     data_subset[, "too_young"] =
 #       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
 #     
 #     data_subset %<>% filter(too_young == 0)
@@ -411,57 +412,140 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
 #   }
 # }
-
+# 
 # #Best subset was waves 4-9
-# write_csv(subsets_data, here::here("Prelim Analyses", "exp_BMI_out_mortality", 
-#                              "BMI_complete_subsets.csv"))
+# write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
+#                              "CESD_complete_subsets.csv"))
 
-drop <- hrs_samp %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
   mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0))
 
 hrs_samp %<>% mutate("drop" = drop$drop) %>%
-  #drop those with missing BMI observations in these waves
+  #drop those with missing CESD observations in these waves
   filter(drop == 0) %>% 
   #drop those <50 at start of follow-up
   filter(`4age_y_int` >= 50)
 
 #---- marital status ----
+#Variable check
+table(hrs_samp$r4mstat, useNA = "ifany")
+table(hrs_samp$r9mstat, useNA = "ifany")
+
+#Impute r4mstat with closest non-missing value
+hrs_samp %<>% 
+  mutate("r4mstat_impute" = 
+           ifelse(is.na(r4mstat), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("r", seq(1, 3), "mstat")) %>% 
+                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+                  r4mstat)) %>% 
+  mutate("r4mstat_impute" = 
+           ifelse(is.na(r4mstat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("r", seq(5, 13), "mstat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  r4mstat_impute))
+
+# #Sanity check
+# sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
+# View(hrs_samp %>% 
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+#                      "r4mstat_impute"))
+# View(hrs_samp %>% 
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+#                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
+  
 #Create marital status categories
 hrs_samp %<>% 
   mutate("r9mstat_cat" = 
            case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
                      r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-                     r9mstat == 7 ~ "Widowed"))
+                     r9mstat == 7 ~ "Widowed"), 
+         "r4mstat_cat" = 
+           case_when(r4mstat_impute %in% c(1, 2, 3) ~ "Married/Partnered", 
+                     r4mstat_impute %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+                     r4mstat_impute == 7 ~ "Widowed"))
 
 # #Sanity check
-# table(hrs_samp$r9mstat, useNA = "ifany")
+# table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
 # table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
 
 #---- drinking ----
-#interested in wave9 drinking status (last BMI wave)
-hrs_samp %<>% 
-  mutate("drinks_per_week9" = r9drinkd*r9drinkn,
-         "drinking9_cat" = 
-           case_when(drinks_per_week9 == 0 ~ "No Drinking", 
-                     (drinks_per_week9 >= 7 | r9drinkn >= 3) & 
-                       female == 1 ~ "Heavy Drinking", 
-                     (drinks_per_week9 >= 14 | r9drinkn >= 4) & 
-                       female == 0 ~ "Heavy Drinking", 
-                     (drinks_per_week9 >= 1 & drinks_per_week9 < 7) & 
-                       female == 1 ~ "Moderate Drinking", 
-                     (drinks_per_week9 >= 1 & drinks_per_week9 < 14) & 
-                       female == 0 ~ "Moderate Drinking"))
+drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
+  (hrs_samp %>% dplyr::select(contains("drinkn")))
+ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
+
+drinking_cat_mat <- 
+  matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+  set_colnames(paste0("drinking", seq(3, 13), "_cat"))
+
+for(i in 1:ncol(drinking_cat_mat)){
+  for(j in 1:nrow(drinking_cat_mat)){
+    drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
+      case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
+                (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
+                  hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
+                (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
+                  hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
+                (drinks_per_week_mat[j, i] >= 1 & 
+                   drinks_per_week_mat[j, i] < 7) & 
+                  hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
+                (drinks_per_week_mat[j, i] >= 1 & 
+                   drinks_per_week_mat[j, i] < 14) & 
+                  hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
+  }
+}
 
 # #Sanity Check
-# View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female", 
-#                                 "drinking9_cat") %>% 
-#        filter(drinking9_cat == "Heavy Drinking"))
+# View(drinking_cat_mat)
 
-# table(hrs_samp$drinking9_cat, useNA = "ifany")
+hrs_samp %<>% cbind(drinking_cat_mat)
+
+#Sanity Check
+View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
+                                "drinking9_cat") %>%
+       filter(drinking9_cat == "Heavy Drinking"))
+
+#Variable check
+table(hrs_samp$drinking4_cat, useNA = "ifany")
+table(hrs_samp$drinking9_cat, useNA = "ifany")
+
+#Impute drinking4_cat and drinking9_cat with closest non-missing values
+hrs_samp %<>% 
+  mutate("drinking4_cat_impute" = 
+           ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
+  mutate("drinking4_cat_impute" = 
+           ifelse(is.na(drinking4_cat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  drinking4_cat_impute)) %>% 
+  mutate("drinking9_cat_impute" = 
+           ifelse(is.na(drinking9_cat), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
+                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+                  drinking9_cat)) %>% 
+  mutate("drinking9_cat_impute" = 
+           ifelse(is.na(drinking9_cat_impute), 
+                  hrs_samp %>% 
+                    dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
+                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+                  drinking9_cat_impute))
+
+# #Sanity check
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))))
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))) %>% 
+#        filter(is.na(drinking4_cat) | is.na(drinking9_cat)))
+# table(hrs_samp$drinking4_cat_impute, useNA = "ifany")
+# table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
+
+#Drop the one person who has no information on drinking behavior
+hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
-                           "hrs_samp_6BMI_waves4-9.csv"))
+                           "hrs_samp_6CESD_waves4-9.csv"))
 
 

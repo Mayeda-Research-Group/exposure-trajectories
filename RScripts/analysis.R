@@ -4,52 +4,187 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
-       "ResourceSelection")
+       "ResourceSelection", "survival", "openxlsx")
 
 #No scientific notation
 options(scipen = 999)
 
 set.seed(20200819)
 
+#---- Note ----
+# Since the difference between win and OS, put substituted directory here
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+
+#Changing directories here will change them throughout the script
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
+
 #---- Read in analytical sample ----
-# imputation_data_wide <- 
-#   read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-#                   "exposure_trajectories/data/", 
-#                   "imputation_data_wide.csv"), 
-#            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-#                             death = col_factor(), female = col_factor(), 
-#                             hispanic = col_factor(), black = col_factor(), 
-#                             other = col_factor())) 
-imputation_data_long <- 
-  read_csv(paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-                  "exposure_trajectories/data/", 
-                  "imputation_data_long.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_integer(), 
-                            Wave = col_factor(), death = col_integer(), 
+CESD_data_wide <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
+                  "CESD_data_wide.csv"), 
+           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+                            death2018 = col_integer(), DOD = col_character(), 
+                            Bday = col_character(), ed_cat = col_factor(), 
+                            drop = col_logical(), r4mstat_cat = col_factor(), 
+                            r9mstat_cat = col_factor(),
+                            drinking4_cat_impute = col_factor(),
+                            drinking9_cat_impute = col_factor(),
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
-                            smoker = col_integer())) 
+                            smoker = col_integer()))
 
-#---- Indicate observed Cystatin C ----
-#only interested in observed if they are in age range [60, 69]
-imputation_data_long %<>% 
-  mutate("observed" = ifelse(!is.na(log_CysC) & age_y_int < 70, 1, 0))
+#---- Choose variables ----
+CESD_vars <- c("HHIDPN", "4age_y", "9age_y", "female", "hispanic", "black", 
+               "other", "smoker", "drinking4_cat_impute", 
+               "drinking9_cat_impute", "r4mstat_cat", "r9mstat_cat", 
+               "r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
+               "total_elevated_cesd", "survtime", "observed")
 
-#Sanity check-- only ages [61, 69] should have a 1
-obs_by_age <- imputation_data_long %>% dplyr::group_by(age_y_int) %>%
-  summarize_at("observed", ~sum(. == 1))
+CESD_subset <- CESD_data_wide %>% dplyr::select(all_of(CESD_vars))
 
-#---- E1 Def: Cystatin C at age XX ----
+#---- Check missingness ----
+colSums(is.na(CESD_subset))
 
-#---- E1: Complete Data ----
-#Choosing age 68 because that's where we have a lot of data (n = 770)
-in_sample <- imputation_data_long %>% 
-  dplyr::filter(age_y_int == 68 & !is.na(log_CysC))
+#---- Table XX shell: Effect Estimates ----
+table_effect_ests <- 
+  data.frame("Scenario" = c("CES-D Wave 4", "CES-D Wave 9", 
+                            "Total Elevated CES-D", "Average CES-D", 
+                            "CES-D Latent Classes"),
+             "beta" = NA, "LCI" = NA, "UCI" = NA) 
 
-E1 <- imputation_data_long %>% dplyr::filter(HHIDPN %in% in_sample$HHIDPN)
+#---- Truth ----
+#---- **CES-D Wave 4 ----
+TTEmodel_CESD4 <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          r4cesd_elevated, data = CESD_data_wide)
 
-# #Sanity check
-# length(unique(E1$HHIDPN))
+TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
+                               exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 4"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
+                         c("estimate", "conf.low", "conf.high")]
+
+#---- **CES-D Wave 9 ----
+TTEmodel_CESD9 <- 
+  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
+          other + smoker + drinking9_cat_impute + r9mstat_cat + 
+          r9cesd_elevated, data = CESD_data_wide)
+
+TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
+                               exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 9"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
+                         c("estimate", "conf.low", "conf.high")]
+
+#---- **Total Elevated CES-D ----
+TTEmodel_total_CESD <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          total_elevated_cesd, data = CESD_data_wide)
+
+TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
+                                    exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "Total Elevated CES-D"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
+                              c("estimate", "conf.low", "conf.high")]
+
+#---- **Average CES-D ----
+TTEmodel_avg_CESD <- 
+  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
+          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+          avg_cesd_elevated, data = CESD_data_wide)
+
+TTEmodel_avg_CESD_results <- tidy(TTEmodel_avg_CESD, 
+                                  exponentiate = TRUE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Scenario == "Average CES-D"), 
+                  c("beta", "LCI", "UCI")] <- 
+  TTEmodel_avg_CESD_results[nrow(TTEmodel_avg_CESD_results), 
+                            c("estimate", "conf.low", "conf.high")]
+
+#---- save tables ----
+#Round numbers in dataframe
+table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
+
+#Save results
+table_list <- list("Table XX" = table_effect_ests)
+write.xlsx(table_list, file = paste0(path_to_dropbox, 
+                                     "/exposure_trajectories/manuscript/", 
+                                     "tables/main_text_tables.xlsx"))
+
+#---- OLD CODE ----
+imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 
+                     "hispanic", "white", "black", "other", "height", 
+                     "r9mstat_cat", "smoker", "drinking9_cat", "ed_cat", 
+                     "cses_index", "death2018")
+
+model_vars <- c("9age_y_int", "female", "hispanic", "white", "black", 
+                "other", "r9mstat_cat","smoker", "drinking9_cat", "ed_cat", 
+                "cses_index")
+
+BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
+
+
+
+#---- E1 Def: BMI at wave 9 ----
+E1_wide <- BMI_data_wide %>% 
+  dplyr::select(-one_of(paste0(seq(4, 8, by = 1), "BMI")))
+
+# #Distribution of BMI-- this is really symmetric
+# hist(E1_wide$`9BMI`)
+
+#---- E1 Truth ----
+#True effect of BMI at wave 9 on mortality by 2018
+E1_wide %<>% 
+  mutate("9BMI_cat" = case_when(`9BMI` < 18.5 ~ "Underweight", 
+                                `9BMI` >= 18.5 & `9BMI` < 25 ~ "Normal", 
+                                `9BMI` >= 25 & `9BMI` < 30 ~ "Overweight", 
+                                `9BMI` >= 30 ~ "Obese"), 
+         "avg_BMI" = BMI_data_wide %>% 
+           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
+           rowMeans(.), 
+         "avg_BMI_cat" = case_when(avg_BMI < 18.5 ~ "Underweight", 
+                                   avg_BMI >= 18.5 & avg_BMI < 25 ~ "Normal", 
+                                   avg_BMI >= 25 & avg_BMI < 30 ~ "Overweight", 
+                                   avg_BMI >= 30 ~ "Obese"))
+
+E1_truth_cont <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                       other + cses_index + ed_cat + smoker + 
+                       as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                       `9BMI`, family = poisson(link = "log"), 
+                     data = E1_wide)
+tidy(E1_truth_cont, exponentiate = TRUE, conf.int = TRUE)
+
+E1_truth_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                      other + #cses_index + ed_cat + 
+                      smoker + 
+                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                      `9BMI_cat`, family = poisson(link = "log"), 
+                    data = E1_wide)
+tidy(E1_truth_cat, exponentiate = TRUE, conf.int = TRUE)
+
+test_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
+                      other + cses_index + ed_cat + 
+                      smoker + 
+                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
+                      `avg_BMI_cat`, family = poisson(link = "log"), 
+                    data = E1_wide)
+tidy(test_cat, exponentiate = TRUE, conf.int = TRUE)
+
+# #Sanity check-- amount missingness in each variable
+# colSums(is.na(E1_wide))
 
 #Create missing indicator by variable
 can_mask <- which(E1$age_y_int == 68)

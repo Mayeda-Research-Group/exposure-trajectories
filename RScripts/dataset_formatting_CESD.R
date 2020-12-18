@@ -154,15 +154,21 @@ msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
                  ng = 4, maxiter = 500)
 
-summary(msplines1)
+#summary(msplines1)
+saveRDS(msplines1, file = paste0(path_to_dropbox, 
+                                 "/exposure_trajectories/data/models", 
+                                 "msplines1.rds"))
 
 msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
                   mixture = ~ age_c65_decades,
                   random = ~ age_c65_decades, 
                   subject = "HHIDPN", data = CESD_data_long, link = "splines", 
-                  ng = 4, maxiter = 500)
+                  ng = 4, maxiter = 1000)
 
-summary(msplines2)
+#summary(msplines2)
+saveRDS(msplines2, file = paste0(path_to_dropbox, 
+                                 "/exposure_trajectories/data/models", 
+                                 "msplines2.rds"))
 
 # #Sanity check-- 65 is close to the mean age
 # hist(CESD_data_long$age)

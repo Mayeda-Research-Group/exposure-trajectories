@@ -24,6 +24,7 @@ path_to_dropbox <- "~/Dropbox/Projects"
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "measured_self_report.R"))
+source(here::here("RScripts", "read_da_dct.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -129,68 +130,68 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
-#---- HRS Core files -- needed for medication;
-# TBC!
-# 98-00 medication in section B, 02-later medication in section C
-# memory problem medication starts from wave 2008
-years <- c("02", "04", "06", "08", "10", "12", "14", "16")#medication
-length(years)
+#---- read in HRS Core files ---- 
+#needed for medication
+
+# '98-'00 medication in section B, 02-later medication in section C
+# memory problem medication starts from wave 2008; we won't do memory meds
+# since it starts on the last wave relevant to our analysis
+
+years <- c("98", "00", 
+           "02", "04", "06", "08") #medication
 dataframes_list <- vector(mode = "list", length = (length(years)))
 
-for(i in (length(years) + 1):length(dataframes_list)){
-  if(i == length(dataframes_list)){
-    ##???
-  } if{
-    year <- years[i - length(years)]
-    dataframes_list[[i]] <-
-      left_join(
-        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", 98,
-                           "core/h", 98, "da/H", 98, "B_R.da"),
-                    paste0(path_to_box, "/Box/HRS/core_files/h", 98,
-                           "core/h", 98, "sta/H", 98, "B_R.dct"),
-         read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", 98,
-                            "core/h", 00, "da/H", 00, "B_R.da"),
-                     paste0(path_to_box, "/Box/HRS/core_files/h", 00,
-                            "core/h", 00, "sta/H", 00, "B_R.dct"),
-        read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                           "core/h", year, "da/H", year, "C_R.da"),
-                    paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                           "core/h", year, "sta/H", year, "C_R.dct"),
-                    HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric), 
-        by = "HHIDPN") %>%
-      #Select variables of interest: ID, diabetes meds (swallowed), 
-      #                              diabetes meds (insulin), 
-      #                              bp meds, lung meds,heart meds, stroke meds
-      #                              arthritis meds, memory problem rx
-      dplyr::select(HHIDPN, 
-                    contains("F1117"), contains("G1248"),contains("C011"),
-                    contains("F1118"), contains("G1249"), contains("C012"),
-                    contains("F1110"), contains("G1239"),contains("C006"),
-                    contains("F1151"), contains("G1284"),contains("C032"),
-                    contains("F1157"), contains("G1290"),contains("C037"),
-                    contains("F1184"), contains("G1317"),contains("C060"),
-                    contains("F1198"), contains("G1331"),contains("C074"),
-                     contains("C210")) %>%
+for(i in 1:length(years)){
+  year <- years[i]
+  if(i == 1 | i == 2){
+    dataframes_list[[i]] <- 
+      read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                         "core/h", year, "da/H", year, "B_R.da"),
+                  paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                         "core/h", year, "sta/H", year, "B_R.dct"),
+                  skip_lines = 1,
+                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+      #select variables of interest
+      dplyr::select("HHIDPN", 
+                    #1998 vars         2000 vars
+                    contains("F1117"), contains("G1248"),
+                    contains("F1118"), contains("G1249"),
+                    contains("F1110"), contains("G1239"),
+                    contains("F1151"), contains("G1284"),
+                    contains("F1157"), contains("G1290"),
+                    contains("F1184"), contains("G1317"),
+                    contains("F1198"), contains("G1331")) %>%
       set_colnames(c("HHIDPN", 
-                     paste0(letter_waves[i - length(years)],
-                            "diabetes_rx_swallowed"),
-                     paste0(letter_waves[i - length(years)],
-                            "diabetes_rx_insulin"), 
-                     paste0(letter_waves[i - length(years)],
-                            "bp_rx"), 
-                     paste0(letter_waves[i - length(years)],
-                            "lung_rx"), 
-                     paste0(letter_waves[i - length(years)],
-                            "heart_rx"), 
-                     paste0(letter_waves[i - length(years)],
-                            "stroke_rx"), 
-                     paste0(letter_waves[i - length(years)],
-                            "arthritis_rx"), 
-                     paste0(letter_waves[i - length(years)],
-                            "memory_rx")))
+                     paste0("diabetes_rx_swallowed", (i + 3)),
+                     paste0("diabetes_rx_insulin", (i + 3)), 
+                     paste0("bp_rx", (i + 3)), 
+                     paste0("lung_rx", (i + 3)), 
+                     paste0("heart_rx", (i + 3)), 
+                     paste0("stroke_rx", (i + 3)), 
+                     paste0("arthritis_rx", (i + 3)))) 
+  } else{
+    dataframes_list[[i]] <-
+      read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                         "core/h", year, "da/H", year, "C_R.da"),
+                  paste0(path_to_box, "/Box/HRS/core_files/h", year,
+                         "core/h", year, "sta/H", year, "C_R.dct"), 
+                  skip_lines = 2, 
+                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+      #select variables of interest
+      dplyr::select("HHIDPN", 
+                    contains("C011"), contains("C012"), contains("C006"), 
+                    contains("C032"), contains("C037"), contains("C060"), 
+                    contains("C074")) %>%
+      set_colnames(c("HHIDPN", 
+                     paste0("diabetes_rx_swallowed", (i + 3)),
+                     paste0("diabetes_rx_insulin", (i + 3)), 
+                     paste0("bp_rx", (i + 3)), 
+                     paste0("lung_rx", (i + 3)), 
+                     paste0("heart_rx", (i + 3)), 
+                     paste0("stroke_rx", (i + 3)), 
+                     paste0("arthritis_rx", (i + 3))))
   }
 }
-
 
 #---- read in Anusha Vable's CSES index ----
 cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
@@ -202,7 +203,7 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 #---- merge datasets ----
 #Use this to subset RAND data
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list, 
-                     by = "HHIDPN", type = "left") 
+                     by = "HHIDPN", type = "left")) 
              
 #---- remove people who were not sampled in 2018 ----
 hrs_samp %<>% filter(!is.na(QALIVE))
@@ -458,7 +459,10 @@ hrs_samp %<>%
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
-#---- Looking for optimal subset ----
+#---- chronic conditions ----
+#---- **diabetes ----
+
+#---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
 # subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
 #   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",

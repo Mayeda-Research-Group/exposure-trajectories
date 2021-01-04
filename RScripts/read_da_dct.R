@@ -24,7 +24,7 @@ p_load("readr", "tidyverse")
 read_da_dct <- function(data_path, dict_path, HHIDPN = TRUE){
   
   # Read the dictionary file
-  df_dict <- read.table(dict_path, skip = 2, fill = TRUE,
+  df_dict <- read.table(dict_path, skip = 1, fill = TRUE,
                         stringsAsFactors = FALSE)
   
   #Set column names for dictionary dataframe

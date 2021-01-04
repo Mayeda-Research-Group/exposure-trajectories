@@ -21,10 +21,10 @@ if (!require("pacman")){
 p_load("readr", "tidyverse")
 
 #---- Function ----
-read_da_dct <- function(data_path, dict_path, HHIDPN = TRUE){
+read_da_dct <- function(data_path, dict_path, skip_lines = 2, HHIDPN = TRUE){
   
   # Read the dictionary file
-  df_dict <- read.table(dict_path, skip = 1, fill = TRUE,
+  df_dict <- read.table(dict_path, skip = skip_lines, fill = TRUE,
                         stringsAsFactors = FALSE)
   
   #Set column names for dictionary dataframe

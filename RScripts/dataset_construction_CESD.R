@@ -460,7 +460,66 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
-#---- **diabetes ----
+#We're creating our own ever/never variables
+
+#---- ** diabetes ----
+hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
+                              c(paste0("diabetes_rx_insulin", seq(4, 9)), 
+                                paste0("diabetes_rx_swallowed", seq(4, 9))), 
+                              hrs_samp)
+
+# #Sanity check
+# for(var in c(paste0("r", seq(1, 13), "diab"), 
+#              paste0("diabetes_rx_insulin", seq(4, 9)))){
+#   print(var)
+#   print(table(hrs_samp[, var], useNA = "ifany"))
+# }
+
+#---- **high bp ----
+hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"), 
+                              paste0("bp_rx", seq(4, 9)), hrs_samp)
+
+#---- **cancer ----
+hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"), 
+                              NA, hrs_samp)
+
+#---- **lung ----
+hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"), 
+                              paste0("lung_rx", seq(4, 9)), hrs_samp)
+
+#---- **heart ----
+hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"), 
+                              paste0("heart_rx", seq(4, 9)), hrs_samp)
+
+#---- **stroke ----
+hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"), 
+                              paste0("stroke_rx", seq(4, 9)), hrs_samp)
+
+#---- **arthritis ----
+hrs_samp <- chronic_condition("arthritis", paste0("r", seq(1, 13), "arthrs"), 
+                              paste0("arthritis_rx", seq(4, 9)), hrs_samp)
+
+#---- **memory ----
+hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
+                              NA, hrs_samp)
+
+#---- **Alzheimer's ----
+hrs_samp <- chronic_condition("alz", paste0("r", seq(10, 13), "alzhe"), 
+                              NA, hrs_samp)
+
+#---- **dementia ----
+hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"), 
+                              NA, hrs_samp)
+
+#---- **combine memory conditions ----
+
+
+
+
+#---- sum of conditions ----
+#We're going to create our own version of r[wave]conde from RAND
+
+
 
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up

@@ -512,8 +512,11 @@ hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"),
                               NA, hrs_samp)
 
 #---- **combine memory conditions ----
-
-
+hrs_samp %<>% 
+  mutate("any_mem_ever" = 
+           apply(hrs_samp %>% 
+                   dplyr::select("ever_mem", "ever_alz", "ever_dem"), 1, 
+                 function(x) rowSums(x, na.rm = TRUE)))
 
 
 #---- sum of conditions ----

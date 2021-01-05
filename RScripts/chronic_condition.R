@@ -8,7 +8,7 @@ chronic_condition <- function(condition,
   #Recoding self-report condition 
   for(i in 1:nrow(subset)){
     for(j in 1:length(condition_vars)){
-      if(is.na(subset[i, j]) | subset[i, j] %in% c(0, 1)){
+      if(is.na(subset[i, j]) | subset[i, j] %in% c(0, 1, 2)){
         next
       } else{
         #Dispute and don't know

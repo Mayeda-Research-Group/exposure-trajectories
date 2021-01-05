@@ -1,8 +1,14 @@
 chronic_condition <- function(condition, 
                               condition_vars, condition_rx_vars, dataset){
   #---- get subset ----
-  subset <- dataset %>% 
-    dplyr::select(c(all_of(condition_vars), all_of(condition_rx_vars)))
+  if(is.na(condition_rx_vars)){
+    subset <- dataset %>% 
+      dplyr::select(all_of(condition_vars))
+  } else{
+    subset <- dataset %>% 
+      dplyr::select(c(all_of(condition_vars), all_of(condition_rx_vars)))
+    
+  }
   
   #---- cleaning ----
   #Recoding self-report condition 
@@ -49,14 +55,18 @@ chronic_condition <- function(condition,
 }
 
 # #Testing
-# test <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
-#                           c(paste0("diabetes_rx_insulin", seq(4, 9)), 
-#                             paste0("diabetes_rx_swallowed", seq(4, 9))), 
+# test <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
+#                           c(paste0("diabetes_rx_insulin", seq(4, 9)),
+#                             paste0("diabetes_rx_swallowed", seq(4, 9))),
 #                           hrs_samp)
 # 
-# test <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"), 
-#                           paste0("bp_rx", seq(4, 9)), 
+# test <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"),
+#                           paste0("bp_rx", seq(4, 9)),
 #                           hrs_samp)
+# 
+# test_no_rx <- chronic_condition("mem", paste0("r", seq(5, 9), "memry"),
+#                                 NA,
+#                                 hrs_samp)
 # 
 # #Sanity check
 # for(var in c(paste0("r", seq(1, 13), "hibp"), paste0("bp_rx", seq(4, 9)))){
@@ -65,5 +75,14 @@ chronic_condition <- function(condition,
 # }
 # 
 # table(test$ever_hibp, useNA = "ifany")
+# 
+# for(var in paste0("r", seq(5, 9), "memry")){
+#   print(var)
+#   print(table(test_no_rx[, var], useNA = "ifany"))
+# }
+# 
+# table(test_no_rx$ever_mem, useNA = "ifany")
+
+
 
 

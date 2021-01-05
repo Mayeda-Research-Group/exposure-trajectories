@@ -202,8 +202,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list, 
-                     by = "HHIDPN", type = "left")) 
+hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
+                     by = "HHIDPN", type = "left") 
              
 #---- remove people who were not sampled in 2018 ----
 hrs_samp %<>% filter(!is.na(QALIVE))

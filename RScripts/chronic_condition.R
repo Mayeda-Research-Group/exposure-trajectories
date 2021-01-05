@@ -26,13 +26,15 @@ chronic_condition <- function(condition,
   }
   
   #Recoding rx
-  condition_rx <- subset %>% dplyr::select(all_of(condition_rx_vars))
-  #5 = "No"; 8 = "Don't know"; 9 = "Refused"
-  condition_rx[condition_rx == 5] <- 0
-  condition_rx[condition_rx == 8 | condition_rx == 9] <- NA
-  
-  #Update subset
-  subset[, colnames(condition_rx)] <- condition_rx
+  if(!is.na(condition_rx_vars)){
+    condition_rx <- subset %>% dplyr::select(all_of(condition_rx_vars))
+    #5 = "No"; 8 = "Don't know"; 9 = "Refused"
+    condition_rx[condition_rx == 5] <- 0
+    condition_rx[condition_rx == 8 | condition_rx == 9] <- NA
+    
+    #Update subset
+    subset[, colnames(condition_rx)] <- condition_rx
+  }
   
   #---- code condition ----
   subset %<>% 

@@ -1,7 +1,7 @@
 chronic_condition <- function(condition, 
                               condition_vars, condition_rx_vars, dataset){
   #---- get subset ----
-  if(is.na(condition_rx_vars)){
+  if(sum(is.na(condition_rx_vars)) != 0){
     subset <- dataset %>% 
       dplyr::select(all_of(condition_vars))
   } else{
@@ -32,7 +32,7 @@ chronic_condition <- function(condition,
   }
   
   #Recoding rx
-  if(!is.na(condition_rx_vars)){
+  if(sum(is.na(condition_rx_vars)) == 0){
     condition_rx <- subset %>% dplyr::select(all_of(condition_rx_vars))
     #5 = "No"; 8 = "Don't know"; 9 = "Refused"
     condition_rx[condition_rx == 5] <- 0

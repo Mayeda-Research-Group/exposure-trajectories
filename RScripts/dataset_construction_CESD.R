@@ -406,45 +406,63 @@ hrs_samp[which(hrs_samp$HHIDPN %in%
 hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
                                paste0("r", number_waves, "weight")))
 
-#---- BMI ----
-hrs_samp %<>% 
-  cbind(measured_self_report(data = hrs_samp, 
-                             measured_cols = 
-                               paste0("r", seq(8, 13, by = 1), "pmbmi"), 
-                             self_cols = 
-                               paste0("r", number_waves, "bmi"), 
-                             derived_variable = "BMI", 
-                             measured_waves_start = 8, all_waves_end = 13))
+#---- Derived BMI ----
 
+bmi_mat <- hrs_samp %>% 
+  dplyr::select(contains("height"), contains("weight"), 
+                -contains("height_measured"), -contains("weight_measured"),
+                -contains("r"))
+waves_bmi <- seq(4, 9, by = 1)
+
+for(i in 1:nrow(bmi_mat)){
+  for(j in 1:length(waves_bmi)){
+    wave <- waves_bmi[j]
+    bmi_mat[i, paste0("r", wave, "BMI")] <- 
+      bmi_mat[i, paste0(wave, "weight")]/(bmi_mat[i, "height"])^2
+  }
+}
+
+hrs_samp[, paste0(waves_bmi, "BMI")] <- bmi_mat[, paste0("r", wave, "BMI")]
+
+#---- Old BMI code ----
+# hrs_samp %<>%
+#   cbind(measured_self_report(data = hrs_samp,
+#                              measured_cols =
+#                                paste0("r", seq(8, 13, by = 1), "pmbmi"),
+#                              self_cols =
+#                                paste0("r", number_waves, "bmi"),
+#                              derived_variable = "BMI",
+#                              measured_waves_start = 8, all_waves_end = 13))
+# 
 # #Sanity check-- I had an issue with this observation that led to my finding
 # #               a bug in my measured_self_report code
-# View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
-#        dplyr::select(c(paste0(letter_waves, "BMI"),
-#                        paste0(letter_waves, "BMI_measured"))))
-       
-#Set the weird measures to NA-- consistent with weight
-hrs_samp[which(hrs_samp$HHIDPN %in% 
-                 c(12738020, 16381010, 46769010, 73050020, 
-                   146359010, 208024010)), "4BMI"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI"] <- NA
-hrs_samp[which(hrs_samp$HHIDPN %in% 
-                 c(31605040, 76793010, 79557010, 112747020, 
-                   207810010, 208021020, 210114010)), "9BMI"] <- NA
-
-#Fix measured indicators
-hrs_samp[which(hrs_samp$HHIDPN %in% 
-                 c(12738020, 16381010, 46769010, 73050020, 
-                   146359010, 208024010)), "4BMI_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI_measured"] <- 0
-hrs_samp[which(hrs_samp$HHIDPN %in% 
-                 c(31605040, 76793010, 79557010, 112747020, 
-                   207810010, 208021020, 210114010)), "9BMI_measured"] <- 0
-
-# #Sanity check
-# View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
-#        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "BMI"))))
+# # View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
+# #        dplyr::select(c(paste0(letter_waves, "BMI"),
+# #                        paste0(letter_waves, "BMI_measured"))))
+# 
+# #Set the weird measures to NA-- consistent with weight
+# hrs_samp[which(hrs_samp$HHIDPN %in%
+#                  c(12738020, 16381010, 46769010, 73050020,
+#                    146359010, 208024010)), "4BMI"] <- NA
+# hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI"] <- NA
+# hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI"] <- NA
+# hrs_samp[which(hrs_samp$HHIDPN %in%
+#                  c(31605040, 76793010, 79557010, 112747020,
+#                    207810010, 208021020, 210114010)), "9BMI"] <- NA
+# 
+# #Fix measured indicators
+# hrs_samp[which(hrs_samp$HHIDPN %in%
+#                  c(12738020, 16381010, 46769010, 73050020,
+#                    146359010, 208024010)), "4BMI_measured"] <- 0
+# hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI_measured"] <- 0
+# hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI_measured"] <- 0
+# hrs_samp[which(hrs_samp$HHIDPN %in%
+#                  c(31605040, 76793010, 79557010, 112747020,
+#                    207810010, 208021020, 210114010)), "9BMI_measured"] <- 0
+# 
+# # #Sanity check
+# # View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
+# #        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "BMI"))))
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
@@ -522,30 +540,30 @@ hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"),
 #                    dplyr::select("ever_mem", "ever_alz", "ever_dem"), 1, 
 #                  function(x) rowSums(x, na.rm = TRUE)))
 
-subset <- hrs_samp %>% 
+memry_mat <- hrs_samp %>% 
   dplyr::select("ever_mem", "ever_alz", "ever_dem")
 
-subset %<>% 
-  mutate("any" = rowSums(subset, na.rm = TRUE)) %>%
+memry_mat %<>% 
+  mutate("any" = rowSums(memry_mat, na.rm = TRUE)) %>%
   mutate("any_mem_ever" = ifelse(any > 0, 1, 0))
 
-hrs_samp[, "any_mem_ever"] <- subset[, "any_mem_ever"]
+hrs_samp[, "any_mem_ever"] <- memry_mat[, "any_mem_ever"]
 
 # #Sanity check
-# table (subset$any, subset$ever_alz)
-# table(subset$any, subset$ever_mem)
-# table(subset$any, subset$ever_dem)
-# table(subset$any_mem_ever,subset$any)
+# table (memry_mat$any, memry_mat$ever_alz)
+# table(memry_mat$any, memry_mat$ever_mem)
+# table(memry_mat$any, memry_mat$ever_dem)
+# table(memry_mat$any_mem_ever,memry_mat$any)
 
 #---- sum of conditions ----
 #We're going to create our own version of r[wave]conde from RAND
-subset <- hrs_samp %>%
+cond_mat <- hrs_samp %>%
   dplyr::select(contains("ever")) 
-# colnames(subset)
+# colnames(cond_mat)
 
 #since ever_condition variables are used to derive new conde variable, 
 #it should not vary across waves
-hrs_samp[, "conde"] <- rowSums(subset, na.rm = TRUE) 
+hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE) 
 
 #Sanity Check
 # proc_sum<-function(variable){
@@ -556,7 +574,7 @@ hrs_samp[, "conde"] <- rowSums(subset, na.rm = TRUE)
 #   summ[1,3]<-median(var_naomit) # median
 #   summ[1,4]<-sd(var_naomit) # standard deviation
 #   summ[1,5]<-min(var_naomit) # minimum
-#   summ[1,6]<-max(var_naomit) # minimum
+#   summ[1,6]<-max(var_naomit) # maximum
 #   summ[1,7]<-sum(is.na(variable)) # number of missing values
 #   names(summ)<-c("N","Mean","Median","Std",
 #                  "Minimum","Maximum","N_missing")

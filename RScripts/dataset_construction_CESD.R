@@ -17,14 +17,15 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "measured_self_report.R"))
 source(here::here("RScripts", "read_da_dct.R"))
+source(here::here("Rscripts", "chronic_condition.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -80,6 +81,7 @@ hrs_tracker <-
 ##         report arthritis since last wv (2-13),
 ##         count of chronic conditions
 ##         CESD (depression; from wave 2-13)
+##         Self-reported health
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
 ##                   number of drinks per day (waves 3+)
@@ -119,7 +121,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", seq(7, 13, by = 1), "vgactx"),
                     paste0("r", seq(7, 13, by = 1), "mdactx"), 
                     paste0("r", seq(7, 13, by = 1), "ltactx"),
-                    paste0("r", seq(2, 13, by = 1), "cesd"))
+                    paste0("r", seq(2, 13, by = 1), "cesd"),
+                    paste0("r", number_waves, "shlt"))
 
 RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2016v2.dta"), 
@@ -469,7 +472,7 @@ hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
                               hrs_samp)
 
 # #Sanity check
-# for(var in c(paste0("r", seq(1, 13), "diab"), 
+# for(var in c(paste0("r", seq(1, 13), "diab"),
 #              paste0("diabetes_rx_insulin", seq(4, 9)))){
 #   print(var)
 #   print(table(hrs_samp[, var], useNA = "ifany"))
@@ -496,8 +499,9 @@ hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"),
                               paste0("stroke_rx", seq(4, 9)), hrs_samp)
 
 #---- **arthritis ----
-hrs_samp <- chronic_condition("arthritis", paste0("r", seq(1, 13), "arthrs"), 
+hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"), 
                               paste0("arthritis_rx", seq(4, 9)), hrs_samp)
+## arthritis is reported from wave 2 to wave 13.
 
 #---- **memory ----
 hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
@@ -512,17 +516,53 @@ hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"),
                               NA, hrs_samp)
 
 #---- **combine memory conditions ----
-hrs_samp %<>% 
-  mutate("any_mem_ever" = 
-           apply(hrs_samp %>% 
-                   dplyr::select("ever_mem", "ever_alz", "ever_dem"), 1, 
-                 function(x) rowSums(x, na.rm = TRUE)))
+# hrs_samp %<>% 
+#   mutate("any_mem_ever" = 
+#            apply(hrs_samp %>% 
+#                    dplyr::select("ever_mem", "ever_alz", "ever_dem"), 1, 
+#                  function(x) rowSums(x, na.rm = TRUE)))
 
+subset <- hrs_samp %>% 
+  dplyr::select("ever_mem", "ever_alz", "ever_dem")
+
+subset %<>% 
+  mutate("any" = rowSums(subset, na.rm = TRUE)) %>%
+  mutate("any_mem_ever" = ifelse(any > 0, 1, 0))
+
+hrs_samp[, "any_mem_ever"] <- subset[, "any_mem_ever"]
+
+# #Sanity check
+# table (subset$any, subset$ever_alz)
+# table(subset$any, subset$ever_mem)
+# table(subset$any, subset$ever_dem)
+# table(subset$any_mem_ever,subset$any)
 
 #---- sum of conditions ----
 #We're going to create our own version of r[wave]conde from RAND
+subset <- hrs_samp %>%
+  dplyr::select(contains("ever")) 
+# colnames(subset)
 
+#since ever_condition variables are used to derive new conde variable, 
+#it should not vary across waves
+hrs_samp[, "conde"] <- rowSums(subset, na.rm = TRUE) 
 
+#Sanity Check
+# proc_sum<-function(variable){
+#   var_naomit<-na.omit(variable) # remove missing values
+#   summ<-data.frame()# create vector to save info
+#   summ[1,1]<-length(var_naomit) # N
+#   summ[1,2]<-mean(var_naomit) # mean
+#   summ[1,3]<-median(var_naomit) # median
+#   summ[1,4]<-sd(var_naomit) # standard deviation
+#   summ[1,5]<-min(var_naomit) # minimum
+#   summ[1,6]<-max(var_naomit) # minimum
+#   summ[1,7]<-sum(is.na(variable)) # number of missing values
+#   names(summ)<-c("N","Mean","Median","Std",
+#                  "Minimum","Maximum","N_missing")
+#   return(round(summ,2))
+# }
+# proc_sum(hrs_samp$conde)
 
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up

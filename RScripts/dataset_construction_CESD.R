@@ -373,10 +373,11 @@ hrs_samp %<>%
                              measured_waves_start = 8, all_waves_end = 13))
 
 # #Checking weird weight values (from YW's analysis)
-# weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020, 
-#                   75888040, 76793010, 79557010, 112747020, 146359010, 207810010, 
-#                   208021020, 208024010, 210114010, 35201010, 25391010)
-# 
+# weird_values <- c(12738020, 16381010, 31605040, 46769010, 47242010, 73050020,
+#                   75888040, 76793010, 79557010, 112747020, 146359010,
+#                   207810010, 208021020, 208024010, 210114010, 35201010, 
+#                   25391010)
+
 # View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
 #        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "weight"))))
 
@@ -407,62 +408,18 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"),
                                paste0("r", number_waves, "weight")))
 
 #---- Derived BMI ----
-
 bmi_mat <- hrs_samp %>% 
-  dplyr::select(contains("height"), contains("weight"), 
-                -contains("height_measured"), -contains("weight_measured"),
-                -contains("r"))
-waves_bmi <- seq(4, 9, by = 1)
-
-for(i in 1:nrow(bmi_mat)){
-  for(j in 1:length(waves_bmi)){
-    wave <- waves_bmi[j]
-    bmi_mat[i, paste0("r", wave, "BMI")] <- 
-      bmi_mat[i, paste0(wave, "weight")]/(bmi_mat[i, "height"])^2
-  }
+  dplyr::select(paste0(seq(4, 9), "weight"))
+for(i in 1:ncol(bmi_mat)){
+  bmi_mat[, i] <- bmi_mat[, i]/(hrs_samp[, "height"])^2
 }
+bmi_mat %<>% set_colnames(paste0("r", seq(4, 9), "BMI"))
 
-hrs_samp %<>% cbind(bmi_mat[, paste0("r", waves_bmi, "BMI")])
+# #Sanity check
+# head(bmi_mat)
+# head(hrs_samp %>% dplyr::select(c("height", paste0(seq(4, 9), "weight"))))
 
-#---- Old BMI code ----
-# hrs_samp %<>%
-#   cbind(measured_self_report(data = hrs_samp,
-#                              measured_cols =
-#                                paste0("r", seq(8, 13, by = 1), "pmbmi"),
-#                              self_cols =
-#                                paste0("r", number_waves, "bmi"),
-#                              derived_variable = "BMI",
-#                              measured_waves_start = 8, all_waves_end = 13))
-# 
-# #Sanity check-- I had an issue with this observation that led to my finding
-# #               a bug in my measured_self_report code
-# # View(hrs_samp %>% filter(HHIDPN %in% c(164907010)) %>%
-# #        dplyr::select(c(paste0(letter_waves, "BMI"),
-# #                        paste0(letter_waves, "BMI_measured"))))
-# 
-# #Set the weird measures to NA-- consistent with weight
-# hrs_samp[which(hrs_samp$HHIDPN %in%
-#                  c(12738020, 16381010, 46769010, 73050020,
-#                    146359010, 208024010)), "4BMI"] <- NA
-# hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI"] <- NA
-# hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI"] <- NA
-# hrs_samp[which(hrs_samp$HHIDPN %in%
-#                  c(31605040, 76793010, 79557010, 112747020,
-#                    207810010, 208021020, 210114010)), "9BMI"] <- NA
-# 
-# #Fix measured indicators
-# hrs_samp[which(hrs_samp$HHIDPN %in%
-#                  c(12738020, 16381010, 46769010, 73050020,
-#                    146359010, 208024010)), "4BMI_measured"] <- 0
-# hrs_samp[which(hrs_samp$HHIDPN == 75888040), "7BMI_measured"] <- 0
-# hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8BMI_measured"] <- 0
-# hrs_samp[which(hrs_samp$HHIDPN %in%
-#                  c(31605040, 76793010, 79557010, 112747020,
-#                    207810010, 208021020, 210114010)), "9BMI_measured"] <- 0
-# 
-# # #Sanity check
-# # View(hrs_samp %>% filter(HHIDPN %in% weird_values) %>%
-# #        dplyr::select("HHIDPN", c(paste0(seq(4, 9, by = 1), "BMI"))))
+hrs_samp %<>% cbind(bmi_mat)
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 

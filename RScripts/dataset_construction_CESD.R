@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -534,12 +534,6 @@ hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"),
                               NA, hrs_samp)
 
 #---- **combine memory conditions ----
-# hrs_samp %<>% 
-#   mutate("any_mem_ever" = 
-#            apply(hrs_samp %>% 
-#                    dplyr::select("ever_mem", "ever_alz", "ever_dem"), 1, 
-#                  function(x) rowSums(x, na.rm = TRUE)))
-
 memry_mat <- hrs_samp %>% 
   dplyr::select("ever_mem", "ever_alz", "ever_dem")
 
@@ -550,7 +544,7 @@ memry_mat %<>%
 hrs_samp[, "any_mem_ever"] <- memry_mat[, "any_mem_ever"]
 
 # #Sanity check
-# table (memry_mat$any, memry_mat$ever_alz)
+# table(memry_mat$any, memry_mat$ever_alz)
 # table(memry_mat$any, memry_mat$ever_mem)
 # table(memry_mat$any, memry_mat$ever_dem)
 # table(memry_mat$any_mem_ever,memry_mat$any)

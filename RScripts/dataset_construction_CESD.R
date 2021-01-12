@@ -507,7 +507,8 @@ hrs_samp[, "any_mem_ever"] <- memry_mat[, "any_mem_ever"]
 # table(memry_mat$any_mem_ever,memry_mat$any)
 
 #---- sum of conditions ----
-#We're going to create our own version of r[wave]conde from RAND
+#We're going to create our own version of r[wave]conde from RAND, but ours will
+#   not be wave-specific
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("ever")) 
 # colnames(cond_mat)

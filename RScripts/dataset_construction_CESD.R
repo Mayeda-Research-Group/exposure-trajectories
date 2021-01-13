@@ -76,7 +76,6 @@ hrs_tracker <-
 ##         reports stroke this wave,
 ##         reports heart problems this wave，
 ##         report memory prob this wv(4-9), 
-##         report AD this wv (10-13), report dementia this wv (10-13),
 ##         report lung disease this wv,
 ##         report arthritis since last wv (2-13),
 ##         count of chronic conditions
@@ -111,8 +110,6 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "heart"),
                     paste0("r", number_waves, "lung"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
-                    paste0("r", seq(10 ,13 , by = 1), "alzhe"),
-                    paste0("r", seq(10 ,13 , by = 1), "demen"),
                     paste0("r", seq(2, 13, by = 1), "arthrs"),
                     paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 

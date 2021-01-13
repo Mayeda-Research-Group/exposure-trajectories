@@ -440,6 +440,15 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #---- chronic conditions ----
 #We're creating our own ever/never variables
 
+#How many people are missing data for a chronic condition
+missing_data_check <- hrs_samp %>% 
+  dplyr::select(paste0("r", seq(4, 9), "diab"), paste0("r", seq(4, 9), "hibp"), 
+                paste0("r", seq(4, 9), "cancr"), paste0("r", seq(4, 9), "lung"), 
+                paste0("r", seq(4, 9), "heart"), paste0("r", seq(4, 9), "strok"), 
+                paste0("r", seq(4, 9), "arthrs"), 
+                paste0("r", seq(4, 9), "memry"), 
+                paste0("r", seq(10, 13), "alze"), 
+                paste0("r", seq(2, 13), "demen"))
 #---- ** diabetes ----
 hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
                               c(paste0("diabetes_rx_insulin", seq(4, 9)), 
@@ -481,30 +490,6 @@ hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"),
 #---- **memory ----
 hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
                               NA, hrs_samp)
-
-#---- **Alzheimer's ----
-hrs_samp <- chronic_condition("alz", paste0("r", seq(10, 13), "alzhe"), 
-                              NA, hrs_samp)
-
-#---- **dementia ----
-hrs_samp <- chronic_condition("dem", paste0("r", seq(10, 13), "demen"), 
-                              NA, hrs_samp)
-
-#---- **combine memory conditions ----
-memry_mat <- hrs_samp %>% 
-  dplyr::select("ever_mem", "ever_alz", "ever_dem")
-
-memry_mat %<>% 
-  mutate("any" = rowSums(memry_mat, na.rm = TRUE)) %>%
-  mutate("any_mem_ever" = ifelse(any > 0, 1, 0))
-
-hrs_samp[, "any_mem_ever"] <- memry_mat[, "any_mem_ever"]
-
-# #Sanity check
-# table(memry_mat$any, memry_mat$ever_alz)
-# table(memry_mat$any, memry_mat$ever_mem)
-# table(memry_mat$any, memry_mat$ever_dem)
-# table(memry_mat$any_mem_ever,memry_mat$any)
 
 #---- sum of conditions ----
 #We're going to create our own version of r[wave]conde from RAND, but ours will

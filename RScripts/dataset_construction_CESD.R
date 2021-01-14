@@ -437,15 +437,6 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 #---- chronic conditions ----
 #We're creating our own ever/never variables
 
-#How many people are missing data for a chronic condition
-missing_data_check <- hrs_samp %>% 
-  dplyr::select(paste0("r", seq(4, 9), "diab"), paste0("r", seq(4, 9), "hibp"), 
-                paste0("r", seq(4, 9), "cancr"), paste0("r", seq(4, 9), "lung"), 
-                paste0("r", seq(4, 9), "heart"), paste0("r", seq(4, 9), "strok"), 
-                paste0("r", seq(4, 9), "arthrs"), 
-                paste0("r", seq(4, 9), "memry"), 
-                paste0("r", seq(10, 13), "alze"), 
-                paste0("r", seq(2, 13), "demen"))
 #---- ** diabetes ----
 hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
                               c(paste0("diabetes_rx_insulin", seq(4, 9)), 
@@ -734,6 +725,38 @@ for(i in 1:nrow(PA_mat)){
 # Combine to hrs_samp
 hrs_samp %<>% cbind(PA_mat[, paste0("r", waves_PA, "MET")])
 
+#---- data check ----
+#How many people are missing all data for a chronic condition
+missing_data_check <- c("diab",  "hibp", "cancr", "lung", "heart", "strok", 
+                        "arthrs", "memry", 
+                        "diabetes_rx_swallowed", "diabetes_rx_insulin",
+                        "bp_rx",  "lung_rx", "heart_rx", "stroke_rx", 
+                        "arthritis_rx")
+
+for(var in missing_data_check){
+  print(var)
+  if(grepl("rx", var)){
+    test <- hrs_samp %>% 
+      dplyr::select(paste0(var, seq(4, 9))) 
+    test_table <- table(rowSums(is.na(test))) 
+    print(test_table)
+    print(sum(test_table))
+  } else{
+    test <- hrs_samp %>% 
+      dplyr::select(paste0("r", seq(4, 9), var))
+    test_table <- table(rowSums(is.na(test)))
+    print(test_table) 
+    print(sum(test_table))
+  }
+}
+
+# #Sanity check
+# test <- hrs_samp %>% 
+#   dplyr::select(paste0("r", seq(4, 9), "diab")) 
+# test %<>% cbind(., rowSums(is.na(.)))  
+# table(test[, 7])
+# sum(table(test[, 7]))
+                        
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",

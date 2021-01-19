@@ -759,11 +759,12 @@ hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 
 #---- self-reported health ----
 # #Variable check
-# self_reported_health <- hrs_samp %>% 
-#   dplyr::select(paste0("r", seq(4, 9), "shlt")) 
+# self_reported_health <- hrs_samp %>%
+#   dplyr::select(paste0("r", seq(4, 9), "shlt"))
 # colSums(is.na(self_reported_health))
-# drop <- rowSums(is.na(self_reported_health))
-# table(drop)
+
+drop <- rowSums(is.na(self_reported_health))
+#table(drop)
 
 hrs_samp[, "drop"] <- drop
 

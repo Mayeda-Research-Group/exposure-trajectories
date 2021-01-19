@@ -13,7 +13,7 @@ set.seed(20200819)
 #---- color palette ----
 light_blue <- "#B4DAE5FF"
 
-#---- Note ----
+#---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
 #                      C:/Users/yingyan_wu/Dropbox
@@ -24,15 +24,14 @@ light_blue <- "#B4DAE5FF"
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
-#---- Read in analytical sample ----
+#---- read in analytical sample ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "hrs_samp_6CESD_waves4-9.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), DOD = col_character(), 
-                            Bday = col_character(), ed_cat = col_factor(), 
-                            drop = col_logical(), r4mstat_cat = col_factor(), 
+                            death2018 = col_integer(), ed_cat = col_factor(), 
+                            r4mstat_cat = col_factor(), 
                             r9mstat_cat = col_factor(), 
                             drinking4_cat_impute = col_factor(),
                             drinking9_cat_impute = col_factor(),
@@ -40,7 +39,7 @@ CESD_data_wide <-
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
 
-#---- Sample sizes ----
+#---- sample sizes ----
 num_people = nrow(CESD_data_wide)
 num_obs = sum(!is.na(CESD_data_wide %>% 
                        dplyr::select(paste0("r", seq(4, 9), "cesd"))))
@@ -163,7 +162,7 @@ saveRDS(msplines2, file = paste0(path_to_dropbox,
 # hist(CESD_data_long$age)
 # class(CESD_data_long$HHIDPN)
 
-#---- Survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
+#---- survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
   mutate(survtime = ifelse(is.na(survtime), 10, survtime), 
          observed = ifelse(is.na(age_death_y), 0, 1))
@@ -171,7 +170,7 @@ CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>%
 # #Sanity check
 # View(CESD_data_wide %>% dplyr::select("age_death_y", "survtime", "observed"))
 
-#---- Figures ----
+#---- figures ----
 plot_data <- CESD_data_wide %>% 
   dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
   pivot_longer(everything())

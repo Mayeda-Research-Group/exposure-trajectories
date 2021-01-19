@@ -758,17 +758,22 @@ hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 # sum(table(test[, 7]))
 
 #---- self-reported health ----
-#Variable check
-self_reported_health <- hrs_samp %>% 
-  dplyr::select(paste0("r", seq(4, 9), "shlt")) 
-colSums(is.na(self_reported_health))
-drop <- rowSums(is.na(self_reported_health))
+# #Variable check
+# self_reported_health <- hrs_samp %>% 
+#   dplyr::select(paste0("r", seq(4, 9), "shlt")) 
+# colSums(is.na(self_reported_health))
+# drop <- rowSums(is.na(self_reported_health))
+# table(drop)
 
-View()
+hrs_samp[, "drop"] <- drop
+
+# #Sanity check
+# table(hrs_samp$drop, useNA = "ifany")
+
+hrs_samp %<>% filter(drop == 0)
 
 #---- cap age at baseline wave to 90 ----
 hrs_samp %<>% filter(`4age_y_int` <= 90)
-
 
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_impute"), "ed_cat", 

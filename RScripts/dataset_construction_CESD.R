@@ -543,7 +543,7 @@ hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
 #                              "CESD_complete_subsets.csv"))
 
 drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0))
+  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
 
 hrs_samp %<>% mutate("drop" = drop$drop) %>%
   #drop those with missing CESD observations in these waves
@@ -573,11 +573,11 @@ hrs_samp %<>%
 
 # #Sanity check
 # sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
-# View(hrs_samp %>% 
-#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+# View(hrs_samp %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
 #                      "r4mstat_impute"))
-# View(hrs_samp %>% 
-#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"), 
+# View(hrs_samp %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
 #                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
   
 #Create marital status categories
@@ -626,10 +626,10 @@ for(i in 1:ncol(drinking_cat_mat)){
 
 hrs_samp %<>% cbind(drinking_cat_mat)
 
-#Sanity Check
-View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
-                                "drinking9_cat") %>%
-       filter(drinking9_cat == "Heavy Drinking"))
+# #Sanity Check
+# View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
+#                                 "drinking9_cat") %>%
+#        filter(drinking9_cat == "Heavy Drinking"))
 
 #Variable check
 table(hrs_samp$drinking4_cat, useNA = "ifany")

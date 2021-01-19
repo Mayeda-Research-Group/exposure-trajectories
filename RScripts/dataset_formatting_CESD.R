@@ -94,7 +94,7 @@ CESD_data_wide %<>%
 # #Sanity check
 # table(CESD_data_wide$r9cesd, CESD_data_wide$r9cesd_elevated, useNA = "ifany")
 
-#---- E2a Def: Cumulative Exposure (number occasions) ----
+#---- E2 Def: Cumulative Exposure (number occasions) ----
 #Number of occasions with elevated depressive symptoms in HRS waves 4-9
 elevated_cesd <- CESD_data_wide %>% 
   dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
@@ -107,7 +107,7 @@ CESD_data_wide %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
 # head(elevated_cesd)
 # head(CESD_data_wide$total_elevated_cesd)
 
-#---- E2b Def: Cumulative Exposure (average CESD score) ----
+#---- E3 Def: Cumulative Exposure (average CESD score) ----
 CESD_data_wide %<>% 
   mutate("avg_cesd" = CESD_data_wide %>% 
            dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
@@ -120,47 +120,47 @@ CESD_data_wide %<>%
 #                      "avg_cesd_elevated"))
 # plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
 
-#---- E3 Def: Latent Classes ----
-#Model is based off of example in Proust-Lima et al. JSS 2017 
-CESD_data_long <- CESD_data_wide %>% 
-  dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
-  pivot_longer(cols = contains("age"), 
-               names_to = "age_waves", values_to = "age") %>% 
-  cbind(CESD_data_wide %>% 
-          dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-          pivot_longer(cols = everything(), 
-                       names_to = "waves", values_to = "cesd")) %>% 
-  dplyr::select(-c("age_waves")) %>%
-  mutate("age_c65_decades" = (age - 65)/10)
-
-#Subject IDs have to be numeric
-CESD_data_long %<>% mutate_at("HHIDPN", as.numeric)
-
-msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
-                 mixture = ~ 1,
-                 random = ~ age_c65_decades, 
-                 subject = "HHIDPN", data = CESD_data_long, link = "splines", 
-                 ng = 4, maxiter = 500)
-
-#summary(msplines1)
-saveRDS(msplines1, file = paste0(path_to_dropbox, 
-                                 "/exposure_trajectories/data/models", 
-                                 "msplines1.rds"))
-
-msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
-                  mixture = ~ age_c65_decades,
-                  random = ~ age_c65_decades, 
-                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
-                  ng = 4, maxiter = 1000)
-
-#summary(msplines2)
-saveRDS(msplines2, file = paste0(path_to_dropbox, 
-                                 "/exposure_trajectories/data/models", 
-                                 "msplines2.rds"))
-
-# #Sanity check-- 65 is close to the mean age
-# hist(CESD_data_long$age)
-# class(CESD_data_long$HHIDPN)
+# #---- E4 Def: Latent Classes ----
+# #Model is based off of example in Proust-Lima et al. JSS 2017 
+# CESD_data_long <- CESD_data_wide %>% 
+#   dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
+#   pivot_longer(cols = contains("age"), 
+#                names_to = "age_waves", values_to = "age") %>% 
+#   cbind(CESD_data_wide %>% 
+#           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+#           pivot_longer(cols = everything(), 
+#                        names_to = "waves", values_to = "cesd")) %>% 
+#   dplyr::select(-c("age_waves")) %>%
+#   mutate("age_c65_decades" = (age - 65)/10)
+# 
+# #Subject IDs have to be numeric
+# CESD_data_long %<>% mutate_at("HHIDPN", as.numeric)
+# 
+# msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+#                  mixture = ~ 1,
+#                  random = ~ age_c65_decades, 
+#                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+#                  ng = 4, maxiter = 500)
+# 
+# #summary(msplines1)
+# saveRDS(msplines1, file = paste0(path_to_dropbox, 
+#                                  "/exposure_trajectories/data/models", 
+#                                  "msplines1.rds"))
+# 
+# msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+#                   mixture = ~ age_c65_decades,
+#                   random = ~ age_c65_decades, 
+#                   subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+#                   ng = 4, maxiter = 1000)
+# 
+# #summary(msplines2)
+# saveRDS(msplines2, file = paste0(path_to_dropbox, 
+#                                  "/exposure_trajectories/data/models", 
+#                                  "msplines2.rds"))
+# 
+# # #Sanity check-- 65 is close to the mean age
+# # hist(CESD_data_long$age)
+# # class(CESD_data_long$HHIDPN)
 
 #---- survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 

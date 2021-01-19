@@ -776,13 +776,15 @@ hrs_samp %<>% filter(drop == 0)
 hrs_samp %<>% filter(`4age_y_int` <= 90)
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_impute"), "ed_cat", 
+vars <- c("HHIDPN", "r4mstat_impute", "r9mstat", "ed_cat", 
           paste0("drinking", c(4, 9), "_cat_impute"), "conde", 
-          past0("ever_", c("mem", "arthritis", "stroke", "heart", "lung", 
+          paste0("ever_", c("mem", "arthritis", "stroke", "heart", "lung", 
                            "cancer", "hibp", "diabetes")), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0(seq(4, 9), "age_y_int"), "death2018", 
-          paste0("r", seq(4, 9), "CESD"), paste0("r", seq(4, 9), "shlt"))
+          paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"))
+
+hrs_samp %<>% dplyr::select(all_of(vars))
                         
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,

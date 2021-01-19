@@ -552,9 +552,9 @@ hrs_samp %<>% mutate("drop" = drop$drop) %>%
   filter(`4age_y_int` >= 50)
 
 #---- marital status ----
-#Variable check
-table(hrs_samp$r4mstat, useNA = "ifany")
-table(hrs_samp$r9mstat, useNA = "ifany")
+# #Variable check
+# table(hrs_samp$r4mstat, useNA = "ifany")
+# table(hrs_samp$r9mstat, useNA = "ifany")
 
 #Impute r4mstat with closest non-missing value
 hrs_samp %<>% 
@@ -631,9 +631,9 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 #                                 "drinking9_cat") %>%
 #        filter(drinking9_cat == "Heavy Drinking"))
 
-#Variable check
-table(hrs_samp$drinking4_cat, useNA = "ifany")
-table(hrs_samp$drinking9_cat, useNA = "ifany")
+# #Variable check
+# table(hrs_samp$drinking4_cat, useNA = "ifany")
+# table(hrs_samp$drinking9_cat, useNA = "ifany")
 
 #Impute drinking4_cat and drinking9_cat with closest non-missing values
 hrs_samp %<>% 
@@ -668,87 +668,87 @@ hrs_samp %<>%
 #Drop the one person who has no information on drinking behavior
 hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 
-#---- physical activity ----
-PA_mat <- hrs_samp %>% 
-  dplyr::select(contains("ltactx"), contains("mdactx"), contains("vgactx"))
+# #---- physical activity ----
+# PA_mat <- hrs_samp %>% 
+#   dplyr::select(contains("ltactx"), contains("mdactx"), contains("vgactx"))
+# 
+# waves_PA <-  seq(7, 13, by = 1)
+# 
+# for(i in 1:nrow(PA_mat)){
+#   for(j in 1:length(waves_PA)){
+#     wave <- waves_PA[j]
+#     PA_mat[i, paste0("r", wave, "MET")] = 
+#       case_when(PA_mat[i, paste0("r", wave, "vgactx")] == 1 ~ 17,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 2 ~ 13,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(3,4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 1 ~ 10，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 3 &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(2,3,4,5,NA) ~ 9,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 2 ~ 7.5，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 3 ~ 5，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 4 &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) ~ 4.25,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 1 ~ 4,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 2 ~ 3,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 4 &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(3, 4,5,NA) ~ 2.5,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 3 ~ 2,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 4 ~ 1,
+#                 ifelse(is.na(PA_mat[i, paste0("r", wave, "vgactx")]),1,0) == 1 &
+#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "mdactx")]),1,0) == 1 &
+#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "ltactx")]),1,0) == 1
+#                 ~ NA_real_,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(5,NA) ~ 0
+#       )
+#   }
+# }
+# 
+# # Sanity check
+# # View(PA_mat %>% dplyr::select("r8ltactx", "r8mdactx", "r8vgactx", "r8MET") %>%
+# #        filter(is.na(r8MET)))
+# # View(PA_mat %>% dplyr::select("r13ltactx", "r13mdactx", "r13vgactx", "r13MET") %>%
+# #        filter(is.na(r13MET)))
+# 
+# # Combine to hrs_samp
+# hrs_samp %<>% cbind(PA_mat[, paste0("r", waves_PA, "MET")])
 
-waves_PA <-  seq(7, 13, by = 1)
-
-for(i in 1:nrow(PA_mat)){
-  for(j in 1:length(waves_PA)){
-    wave <- waves_PA[j]
-    PA_mat[i, paste0("r", wave, "MET")] = 
-      case_when(PA_mat[i, paste0("r", wave, "vgactx")] == 1 ~ 17,
-                PA_mat[i, paste0("r", wave, "vgactx")] == 2 ~ 13,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(3,4,5,NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] == 1 ~ 10，
-                PA_mat[i, paste0("r", wave, "vgactx")] == 3 &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(2,3,4,5,NA) ~ 9,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] == 2 ~ 7.5，
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] == 3 ~ 5，
-                PA_mat[i, paste0("r", wave, "vgactx")] == 4 &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) ~ 4.25,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
-                  PA_mat[i, paste0("r", wave, "ltactx")] == 1 ~ 4,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
-                  PA_mat[i, paste0("r", wave, "ltactx")] == 2 ~ 3,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] == 4 &
-                  PA_mat[i, paste0("r", wave, "ltactx")] %in% c(3, 4,5,NA) ~ 2.5,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-                  PA_mat[i, paste0("r", wave, "ltactx")] == 3 ~ 2,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-                  PA_mat[i, paste0("r", wave, "ltactx")] == 4 ~ 1,
-                ifelse(is.na(PA_mat[i, paste0("r", wave, "vgactx")]),1,0) == 1 &
-                  ifelse(is.na(PA_mat[i, paste0("r", wave, "mdactx")]),1,0) == 1 &
-                  ifelse(is.na(PA_mat[i, paste0("r", wave, "ltactx")]),1,0) == 1
-                ~ NA_real_,
-                PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-                  PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-                  PA_mat[i, paste0("r", wave, "ltactx")] %in% c(5,NA) ~ 0
-      )
-  }
-}
-
-# Sanity check
-# View(PA_mat %>% dplyr::select("r8ltactx", "r8mdactx", "r8vgactx", "r8MET") %>%
-#        filter(is.na(r8MET)))
-# View(PA_mat %>% dplyr::select("r13ltactx", "r13mdactx", "r13vgactx", "r13MET") %>%
-#        filter(is.na(r13MET)))
-
-# Combine to hrs_samp
-hrs_samp %<>% cbind(PA_mat[, paste0("r", waves_PA, "MET")])
-
-#---- data check ----
-#How many people are missing all data for a chronic condition
-missing_data_check <- c("diab",  "hibp", "cancr", "lung", "heart", "strok", 
-                        "arthrs", "memry", 
-                        "diabetes_rx_swallowed", "diabetes_rx_insulin",
-                        "bp_rx",  "lung_rx", "heart_rx", "stroke_rx", 
-                        "arthritis_rx")
-
-for(var in missing_data_check){
-  print(var)
-  if(grepl("rx", var)){
-    test <- hrs_samp %>% 
-      dplyr::select(paste0(var, seq(4, 9))) 
-    test_table <- table(rowSums(is.na(test))) 
-    print(test_table)
-    print(sum(test_table))
-  } else{
-    test <- hrs_samp %>% 
-      dplyr::select(paste0("r", seq(4, 9), var))
-    test_table <- table(rowSums(is.na(test)))
-    print(test_table) 
-    print(sum(test_table))
-  }
-}
+# #---- data check ----
+# #How many people are missing all data for a chronic condition
+# missing_data_check <- c("diab",  "hibp", "cancr", "lung", "heart", "strok", 
+#                         "arthrs", "memry", 
+#                         "diabetes_rx_swallowed", "diabetes_rx_insulin",
+#                         "bp_rx",  "lung_rx", "heart_rx", "stroke_rx", 
+#                         "arthritis_rx")
+# 
+# for(var in missing_data_check){
+#   print(var)
+#   if(grepl("rx", var)){
+#     test <- hrs_samp %>% 
+#       dplyr::select(paste0(var, seq(4, 9))) 
+#     test_table <- table(rowSums(is.na(test))) 
+#     print(test_table)
+#     print(sum(test_table))
+#   } else{
+#     test <- hrs_samp %>% 
+#       dplyr::select(paste0("r", seq(4, 9), var))
+#     test_table <- table(rowSums(is.na(test)))
+#     print(test_table) 
+#     print(sum(test_table))
+#   }
+# }
 
 # #Sanity check
 # test <- hrs_samp %>% 
@@ -756,6 +756,9 @@ for(var in missing_data_check){
 # test %<>% cbind(., rowSums(is.na(.)))  
 # table(test[, 7])
 # sum(table(test[, 7]))
+
+#---- cap age at baseline wave to 90 ----
+hrs_samp %<>% filter(`4age_y_int` <= 90)
                         
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,

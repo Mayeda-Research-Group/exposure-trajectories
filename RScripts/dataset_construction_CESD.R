@@ -782,7 +782,8 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
                            "cancer", "hibp", "diabetes")), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0(seq(4, 9), "age_y_int"), "death2018", 
-          paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"))
+          paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
+          "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))
                         

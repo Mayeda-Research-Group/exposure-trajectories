@@ -776,7 +776,7 @@ hrs_samp %<>% filter(drop == 0)
 hrs_samp %<>% filter(`4age_y_int` <= 90)
 
 #---- select variables ----
-vars <- c("HHIDPN", "r4mstat_impute", "r9mstat", "ed_cat", 
+vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
           paste0("drinking", c(4, 9), "_cat_impute"), "conde", 
           paste0("ever_", c("mem", "arthritis", "stroke", "heart", "lung", 
                            "cancer", "hibp", "diabetes")), "smoker", 

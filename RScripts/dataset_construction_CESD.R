@@ -404,7 +404,7 @@ hrs_samp[which(hrs_samp$HHIDPN %in%
 hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
                                paste0("r", number_waves, "weight")))
 
-#---- Derived BMI ----
+#---- derived BMI ----
 bmi_mat <- hrs_samp %>% 
   dplyr::select(paste0(seq(4, 9), "weight"))
 for(i in 1:ncol(bmi_mat)){

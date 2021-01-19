@@ -118,7 +118,7 @@ CESD_data_wide %<>%
 # View(CESD_data_wide %<>% 
 #        dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"), "avg_cesd", 
 #                      "avg_cesd_elevated"))
-# plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
+plot(CESD_data_wide$avg_cesd, CESD_data_wide$avg_cesd_elevated)
 
 # #---- E4 Def: Latent Classes ----
 # #Model is based off of example in Proust-Lima et al. JSS 2017 

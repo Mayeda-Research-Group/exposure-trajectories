@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "lcmm")
+p_load("here", "tidyverse", "magrittr")
 
 #No scientific notation
 options(scipen = 999)
@@ -39,17 +39,6 @@ CESD_data_wide <-
                             female = col_factor(), hispanic = col_factor(), 
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
-
-#---- Cap age at baseline at 90 ----
-# #Sanity check
-# max(CESD_data_wide$`4age_y_int`)
-
-CESD_data_wide %<>% filter(`4age_y_int` <= 90)
-
-# #Sanity check
-# hist(BMI_data_wide$`4age_y_int`)
-# test <- BMI_data_wide %>% dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
-#   is.na() %>% sum()
 
 #---- Sample sizes ----
 num_people = nrow(CESD_data_wide)

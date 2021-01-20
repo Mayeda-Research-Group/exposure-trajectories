@@ -208,6 +208,48 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #---- remove people who were not sampled in 2018 ----
 hrs_samp %<>% filter(!is.na(QALIVE))
 
+#---- looking for optimal subset ----
+# #Drop those who are not age-eligible for HRS at the start of follow-up
+# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
+#   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",
+#                  "sample_size", "min_age", "max_age", "death_2018",
+#                  "prop_dead"))
+# 
+# index = 0
+# for(i in 2:9){
+#   for(j in (i + 4):13){
+#     index = index + 1
+#     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
+#     subsets_data[index, "num_measures"] = j - i + 1
+#     
+#     data_subset <- hrs_samp %>%
+#       dplyr::select(paste0("r", seq(i, j, by = 1), "cesd"), "death2018",
+#                     paste0(i, "age_y_int")) %>%
+#       na.omit()
+#     data_subset[, "too_young"] =
+#       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
+#     
+#     data_subset %<>% filter(too_young == 0)
+#     
+#     subsets_data[index, "sample_size"] = nrow(data_subset)
+#     subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
+#     subsets_data[index, "death_2018"] = sum(data_subset$death2018)
+#     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
+#   }
+# }
+# 
+# #Best subset was waves 4-9
+# write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
+#                              "CESD_complete_subsets.csv"))
+
+drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
+
+hrs_samp %<>% mutate("drop" = drop$drop) %>%
+  #drop those with missing CESD observations in these waves
+  filter(drop == 0) 
+
 #---- death ----
 #death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
 hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1), 
@@ -256,17 +298,22 @@ hrs_samp[, paste0(number_waves, "age_y_int")] <- floor(age_m/12)
 # View(hrs_samp[, c(paste0(number_waves, "age_y"), 
 #                   paste0(number_waves, "age_y_int"))])
 
-#Check those missing age data-- these people have no birthdate data so I am 
-# dropping them
+#Check those missing age data-- these people have no birth date data so I am 
+# dropping them; looks like no one is in this group
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
 sum(is.na(hrs_samp[still_missing, "Bday"])) == length(still_missing)
-hrs_samp <- hrs_samp[-c(still_missing), ]
+if(length(still_missing) > 0){
+  hrs_samp <- hrs_samp[-c(still_missing), ]
+}
 
-#Impute data of death for those who are dead in 2018
+#Impute date of death for those who are dead in 2018
 hrs_samp %<>% 
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
                                 `13age_y_int` + 2, age_death_y))
+
+#Drop those not age-eligible at HRS wave 4 and those who are 91+
+hrs_samp %<>% filter(`4age_y_int` %in% c(seq(50, 90)))
 
 # #Sanity check
 # View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
@@ -352,10 +399,13 @@ hrs_samp %<>%
 # #Sanity check
 # View(hrs_samp[, c(paste0("r", seq(8, 13, by = 1), "pmhght"),
 #                   paste0("r", number_waves, "height"),
-#                   "med_height", "self_height", "height_measured", "height")])
-  
+#                   "med_height", "self_height", "height_measured", "height")] %>% 
+#        filter(is.na(height)))
+
+#Drop people missing height data
 #Drop RAND's height variables + extra derived variables
-hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
+hrs_samp %<>% filter(!is.na(height)) %>% 
+  dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
                                paste0("r", number_waves, "height"), 
                                "med_height", "self_height"))
 
@@ -405,6 +455,11 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"),
                                paste0("r", number_waves, "weight")))
 
 #---- derived BMI ----
+#variable check
+weight <- hrs_samp %>% 
+  dplyr::select(paste0(seq(4, 9), "weight")) 
+missing_weight <- rowSums(is.na(weight))
+
 bmi_mat <- hrs_samp %>% 
   dplyr::select(paste0(seq(4, 9), "weight"))
 for(i in 1:ncol(bmi_mat)){
@@ -506,50 +561,6 @@ hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
 #   return(round(summ,2))
 # }
 # proc_sum(hrs_samp$conde)
-
-#---- looking for optimal subset ----
-# #Drop those who are not age-eligible for HRS at the start of follow-up
-# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
-#   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",
-#                  "sample_size", "min_age", "max_age", "death_2018",
-#                  "prop_dead"))
-# 
-# index = 0
-# for(i in 2:9){
-#   for(j in (i + 4):13){
-#     index = index + 1
-#     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
-#     subsets_data[index, "num_measures"] = j - i + 1
-#     
-#     data_subset <- hrs_samp %>%
-#       dplyr::select(paste0("r", seq(i, j, by = 1), "cesd"), "death2018",
-#                     paste0(i, "age_y_int")) %>%
-#       na.omit()
-#     data_subset[, "too_young"] =
-#       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
-#     
-#     data_subset %<>% filter(too_young == 0)
-#     
-#     subsets_data[index, "sample_size"] = nrow(data_subset)
-#     subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
-#     subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
-#     subsets_data[index, "death_2018"] = sum(data_subset$death2018)
-#     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
-#   }
-# }
-# 
-# #Best subset was waves 4-9
-# write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
-#                              "CESD_complete_subsets.csv"))
-
-drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
-
-hrs_samp %<>% mutate("drop" = drop$drop) %>%
-  #drop those with missing CESD observations in these waves
-  filter(drop == 0) %>% 
-  #drop those <50 at start of follow-up
-  filter(`4age_y_int` >= 50)
 
 #---- marital status ----
 # #Variable check

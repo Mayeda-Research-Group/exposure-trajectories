@@ -354,15 +354,12 @@ hrs_samp %<>%
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
-#26 people missing race/ethnicity data
+#1 person missing race/ethnicity data
 hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
   dplyr::select(-c("rahispan", "raracem"))
 
 #---- education ----
-#There are 114 people missing years of education, so I'm going to drop them
-hrs_samp %<>% filter(!is.na(raedyrs))
-
 #Create education categories
 hrs_samp %<>% 
   mutate("ed_cat" = case_when(raedyrs < 12 ~ "Less than HS", 
@@ -380,8 +377,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
 
-#There are 11,165 people missing the cSES index so I am dropping them
-hrs_samp %<>% filter(!is.na(cses_index))
+#none missing!
 
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights 
@@ -399,7 +395,7 @@ hrs_samp %<>%
 # #Sanity check
 # View(hrs_samp[, c(paste0("r", seq(8, 13, by = 1), "pmhght"),
 #                   paste0("r", number_waves, "height"),
-#                   "med_height", "self_height", "height_measured", "height")] %>% 
+#                   "med_height", "self_height", "height_measured", "height")] %>%
 #        filter(is.na(height)))
 
 #Drop people missing height data
@@ -459,6 +455,7 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"),
 weight <- hrs_samp %>% 
   dplyr::select(paste0(seq(4, 9), "weight")) 
 missing_weight <- rowSums(is.na(weight))
+table(missing_weight, useNA = "ifany")
 
 bmi_mat <- hrs_samp %>% 
   dplyr::select(paste0(seq(4, 9), "weight"))
@@ -466,12 +463,14 @@ for(i in 1:ncol(bmi_mat)){
   bmi_mat[, i] <- bmi_mat[, i]/(hrs_samp[, "height"])^2
 }
 bmi_mat %<>% set_colnames(paste0("r", seq(4, 9), "BMI"))
+missing_bmi <- rowSums(is.na(bmi_mat))
 
 # #Sanity check
 # head(bmi_mat)
 # head(hrs_samp %>% dplyr::select(c("height", paste0(seq(4, 9), "weight"))))
 
-hrs_samp %<>% cbind(bmi_mat)
+hrs_samp %<>% cbind(bmi_mat) %>% cbind(missing_bmi) 
+hrs_samp %<>% filter(missing_bmi == 0)
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
@@ -485,6 +484,7 @@ hrs_samp %<>%
 
 # #Sanity check
 # View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoker")])
+# table(hrs_samp$smoker, useNA = "ifany")
 
 #Drop RAND's smoking variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
@@ -539,7 +539,6 @@ hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"),
 #   not be wave-specific
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("ever")) 
-# colnames(cond_mat)
 
 #since ever_condition variables are used to derive new conde variable, 
 #it should not vary across waves
@@ -782,9 +781,6 @@ hrs_samp[, "drop"] <- drop
 # table(hrs_samp$drop, useNA = "ifany")
 
 hrs_samp %<>% filter(drop == 0)
-
-#---- cap age at baseline wave to 90 ----
-hrs_samp %<>% filter(`4age_y_int` <= 90)
 
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 

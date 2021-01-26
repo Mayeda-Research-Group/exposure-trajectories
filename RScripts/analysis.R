@@ -1,4 +1,4 @@
-#---- Package loading + options ----
+#---- package loading + options ----
 if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
@@ -11,7 +11,7 @@ options(scipen = 999)
 
 set.seed(20200819)
 
-#---- Note ----
+#---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
 #                      C:/Users/yingyan_wu/Dropbox
@@ -22,15 +22,15 @@ set.seed(20200819)
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
-#---- Read in analytical sample ----
+#---- read in analytical sample ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), DOD = col_character(), 
-                            Bday = col_character(), ed_cat = col_factor(), 
-                            drop = col_logical(), r4mstat_cat = col_factor(), 
+                            death2018 = col_integer(), 
+                            ed_cat = col_factor(), 
+                            r4mstat_cat = col_factor(), 
                             r9mstat_cat = col_factor(),
                             drinking4_cat_impute = col_factor(),
                             drinking9_cat_impute = col_factor(),
@@ -38,79 +38,122 @@ CESD_data_wide <-
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
 
-#---- Table XX shell: Effect Estimates ----
+#---- Table 2 shell: Effect Estimates ----
 table_effect_ests <- 
-  data.frame("Scenario" = c("CES-D Wave 4", "CES-D Wave 9", 
-                            "Total Elevated CES-D", "Average CES-D", 
-                            "CES-D Latent Classes"),
+  data.frame("Exposure" = c("CES-D Wave 4", "CES-D Wave 9", 
+                            "Elevated CES-D Count", "Elevated Average CES-D"),
              "beta" = NA, "LCI" = NA, "UCI" = NA) 
 
-#---- Truth ----
+#---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
-  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
-          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
           r4cesd_elevated, data = CESD_data_wide)
+
+#summary(TTEmodel_CESD4)
 
 TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
                                exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 4"), 
+table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4"), 
                   c("beta", "LCI", "UCI")] <- 
   TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
                          c("estimate", "conf.low", "conf.high")]
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
-  coxph(Surv(survtime, observed) ~ `9age_y` + female + hispanic + black + 
-          other + smoker + drinking9_cat_impute + r9mstat_cat + 
+  coxph(Surv(survtime, observed) ~ `9age_y_int` + female + hispanic + black + 
+          other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
+          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+          ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
           r9cesd_elevated, data = CESD_data_wide)
+
+#summary(TTEmodel_CESD9)
 
 TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
                                exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Scenario == "CES-D Wave 9"), 
+table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9"), 
                   c("beta", "LCI", "UCI")] <- 
   TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
                          c("estimate", "conf.low", "conf.high")]
 
-#---- **Total Elevated CES-D ----
+#---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
-  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
-          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
           total_elevated_cesd, data = CESD_data_wide)
 
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
                                     exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Scenario == "Total Elevated CES-D"), 
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count"), 
                   c("beta", "LCI", "UCI")] <- 
   TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
                               c("estimate", "conf.low", "conf.high")]
 
-#---- **Average CES-D ----
-TTEmodel_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ `4age_y` + female + hispanic + black + 
-          other + smoker + drinking4_cat_impute + r4mstat_cat + 
+#---- **Elevated Average CES-D ----
+TTEmodel_elevated_avg_CESD <- 
+  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
           avg_cesd_elevated, data = CESD_data_wide)
 
-TTEmodel_avg_CESD_results <- tidy(TTEmodel_avg_CESD, 
+TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
                                   exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Scenario == "Average CES-D"), 
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"), 
                   c("beta", "LCI", "UCI")] <- 
-  TTEmodel_avg_CESD_results[nrow(TTEmodel_avg_CESD_results), 
+  TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
                             c("estimate", "conf.low", "conf.high")]
+
+#---- create incomplete data ----
+#---- **MCAR ----
+#it's easier to do this with my own code than the ampute function in MICE, which
+# requires specifying all possible missing patterns you'd like it to consider
+cesd_data_long <- CESD_data_wide %>% 
+  dplyr::select("HHIDPN", paste0("r", seq(4, 9), "cesd")) %>% 
+  pivot_longer(-c("HHIDPN"), names_to = "wave", values_to = "cesd")
+
+mcar10_mask <- sample.int(n = nrow(cesd_data_long), 
+                          size = floor(0.10*nrow(cesd_data_long)))
+
+#mask these values in long data
+cesd_mcar10 <- cesd_data_long
+cesd_mcar10[mcar10_mask, "cesd"] <- NA
+
+#create a masked dataset
+mcar10 <- CESD_data_wide
+mcar10[, c("HHIDPN", paste0("r", seq(4, 9), "cesd"))] <- 
+  cesd_mcar10 %>% na.omit() %>% 
+  pivot_wider(names_from = "wave", values_from = "cesd")
+
+#---- check missings ----
+#make sure no one is missing every cesd measure
+num_missings_mcar10 <- table(rowSums(is.na(mcar10)))
+
+#---- imputation ----
+#---- **FCS ----
+test <- mice(data = mcar10, m = 5, method = "polr", )
+
 
 #---- save tables ----
 #Round numbers in dataframe
 table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
 
 #Save results
-table_list <- list("Table XX" = table_effect_ests)
+table_list <- list("Table 2" = table_effect_ests)
 write.xlsx(table_list, file = paste0(path_to_dropbox, 
                                      "/exposure_trajectories/manuscript/", 
                                      "tables/main_text_tables.xlsx"))
+
+
 
 #---- OLD CODE ----
 imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 
@@ -123,114 +166,6 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
                 "cses_index")
 
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
-
-
-
-#---- E1 Def: BMI at wave 9 ----
-E1_wide <- BMI_data_wide %>% 
-  dplyr::select(-one_of(paste0(seq(4, 8, by = 1), "BMI")))
-
-# #Distribution of BMI-- this is really symmetric
-# hist(E1_wide$`9BMI`)
-
-#---- E1 Truth ----
-#True effect of BMI at wave 9 on mortality by 2018
-E1_wide %<>% 
-  mutate("9BMI_cat" = case_when(`9BMI` < 18.5 ~ "Underweight", 
-                                `9BMI` >= 18.5 & `9BMI` < 25 ~ "Normal", 
-                                `9BMI` >= 25 & `9BMI` < 30 ~ "Overweight", 
-                                `9BMI` >= 30 ~ "Obese"), 
-         "avg_BMI" = BMI_data_wide %>% 
-           dplyr::select(paste0(seq(4, 9, by = 1), "BMI")) %>% 
-           rowMeans(.), 
-         "avg_BMI_cat" = case_when(avg_BMI < 18.5 ~ "Underweight", 
-                                   avg_BMI >= 18.5 & avg_BMI < 25 ~ "Normal", 
-                                   avg_BMI >= 25 & avg_BMI < 30 ~ "Overweight", 
-                                   avg_BMI >= 30 ~ "Obese"))
-
-E1_truth_cont <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
-                       other + cses_index + ed_cat + smoker + 
-                       as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
-                       `9BMI`, family = poisson(link = "log"), 
-                     data = E1_wide)
-tidy(E1_truth_cont, exponentiate = TRUE, conf.int = TRUE)
-
-E1_truth_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
-                      other + #cses_index + ed_cat + 
-                      smoker + 
-                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
-                      `9BMI_cat`, family = poisson(link = "log"), 
-                    data = E1_wide)
-tidy(E1_truth_cat, exponentiate = TRUE, conf.int = TRUE)
-
-test_cat <- glm(death2018 ~ `9age_y_int` + female + hispanic + black + 
-                      other + cses_index + ed_cat + 
-                      smoker + 
-                      as.factor(drinking9_cat) + as.factor(r9mstat_cat) + 
-                      `avg_BMI_cat`, family = poisson(link = "log"), 
-                    data = E1_wide)
-tidy(test_cat, exponentiate = TRUE, conf.int = TRUE)
-
-# #Sanity check-- amount missingness in each variable
-# colSums(is.na(E1_wide))
-
-#Create missing indicator by variable
-can_mask <- which(E1$age_y_int == 68)
-mcar10 <- sample(can_mask, size = floor(0.10*length(can_mask)))
-E1[, "mcar10"] <- 0
-E1[mcar10, "mcar10"] <- 1
-
-# #Sanity check
-# #Should be 77
-# sum(E1$mcar10)
-# #1s should only show up at age 68
-# E1 %>% group_by(age_y_int) %>% summarise_at("mcar10", ~sum(.))
-
-E1 %<>% 
-  dplyr::mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) %>%
-  dplyr::mutate("CysC_masked" = exp(log_CysC_masked))
-
-#Remove people with no CysC measures-- on this run, I've removed 17 people
-no_cysc <- E1 %>% dplyr::group_by(HHIDPN) %>% 
-  summarise_at("log_CysC_masked", function(x) sum(!is.na(x))) %>% 
-  filter(log_CysC_masked == 0)
-
-E1 %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
-
-# #Sanity check-- final sample size of complete data ~753
-# length(unique(E1$HHIDPN))
-
-#---- E1: Analytical Model ----
-covariates <- c("female", "hispanic", "black", "other", "raedyrs", "cses_index", 
-                "smoker", "BMI", "CYSC_ADJ")
-
-subset <- E1 %>% filter(age_y_int == 68)
-missingness <- subset %>% dplyr::select(covariates) %>% is.na() %>% colSums()
-
-#What are we trying to recover?
-E1_truth <- glm(death ~ female + hispanic + black + other + raedyrs + 
-                  cses_index + smoker + BMI + CYSC_ADJ, 
-                family = binomial(link = "logit"), 
-                data = subset, 
-                na.action = "na.omit")
-
-# #Look at the model
-# summary(E1_truth)
-
-# #Tidy output
-# tidy(E1_truth, exp = TRUE, conf.int = TRUE)
-
-# #Goodness of fit-- Hosmer-Lemeshow Test (g should be > num covariates in model)
-# model_subset <- na.omit(subset[, c(covariates, "death")])
-# hoslem.test(model_subset$death, fitted(E1_truth), g = (length(covariates) + 2))
-
-#---- E2 Def: Number of years elevated Cystatin C ----
-
-#---- E2: Complete Data ----
-
-
-
-
 
 #---- OLD CODE ----
 #---- Induce missingness ----

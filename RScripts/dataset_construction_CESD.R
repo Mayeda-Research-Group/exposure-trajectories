@@ -290,9 +290,9 @@ age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>%
   apply(., 1, impute_ages) %>% t() 
 
 #Exact ages
-hrs_samp[, paste0(number_waves, "age_y")] <- age_m/12
+hrs_samp[, paste0("r", number_waves, "age_y")] <- age_m/12
 #Ages rounded down to nearest year
-hrs_samp[, paste0(number_waves, "age_y_int")] <- floor(age_m/12)
+hrs_samp[, paste0("r", number_waves, "age_y_int")] <- floor(age_m/12)
 
 # #Sanity check
 # View(hrs_samp[, c(paste0(number_waves, "age_y"), 
@@ -310,10 +310,10 @@ if(length(still_missing) > 0){
 #Impute date of death for those who are dead in 2018
 hrs_samp %<>% 
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
-                                `13age_y_int` + 2, age_death_y))
+                                r13age_y_int + 2, age_death_y))
 
 #Drop those not age-eligible at HRS wave 4 and those who are 91+
-hrs_samp %<>% filter(`4age_y_int` %in% c(seq(50, 90)))
+hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
 
 # #Sanity check
 # View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
@@ -788,7 +788,7 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
           paste0("ever_", c("mem", "arthritis", "stroke", "heart", "lung", 
                            "cancer", "hibp", "diabetes")), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
-          "female", paste0(seq(4, 9), "age_y_int"), "death2018", 
+          "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
           paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
           "age_death_y")
 

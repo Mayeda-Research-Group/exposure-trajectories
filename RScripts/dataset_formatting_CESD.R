@@ -52,14 +52,14 @@ by_age_baseline[nrow(by_age_baseline), "end"] <- 90
 
 for(i in 1:nrow(by_age_baseline)){
   by_age_baseline[i, "n"] <- CESD_data_wide %>% 
-    filter(`4age_y_int` %in% 
+    filter(r4age_y_int %in% 
              seq(by_age_baseline[i, "start"], 
                  by_age_baseline[i, "end"], by = 1)) %>% nrow()
 }
 
 #stratified by overall age
 overall_ages <- CESD_data_wide %>% 
-  dplyr::select(paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
+  dplyr::select(paste0("r", seq(4, 9, by = 1), "age_y_int")) %>% 
   pivot_longer(everything())
 
 by_age_overall <- data.frame("start" = seq(50, 95, by = 5)) %>%
@@ -164,7 +164,7 @@ CESD_data_wide %<>%
 # # class(CESD_data_long$HHIDPN)
 
 #---- survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
-CESD_data_wide %<>% mutate(survtime = age_death_y - `9age_y_int`) %>% 
+CESD_data_wide %<>% mutate(survtime = age_death_y - r9age_y_int) %>% 
   mutate(survtime = ifelse(is.na(survtime), 10, survtime), 
          observed = ifelse(is.na(age_death_y), 0, 1))
 

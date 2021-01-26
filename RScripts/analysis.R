@@ -47,7 +47,7 @@ table_effect_ests <-
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
-  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
           other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
           ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
           ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
@@ -65,7 +65,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4"),
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
-  coxph(Surv(survtime, observed) ~ `9age_y_int` + female + hispanic + black + 
+  coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
           other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
           ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
           ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
@@ -83,7 +83,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9"),
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
-  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
           other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
           ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
           ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
@@ -99,7 +99,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count"),
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ `4age_y_int` + female + hispanic + black + 
+  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
           other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
           ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
           ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
@@ -138,9 +138,60 @@ mcar10[, c("HHIDPN", paste0("r", seq(4, 9), "cesd"))] <-
 #make sure no one is missing every cesd measure
 num_missings_mcar10 <- table(rowSums(is.na(mcar10)))
 
+#---- transformations ----
+for(wave in 4:9){
+  mcar10[, paste0("logr", wave, "cesd")] <- 
+    log(1 + mcar10[, paste0("r", wave, "cesd")])
+}
+
 #---- imputation ----
+#---- **JMVN ----
+#Joint multivariate normal
+#---- ***predictor matrix ----
+predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
+  set_rownames(paste0("logr", seq(4, 9), "cesd")) %>% 
+  set_colnames(colnames(mcar10))
+#Don't use these as predictors
+predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
+            paste0("r", seq(4, 9), "cesd"), "r9cesd_elevated", 
+            "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+            "observed", paste0("r", seq(5, 9), "age_y_int"))] <- 0
+
+# #Use values at the current wave to predict-- not sure about this yet
+# predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+# predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, ncol = 6)
+# predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+
+#Exclude values that predict themselves
+predict[, paste0("logr", seq(4, 9), "cesd")] <- 
+  (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+
+#---- ***run imputation ----
+jmvn <- mice(data = mcar10, m = 5, method = "norm", predictorMatrix = predict, 
+             where = is.na(mcar10), 
+             blocks = as.list(paste0("logr", seq(4, 9), "cesd")))
+
+#---- ***trace plots ----
+#trace plots
+png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+           "manuscript/figures/mcar10_jmvn_traceplot.png"), 
+    width = 7, height = 4.5, units = "in", res = 300)
+plot(imputations)
+dev.off()
+
+#---- ***visualize imputations ----
+
+#---- ***effect estimates ----
+
 #---- **FCS ----
-test <- mice(data = mcar10, m = 5, method = "polr", )
+#Fully conditional specification
+fcs <- mice(data = mcar10, m = 5, method = "polr", )
+
+#---- **JMVN long ----
+#Longitudinal joint multivariate normal model
+
+#---- **FCS long ----
+#Longitudinal fully conditional specification
 
 
 #---- save tables ----
@@ -191,13 +242,6 @@ imputation_data_long %<>%
 # View(imputation_data_long[, c("age_y_int", "log_CysC", "log_CysC_masked",
 #                               "mcar10")])
 
-#---- Remove people with no Cystatin C measures ----
-#On this run, I've removed 78 people
-no_cysc <- imputation_data_long %>% group_by(HHIDPN) %>% 
-  summarise_at("log_CysC_masked", function(x) sum(!is.na(x))) %>% 
-  filter(log_CysC_masked == 0)
-
-imputation_data_long %<>% filter(!HHIDPN %in% no_cysc$HHIDPN)
 
 #---- check col types of dataframe ----
 sapply(imputation_data_long, class)

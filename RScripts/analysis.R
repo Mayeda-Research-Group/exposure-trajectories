@@ -145,6 +145,8 @@ for(wave in 4:9){
 }
 
 #---- imputation ----
+num_impute <- 5
+
 #---- **JMVN ----
 #Joint multivariate normal
 #---- ***predictor matrix ----
@@ -167,21 +169,83 @@ predict[, paste0("logr", seq(4, 9), "cesd")] <-
   (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
 
 #---- ***run imputation ----
-jmvn <- mice(data = mcar10, m = 5, method = "norm", predictorMatrix = predict, 
-             where = is.na(mcar10), 
-             blocks = as.list(paste0("logr", seq(4, 9), "cesd")))
+jmvn <- mice(data = mcar10, m = num_impute, method = "norm", 
+             predictorMatrix = predict, where = is.na(mcar10), 
+             blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
+             seed = 20210126)
 
 #---- ***trace plots ----
-#trace plots
+#trace plots-- can plot these in ggplot if we want by accessing chainMean and 
+# chainVar in imputation object. Right now not all the variables show in the 
+# saved image
 png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
            "manuscript/figures/mcar10_jmvn_traceplot.png"), 
     width = 7, height = 4.5, units = "in", res = 300)
-plot(imputations)
+plot(jmvn)
 dev.off()
 
 #---- ***visualize imputations ----
+mean_imputation <- vector(mode = "list", length = 6)
+for(i in 1:length(mean_imputation)){
+  wave = i + 3
+  mean_imputation[[i]] = rowMeans(jmvn$imp[[c(paste0("logr", wave, "cesd"))]])
+}
+
+plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
+  set_colnames(c("Observed", "Imputed"))
+plot_data[, "Imputed"] <- unlist(mean_imputation)
+
+observed_data <- 
+  cbind(CESD_data_wide %>% 
+          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "rwave", 
+                       values_to = "complete"), 
+        mcar10 %>% 
+          dplyr::select(paste0("logr", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "logrwave", 
+                       values_to = "masked")) %>% 
+  arrange(rwave) %>% filter(is.na(masked))
+
+plot_data[, "Observed"] <- observed_data$complete
+plot_data %<>% mutate("log_observed" = log(1 + Observed))
+
+# #Sanity check
+# head(CESD_data_wide$r4cesd[as.numeric(names(mean_imputation[[1]]))])
+# head(plot_data)
+# tail(CESD_data_wide$r9cesd[as.numeric(names(mean_imputation[[6]]))])
+# tail(plot_data)
+
+#plot
+ggplot(data = plot_data, aes(x = log_observed, y = Imputed)) + 
+  geom_point(color = "#B4DAE5FF") + 
+  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
+  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
+              size = 1) + labs(x = "Log(1 + Observed)") + 
+  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
+                 "Imputation Strategy: Joint Multivariate Normal")) + 
+  theme_minimal()  
+
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/mcar10_jmvn_obs_pred.jpeg"), 
+       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- ***effect estimates ----
+#Based on imputations
+jmvn_model_list <- vector(mode = "list", length = num_impute)
+
+for(i in 1:num_impute){
+  data = complete(jmvn, action = i)
+  jmvn_model_list[[i]] <- 
+    glm(death ~ female + hispanic + black + other + raedyrs + 
+          cses_index + smoker + BMI + CysC_masked, 
+        family = binomial(link = "logit"), 
+        data = data %>% filter(age_y_int == 65))
+}
+
+pooled_models <- summary(pool(model_list))
+pt_ests <- exp(pooled_models$estimate)
+CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
+                 pooled_models$estimate + pooled_models$std.error))
 
 #---- **FCS ----
 #Fully conditional specification
@@ -219,82 +283,6 @@ model_vars <- c("9age_y_int", "female", "hispanic", "white", "black",
 BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
 
 #---- OLD CODE ----
-#---- Induce missingness ----
-#which values [60, 69] are observed
-obs_in_range <- which(imputation_data_long$observed == 1)
-
-#create missing indicator by scenario
-mcar10 <- sample(obs_in_range, size = floor(0.10*length(obs_in_range)))
-
-imputation_data_long[, "mcar10"] <- 0
-imputation_data_long[mcar10, "mcar10"] <- 1
-
-# #Sanity check
-# imputation_data_long %>% filter(age_y_int >= 70) %>% summarise_at("mcar10", sum)
-# sum(imputation_data_long$mcar10)
-
-#mask values based on missing value indicator
-imputation_data_long %<>% 
-  mutate("log_CysC_masked" = ifelse(mcar10 == 1, NA, log_CysC)) %>%
-  mutate("CysC_masked" = exp(log_CysC_masked))
-
-# #Sanity check
-# View(imputation_data_long[, c("age_y_int", "log_CysC", "log_CysC_masked",
-#                               "mcar10")])
-
-
-#---- check col types of dataframe ----
-sapply(imputation_data_long, class)
-
-imputation_data_long %<>% 
-  mutate_at(c("observed", "mcar10"), as.factor)
-
-#---- Specify formulas ----
-meth <- make.method(imputation_data_long)
-meth["BMI"] <- "~I(weight / height^2)"
-meth["CysC_masked"] <- "~I(exp(log_CysC_masked))"
-
-#---- predictor matrix ----
-pred <- make.predictorMatrix(imputation_data_long)
-
-#Don't use these as predictors
-pred[, c("HHIDPN", "log_CysC", "observed", "mcar10", "height_measured", 
-         "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ", 
-         "CysC_masked")] <- 0
-
-#Formulas are already specified for these
-pred[c("BMI", "CysC_masked"), ] <- 0
-
-#Do not need imputations for these-- do I even need to specify this?
-pred[c("HHIDPN", "female", "hispanic", "black", "other", "raedyrs", "death", 
-       "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
-       "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
-
-#---- Missing data in predictors ----
-#Predictors of Cystatin C: 
-# baseline: Sex/gender, race/ethnicity, cSES, death, age at death, 
-#           smoking status
-# time-varying: 
-
-#Indicate where there is missing data in the long data
-impute_here_long <- is.na(imputation_data_long) %>% 
-  set_colnames(colnames(imputation_data_long))*1
-
-missingness <- t(colSums(impute_here_long)/nrow(impute_here_long)) %>% 
-  as.data.frame() %>% round(., 2) 
-
-#Indicate where we don't want imputations-- original data
-impute_here_long[, c("CYSC_ADJ", "log_CysC")] <- 0
-
-missingness_table <- missingness %>%
-  dplyr::select(-c("HHIDPN", "height_measured", "Wave", "weight_measured", 
-                   "BMI_measured", "observed", "log_CysC", "mcar10", 
-                   "log_CysC_masked", "CysC_masked"))
-
-write_csv(missingness_table, 
-          paste0("/Users/CrystalShaw/Dropbox/Projects/", 
-                 "exposure_trajectories/manuscript/", 
-                 "tables/missingness.csv"))
 
 #---- MICE ----
 # #Look at missing data pattern
@@ -367,36 +355,7 @@ lmm_imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 
 
 #---- Observed vs Predicted ----
-plot_data <- data.frame(matrix(nrow = nrow(imputation_data_long), 
-                        ncol = num_impute)) %>% 
-  set_colnames(paste0("impute", seq(1:num_impute))) %>% 
-  mutate("Observed" = imputation_data_long$log_CysC, 
-         "mcar10" = imputation_data_long$mcar10)
 
-for(i in 1:num_impute){
-  plot_data[, paste0("impute", i)] <- 
-    complete(lmm_imputations, action = i)[, "log_CysC_masked"]
-}
-
-#Subset to those masked in the sample
-plot_data %<>% 
-  mutate("Imputed" = plot_data %>% 
-           dplyr::select(contains("impute")) %>% rowMeans()) %>% 
-  filter(mcar10 == 1) 
-  
-#plot
-ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
-  geom_point(color = "#B4DAE5FF") + 
-  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
-  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
-              size = 1) + 
-  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
-                 "Imputation Strategy: Fully Conditional Specification")) + 
-  theme_minimal()  
-
-ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-              "manuscript/figures/mcar10_obs_pred.jpeg"), 
-       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- Analytic model ----
 #From the original data-- start with Cystatin C at age 65
@@ -441,14 +400,6 @@ pt_ests <- exp(pooled_lmm_models$estimate)
 CIs <- exp(cbind(pooled_lmm_models$estimate - pooled_lmm_models$std.error, 
                  pooled_lmm_models$estimate + pooled_lmm_models$std.error))
 
-
-#---- Saving output ----
-#trace plots
-png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-           "manuscript/figures/mcar10_traceplot.png"), 
-    width = 7, height = 4.5, units = "in", res = 300)
-plot(imputations)
-dev.off()
 
 
 

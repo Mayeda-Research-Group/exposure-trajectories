@@ -117,6 +117,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"),
     "0%")
 
 #---- create incomplete data ----
+mask_props <- c(.10, .25, .50)
+
 #---- **MCAR ----
 #it's easier to do this with my own code than the ampute function in MICE, which
 # requires specifying all possible missing patterns you'd like it to consider
@@ -124,22 +126,41 @@ cesd_data_long <- CESD_data_wide %>%
   dplyr::select("HHIDPN", paste0("r", seq(4, 9), "cesd")) %>% 
   pivot_longer(-c("HHIDPN"), names_to = "wave", values_to = "cesd")
 
-mcar10_mask <- sample.int(n = nrow(cesd_data_long), 
-                          size = floor(0.10*nrow(cesd_data_long)))
+for(prop in mask_props){
+  assign(paste0("mcar", prop*100, "_mask"), 
+    sample.int(n = nrow(cesd_data_long), 
+               size = floor(prop*nrow(cesd_data_long))))
+}
 
-#mask these values in long data
-cesd_mcar10 <- cesd_data_long
-cesd_mcar10[mcar10_mask, "cesd"] <- NA
-
-#create a masked dataset
-mcar10 <- CESD_data_wide
-mcar10[, c("HHIDPN", paste0("r", seq(4, 9), "cesd"))] <- 
-  cesd_mcar10 %>% na.omit() %>% 
-  pivot_wider(names_from = "wave", values_from = "cesd")
+for(mask in 100*mask_props){
+  #mask these values in long data
+  cesd_mask <- cesd_data_long
+  cesd_mask[get(paste0("mcar", mask, "_mask")), "cesd"] <- NA
+  cesd_mask %<>% na.omit() %>% 
+    pivot_wider(names_from = "wave", values_from = "cesd")
+  
+  wide_data <- CESD_data_wide
+  wide_data[which(wide_data$HHIDPN %in% cesd_mask$HHIDPN), 
+            paste0("r", seq(4, 9), "cesd")] <- cesd_mask[, -1] 
+  wide_data[which(!wide_data$HHIDPN %in% cesd_mask$HHIDPN), 
+            paste0("r", seq(4, 9), "cesd")] <- NA
+  
+  assign(paste0("mcar", mask), wide_data)
+}
 
 #---- check missings ----
 #make sure no one is missing every cesd measure
-num_missings_mcar10 <- table(rowSums(is.na(mcar10)))
+missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>% 
+  set_colnames(c("Mask Prop", seq(0, 6)))
+missings[, "Mask Prop"] <- 100*mask_props
+
+for(mask in 100*mask_props){
+  data <- get(paste0("mcar", mask)) %>% 
+    dplyr::select(paste0("r", seq(4, 9), "cesd"))
+  missing_count <- table(rowSums(is.na(data)))
+  missings[which(missings$`Mask Prop` == mask), names(missing_count)] <- 
+    missing_count
+}
 
 #---- transformations ----
 for(wave in 4:9){

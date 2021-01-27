@@ -42,7 +42,8 @@ CESD_data_wide <-
 table_effect_ests <- 
   data.frame("Exposure" = c("CES-D Wave 4", "CES-D Wave 9", 
                             "Elevated CES-D Count", "Elevated Average CES-D"),
-             "beta" = NA, "LCI" = NA, "UCI" = NA) 
+             "beta" = NA, "LCI" = NA, "UCI" = NA, "Method" = NA, 
+             "Missingness" = NA) 
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
@@ -59,9 +60,9 @@ TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4,
                                exponentiate = TRUE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4"), 
-                  c("beta", "LCI", "UCI")] <- 
-  TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
-                         c("estimate", "conf.low", "conf.high")]
+                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+  c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
+                         c("estimate", "conf.low", "conf.high")], "Truth", "0%")
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -77,9 +78,9 @@ TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9,
                                exponentiate = TRUE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9"), 
-                  c("beta", "LCI", "UCI")] <- 
-  TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                         c("estimate", "conf.low", "conf.high")]
+                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+  c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
+                         c("estimate", "conf.low", "conf.high")], "Truth", "0%")
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
@@ -93,9 +94,10 @@ TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD,
                                     exponentiate = TRUE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count"), 
-                  c("beta", "LCI", "UCI")] <- 
-  TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                              c("estimate", "conf.low", "conf.high")]
+                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+  c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
+                              c("estimate", "conf.low", "conf.high")], "Truth", 
+    "0%")
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
@@ -109,9 +111,10 @@ TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD,
                                   exponentiate = TRUE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"), 
-                  c("beta", "LCI", "UCI")] <- 
-  TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                            c("estimate", "conf.low", "conf.high")]
+                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+  c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
+                            c("estimate", "conf.low", "conf.high")], "Truth", 
+    "0%")
 
 #---- create incomplete data ----
 #---- **MCAR ----
@@ -245,18 +248,83 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 
 #---- ***effect estimates ----
 #Based on imputations
+#CES-D Wave 4
 jmvn_model_list <- vector(mode = "list", length = num_impute)
 
 for(i in 1:num_impute){
-  data = complete(jmvn, action = i)
+  imputed_data = complete(jmvn, action = i)
+  #transform back to original values
+  imputed_data[, paste0("r", seq(4, 9), "cesd")] <- 
+    round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
+  
+  #---- ****E1a; E1b; E3 ----
+  imputed_data %<>% 
+    mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
+           "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+           "avg_cesd" = imputed_data %>% 
+             dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+             rowMeans(), 
+           "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+  
+  #---- ****E2 ----
+  elevated_cesd <- imputed_data %>% 
+    dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
+  
+  elevated_cesd <- (elevated_cesd > 4)*1
+  
+  imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+  
   jmvn_model_list[[i]] <- 
-    glm(death ~ female + hispanic + black + other + raedyrs + 
-          cses_index + smoker + BMI + CysC_masked, 
-        family = binomial(link = "logit"), 
-        data = data %>% filter(age_y_int == 65))
+    coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+            other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+            ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+            ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+            r4cesd_elevated, data = imputed_data)
 }
 
-pooled_models <- summary(pool(model_list))
+pooled_models <- summary(pool(jmvn_model_list))
+pt_ests <- exp(pooled_models$estimate)
+CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
+                 pooled_models$estimate + pooled_models$std.error))
+
+#---- what if we cap the data ----
+jmvn_model_list <- vector(mode = "list", length = num_impute)
+
+for(i in 1:num_impute){
+  imputed_data = complete(jmvn, action = i)
+  #transform back to original values
+  transform <- round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
+  transform[transform > 8] <- 8
+  transform[transform < 0] <- 0
+  imputed_data[, paste0("r", seq(4, 9), "cesd")] <- transform
+    
+  
+  #---- ****E1a; E1b; E3 ----
+  imputed_data %<>% 
+    mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
+           "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+           "avg_cesd" = imputed_data %>% 
+             dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+             rowMeans(), 
+           "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+  
+  #---- ****E2 ----
+  elevated_cesd <- imputed_data %>% 
+    dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
+  
+  elevated_cesd <- (elevated_cesd > 4)*1
+  
+  imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+  
+  jmvn_model_list[[i]] <- 
+    coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+            other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+            ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+            ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+            r4cesd_elevated, data = imputed_data)
+}
+
+pooled_models <- summary(pool(jmvn_model_list))
 pt_ests <- exp(pooled_models$estimate)
 CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
                  pooled_models$estimate + pooled_models$std.error))

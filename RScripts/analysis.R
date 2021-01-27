@@ -207,7 +207,8 @@ observed_data <-
   arrange(rwave) %>% filter(is.na(masked))
 
 plot_data[, "Observed"] <- observed_data$complete
-plot_data %<>% mutate("log_observed" = log(1 + Observed))
+plot_data %<>% mutate("log_observed" = log(1 + Observed), 
+                      "trans_imputed" = round(exp(Imputed) - 1))
 
 # #Sanity check
 # head(CESD_data_wide$r4cesd[as.numeric(names(mean_imputation[[1]]))])
@@ -221,6 +222,19 @@ ggplot(data = plot_data, aes(x = log_observed, y = Imputed)) +
   geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
   geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
               size = 1) + labs(x = "Log(1 + Observed)") + 
+  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
+                 "Imputation Strategy: Joint Multivariate Normal")) + 
+  theme_minimal()  
+
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/mcar10_jmvn_obs_pred_log.jpeg"), 
+       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
+
+ggplot(data = plot_data, aes(x = Observed, y = trans_imputed)) + 
+  geom_point(color = "#B4DAE5FF") + 
+  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
+  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
+              size = 1) + labs(y = "Exp(Imputed) - 1") + 
   ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
                  "Imputation Strategy: Joint Multivariate Normal")) + 
   theme_minimal()  

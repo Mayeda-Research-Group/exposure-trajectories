@@ -330,8 +330,121 @@ CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error,
                  pooled_models$estimate + pooled_models$std.error))
 
 #---- **FCS ----
-#Fully conditional specification
-fcs <- mice(data = mcar10, m = 5, method = "polr", )
+#---- ***predictor matrix ----
+predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
+  set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
+  set_colnames(colnames(mcar10))
+#Don't use these as predictors
+predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
+            paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
+            "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+            "observed", paste0("r", seq(5, 9), "age_y_int"))] <- 0
+
+#Exclude values that predict themselves
+predict[, paste0("r", seq(4, 9), "cesd")] <- 
+  (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+
+#---- ***run imputation ----
+mcar10 %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
+fcs <- mice(data = mcar10, m = num_impute, method = "polr", 
+            predictorMatrix = predict, where = is.na(mcar10), 
+            blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
+            seed = 20210126)
+
+#---- ***trace plots ----
+#trace plots-- can plot these in ggplot if we want by accessing chainMean and 
+# chainVar in imputation object. Right now not all the variables show in the 
+# saved image
+png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+           "manuscript/figures/mcar10_fcs_traceplot.png"), 
+    width = 7, height = 4.5, units = "in", res = 300)
+plot(fcs)
+dev.off()
+
+#---- ***visualize imputations ----
+mean_imputation <- vector(mode = "list", length = 6)
+for(i in 1:length(mean_imputation)){
+  wave = i + 3
+  mean_imputation[[i]] = 
+    rowMeans((as.data.frame(fcs$imp[[c(paste0("r", wave, "cesd"))]])) %>% 
+               mutate_all(as.numeric))
+}
+
+plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
+  set_colnames(c("Observed", "Imputed"))
+plot_data[, "Imputed"] <- unlist(mean_imputation)
+
+observed_data <- 
+  cbind(CESD_data_wide %>% 
+          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "rwave", 
+                       values_to = "complete"), 
+        mcar10 %>% 
+          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "rwave2", 
+                       values_to = "masked")) %>% 
+  arrange(rwave) %>% filter(is.na(masked))
+
+plot_data[, "Observed"] <- observed_data$complete
+
+# #Sanity check
+# head(CESD_data_wide$r4cesd[as.numeric(names(mean_imputation[[1]]))])
+# head(plot_data)
+# tail(CESD_data_wide$r9cesd[as.numeric(names(mean_imputation[[6]]))])
+# tail(plot_data)
+
+#plot
+ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
+  geom_point(color = "#B4DAE5FF") + 
+  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
+  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
+              size = 1) +
+  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
+                 "Imputation Strategy: Fully Conditional Specification")) + 
+  theme_minimal()  
+
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/mcar10_fcs_obs_pred.jpeg"), 
+       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
+
+#---- ***effect estimates ----
+#Based on imputations
+#CES-D Wave 4
+fcs_model_list <- vector(mode = "list", length = num_impute)
+
+for(i in 1:num_impute){
+  imputed_data = complete(fcs, action = i)
+  
+  #---- ****E1a; E1b; E3 ----
+  imputed_data %<>% 
+    mutate("r4cesd_elevated" = ifelse(as.numeric(r4cesd) > 4, 1, 0), 
+           "r9cesd_elevated" = ifelse(as.numeric(r9cesd) > 4, 1, 0), 
+           "avg_cesd" = imputed_data %>% 
+             dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+             mutate_all(as.numeric) %>% rowMeans(), 
+           "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+  
+  #---- ****E2 ----
+  elevated_cesd <- imputed_data %>% 
+    dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+    mutate_all(as.numeric)
+  
+  elevated_cesd <- (elevated_cesd > 4)*1
+  
+  imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+  
+  fcs_model_list[[i]] <- 
+    coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+            other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+            ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+            ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+            r4cesd_elevated, data = imputed_data)
+}
+
+pooled_models <- summary(pool(fcs_model_list))
+pt_ests <- exp(pooled_models$estimate)
+CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
+                 pooled_models$estimate + pooled_models$std.error))
 
 #---- **JMVN long ----
 #Longitudinal joint multivariate normal model

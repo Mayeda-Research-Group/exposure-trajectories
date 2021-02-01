@@ -190,7 +190,6 @@ num_impute <- 5
 #---- **JMVN ----
 #Joint multivariate normal
 #---- ***predictor matrix ----
-#The predictor matrix is the same for all these models
 predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
   set_rownames(paste0("logr", seq(4, 9), "cesd")) %>% 
   set_colnames(colnames(mcar10))
@@ -219,7 +218,38 @@ for(prop in mask_props){
               seed = 20210126))
 }
 
-#---- ***trace plots ----
+#---- **FCS ----
+#---- ***predictor matrix ----
+predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
+  set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
+  set_colnames(colnames(mcar10))
+#Don't use these as predictors
+predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
+            paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
+            "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+            "observed")] <- 0
+
+#Use values at the current wave to predict-- not sure about this yet
+predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, ncol = 6)
+predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+
+#Exclude values that predict themselves
+predict[, paste0("r", seq(4, 9), "cesd")] <- 
+  (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+
+#---- ***run imputation ----
+for(prop in mask_props){
+  data <- get(paste0("mcar", 100*prop))
+  data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
+  assign(paste0("fcs_mcar", 100*prop), 
+         mice(data = data, m = num_impute, method = "polr", 
+              predictorMatrix = predict, where = is.na(data), 
+              blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
+              seed = 20210126))
+}
+
+#---- diagnostics: trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
 # chainVar in imputation object. Right now not all the variables show in the 
 # saved image
@@ -229,7 +259,8 @@ png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 plot(jmvn10)
 dev.off()
 
-#---- ***effect estimates ----
+
+#---- effect estimates ----
 #Based on imputations
 jmvn_model_list <- 
   lapply(jmvn_model_list <- vector(mode = "list", length(mask_props)),
@@ -250,7 +281,7 @@ for(i in 1:length(mask_props)){
     imputed_data[, paste0("r", seq(4, 9), "cesd")] <- 
       round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
     
-    #---- ****E1a; E1b; E3 ----
+    #---- **E1a; E1b; E3 ----
     imputed_data %<>% 
       mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
              "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
@@ -259,7 +290,7 @@ for(i in 1:length(mask_props)){
                rowMeans(), 
              "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
     
-    #---- ****E2 ----
+    #---- **E2 ----
     elevated_cesd <- imputed_data %>% 
       dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
     
@@ -323,48 +354,6 @@ for(prop in as.character(100*mask_props)){
 pt_ests <- exp(pooled_models$estimate)
 CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
                  pooled_models$estimate + pooled_models$std.error))
-
-# #---- what if we cap the data ----
-# jmvn_model_list <- vector(mode = "list", length = num_impute)
-# 
-# for(i in 1:num_impute){
-#   imputed_data = complete(jmvn, action = i)
-#   #transform back to original values
-#   transform <- round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
-#   transform[transform > 8] <- 8
-#   transform[transform < 0] <- 0
-#   imputed_data[, paste0("r", seq(4, 9), "cesd")] <- transform
-#     
-#   
-#   #---- ****E1a; E1b; E3 ----
-#   imputed_data %<>% 
-#     mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-#            "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
-#            "avg_cesd" = imputed_data %>% 
-#              dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-#              rowMeans(), 
-#            "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
-#   
-#   #---- ****E2 ----
-#   elevated_cesd <- imputed_data %>% 
-#     dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
-#   
-#   elevated_cesd <- (elevated_cesd > 4)*1
-#   
-#   imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
-#   
-#   jmvn_model_list[[i]] <- 
-#     coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-#             other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-#             ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-#             ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-#             r4cesd_elevated, data = imputed_data)
-# }
-# 
-# pooled_models <- summary(pool(jmvn_model_list))
-# pt_ests <- exp(pooled_models$estimate)
-# CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
-#                  pooled_models$estimate + pooled_models$std.error))
 
 #---- ***visualize imputations ----
 mean_imputation_mcar <- 
@@ -440,27 +429,7 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 
-#---- **FCS ----
-#---- ***predictor matrix ----
-predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
-  set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
-  set_colnames(colnames(mcar10))
-#Don't use these as predictors
-predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
-            paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
-            "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-            "observed", paste0("r", seq(5, 9), "age_y_int"))] <- 0
 
-#Exclude values that predict themselves
-predict[, paste0("r", seq(4, 9), "cesd")] <- 
-  (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-
-#---- ***run imputation ----
-mcar10 %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-fcs <- mice(data = mcar10, m = num_impute, method = "polr", 
-            predictorMatrix = predict, where = is.na(mcar10), 
-            blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
-            seed = 20210126)
 
 #---- ***trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
@@ -574,23 +543,7 @@ write.xlsx(table_list, file = paste0(path_to_dropbox,
                                      "/exposure_trajectories/manuscript/", 
                                      "tables/main_text_tables.xlsx"))
 
-
-
-#---- OLD CODE ----
-imputation_vars <- c(paste0(seq(4, 9, by = 1), "BMI"), "9age_y_int", "female", 
-                     "hispanic", "white", "black", "other", "height", 
-                     "r9mstat_cat", "smoker", "drinking9_cat", "ed_cat", 
-                     "cses_index", "death2018")
-
-model_vars <- c("9age_y_int", "female", "hispanic", "white", "black", 
-                "other", "r9mstat_cat","smoker", "drinking9_cat", "ed_cat", 
-                "cses_index")
-
-BMI_data_wide %<>% dplyr::select(all_of(c(ID, imputation_vars, model_vars)))
-
-#---- OLD CODE ----
-
-#---- MICE ----
+#---- MICE long ----
 # #Look at missing data pattern
 # md.pattern(imputation_data %>% dplyr::select(contains("CYSC")))
 
@@ -660,51 +613,6 @@ lmm_imputations <- mice(imputation_data_long, m = num_impute, maxit = 5,
 # colSums(is.na(sample_complete))
 
 
-#---- Observed vs Predicted ----
-
-
-#---- Analytic model ----
-#From the original data-- start with Cystatin C at age 65
-CysC_65_model <- glm(death ~ female + hispanic + black + other + raedyrs + 
-                       cses_index + smoker + BMI + CYSC_ADJ, 
-                     family = binomial(link = "logit"), 
-                     data = imputation_data_long %>% filter(age_y_int == 65))
-
-tidy(CysC_65_model, exp = TRUE, conf.int = TRUE)
-
-#Based on imputations
-model_list <- vector(mode = "list", length = num_impute)
-
-for(i in 1:num_impute){
-  data = complete(imputations, action = i)
-  model_list[[i]] <- 
-    glm(death ~ female + hispanic + black + other + raedyrs + 
-          cses_index + smoker + BMI + CysC_masked, 
-        family = binomial(link = "logit"), 
-        data = data %>% filter(age_y_int == 65))
-}
-
-pooled_models <- summary(pool(model_list))
-pt_ests <- exp(pooled_models$estimate)
-CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
-                 pooled_models$estimate + pooled_models$std.error))
-
-#Based on imputations
-lmm_model_list <- vector(mode = "list", length = num_impute)
-
-for(i in 1:num_impute){
-  data = complete(lmm_imputations, action = i)
-  lmm_model_list[[i]] <- 
-    glm(death ~ female + hispanic + black + other + raedyrs + 
-          cses_index + smoker + BMI + CysC_masked, 
-        family = binomial(link = "logit"), 
-        data = data %>% filter(age_y_int == 65))
-}
-
-pooled_lmm_models <- summary(pool(lmm_model_list))
-pt_ests <- exp(pooled_lmm_models$estimate)
-CIs <- exp(cbind(pooled_lmm_models$estimate - pooled_lmm_models$std.error, 
-                 pooled_lmm_models$estimate + pooled_lmm_models$std.error))
 
 
 

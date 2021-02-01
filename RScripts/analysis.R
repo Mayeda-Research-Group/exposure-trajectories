@@ -66,10 +66,11 @@ TTEmodel_CESD4 <-
 TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
                                exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4"), 
-                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" & 
+                          table_effect_ests$Method == "Truth"), 
+                  c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
-                         c("estimate", "conf.low", "conf.high")], "Truth", "0%")
+                           c("estimate", "conf.low", "conf.high")])
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -84,10 +85,11 @@ TTEmodel_CESD9 <-
 TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
                                exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9"), 
-                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" & 
+                          table_effect_ests$Method == "Truth"), 
+                  c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                         c("estimate", "conf.low", "conf.high")], "Truth", "0%")
+                         c("estimate", "conf.low", "conf.high")])
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
@@ -100,11 +102,11 @@ TTEmodel_total_CESD <-
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
                                     exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count"), 
-                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" & 
+                          table_effect_ests$Method == "Truth"), 
+                  c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                              c("estimate", "conf.low", "conf.high")], "Truth", 
-    "0%")
+                              c("estimate", "conf.low", "conf.high")])
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
@@ -117,11 +119,11 @@ TTEmodel_elevated_avg_CESD <-
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
                                   exponentiate = TRUE, conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"), 
-                  c("beta", "LCI", "UCI", "Method", "Missingness")] <- 
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
+                          table_effect_ests$Method == "Truth"), 
+                  c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                            c("estimate", "conf.low", "conf.high")], "Truth", 
-    "0%")
+                            c("estimate", "conf.low", "conf.high")])
 
 #---- create incomplete data ----
 #---- **MCAR ----

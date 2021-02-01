@@ -41,10 +41,16 @@ CESD_data_wide <-
 #---- Table 2 shell: Effect Estimates ----
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
                "Elevated Average CES-D")
+methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
+mask_props <- c(.10, .25, .50)
+
 table_effect_ests <- 
-  data.frame("Exposure" = exposures ,
-             "beta" = NA, "LCI" = NA, "UCI" = NA, "Method" = NA, 
-             "Missingness" = NA) 
+  data.frame("Exposure" = rep(exposures, 13),
+             "beta" = NA, "LCI" = NA, "UCI" = NA, 
+             "Method" = c(rep("Truth", 4), rep(methods, each = 12)), 
+             "Missingness" = c(rep("0%", 4), 
+                               rep(rep(paste0(mask_props*100, "%"), each = 4), 
+                                   4)))
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
@@ -118,8 +124,6 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"),
     "0%")
 
 #---- create incomplete data ----
-mask_props <- c(.10, .25, .50)
-
 #---- **MCAR ----
 #it's easier to do this with my own code than the ampute function in MICE, which
 # requires specifying all possible missing patterns you'd like it to consider
@@ -308,6 +312,11 @@ for(i in as.character(mask_props*100)){
   }
 } 
 
+for(prop in as.character(100*mask_props)){
+  for(exposure in exposures){
+    table_effect_ests
+  }
+}
 
 pt_ests <- exp(pooled_models$estimate)
 CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 

@@ -47,7 +47,7 @@ KAPPA_dat_func <- function(occasion){
   if(ncol( `4_9_table`) == 2){
     kappa_4_9 <- fmsb::Kappa.test(`4_9_table`)$ Result$estimate
   } else{
-    kappa_4_9 <- fmsb::Kappa.test(cbind(`0`, `4_9_table`))$ Result$estimate
+    kappa_4_9 <- NA
   }
 
   avg_4_table <- 
@@ -55,7 +55,7 @@ KAPPA_dat_func <- function(occasion){
   if(ncol(avg_4_table) == 2){
   kappa_4_avg <- fmsb::Kappa.test(avg_4_table)$ Result$estimate
   } else{
-    kappa_4_avg <- fmsb::Kappa.test(cbind(`0`, avg_4_table))$ Result$estimate
+    kappa_4_avg <- NA
   }
   
   avg_9_table <- 
@@ -63,7 +63,7 @@ KAPPA_dat_func <- function(occasion){
   if(ncol(avg_9_table) == 2){
     kappa_9_avg <- fmsb::Kappa.test(avg_9_table)$ Result$estimate
   } else{
-    kappa_9_avg <- fmsb::Kappa.test(cbind(`0`, avg_9_table))$ Result$estimate
+    kappa_9_avg <- NA
   }
   
   # KAPPA matrix
@@ -103,11 +103,13 @@ ggplot(data = KAPPA_dat,
   theme_minimal()+
   geom_tile(color = "white") + 
   scale_fill_gradient2(low = "blue", high = "red", 
-                       limit = c(-1,1))+
+                       limit = c(-1,1), name = "KAPPA\nStatistic")+
   geom_text(aes(Var2, Var1, label = round(value,3)), color = "black", size = 6)+
   theme(
     axis.title.x = element_blank(),
-    axis.title.y = element_blank())
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "KAPPA statistic heatmap")
 
 # Stratified
 ggplot(data = KAPPA_dat_stratified,
@@ -116,12 +118,15 @@ ggplot(data = KAPPA_dat_stratified,
   facet_wrap(~ occasion, nrow = 2) +
   geom_tile(color = "white") + 
   scale_fill_gradient2(low = "blue", high = "red", mid = "white",
-                       limit = c(-1,1)) +
+                       limit = c(-1,1), name = "KAPPA\nStatistic") +
   geom_text(
-    aes(Var2, Var1, label = round(value,3)), color = "black", size = 4) +
+    aes(Var2, Var1, label = sprintf("%.3f", value)), color = "black", size = 4) +
   theme(
     axis.title.x = element_blank(),
-    axis.title.y = element_blank())
+    axis.title.y = element_blank(),
+    axis.text.x = element_text(angle = 90),
+    plot.title = element_text(hjust = 0.5)) + 
+  labs(title = "KAPPA statistic heatmap stratified by # of elevated CESD")
 
 
 #---- fix the problem for positivity issue

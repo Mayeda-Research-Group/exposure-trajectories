@@ -162,6 +162,10 @@ for(mask in 100*mask_props){
     missing_count
 }
 
+write_csv(missings, path = paste0(path_to_dropbox, 
+                                  "/exposure_trajectories/manuscript/", 
+                                  "tables/missing_counts.csv"))
+
 #---- transformations ----
 for(wave in 4:9){
   mcar10[, paste0("logr", wave, "cesd")] <- 

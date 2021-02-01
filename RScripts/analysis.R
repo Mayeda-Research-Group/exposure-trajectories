@@ -233,9 +233,7 @@ jmvn_model_list <-
 #naming layers of list
 names(jmvn_model_list) <- mask_props*100
 for(i in 1:length(jmvn_model_list)){
-  names(jmvn_model_list[[i]]) <- c("CES-D Wave 4", "CES-D Wave 9", 
-                                   "Elevated CES-D Count", 
-                                   "Elevated Average CES-D")
+  names(jmvn_model_list[[i]]) <- exposures
 }
 
 for(i in 1:length(mask_props)){
@@ -300,17 +298,17 @@ pooled_model_list <-
 #naming layers of list
 names(pooled_model_list) <- mask_props*100
 for(i in 1:length(pooled_model_list)){
-  names(pooled_model_list[[i]]) <- c("CES-D Wave 4", "CES-D Wave 9", 
-                                     "Elevated CES-D Count", 
-                                     "Elevated Average CES-D")
+  names(pooled_model_list[[i]]) <- exposures
 }
 
-for(i in mask_props*100){
-  
+for(i in as.character(mask_props*100)){
+  for(j in exposures){
+    pooled_model_list[[i]][[j]] <- 
+      summary(pool(jmvn_model_list[[i]][[j]]))
+  }
 } 
 
 
-pooled_models <- summary(pool(jmvn_model_list[["10"]][["CES-D Wave 4"]]))
 pt_ests <- exp(pooled_models$estimate)
 CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
                  pooled_models$estimate + pooled_models$std.error))

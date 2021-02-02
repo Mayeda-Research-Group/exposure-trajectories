@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
-       "ResourceSelection", "survival", "openxlsx", "miceadds")
+       "ResourceSelection", "survival", "openxlsx")
 
 #No scientific notation
 options(scipen = 999)

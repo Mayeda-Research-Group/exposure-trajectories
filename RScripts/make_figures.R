@@ -8,9 +8,34 @@ p_load("here", "tidyverse", "ghibli", "openxlsx")
 #No scientific notation
 options(scipen = 999)
 
+#---- values ----
+methods <- c("JMVN", "FCS")
+mask_props <- c(.10, .25, .50)
+
 #---- read in data ----
 #Changing directories here will change them throughout the script
 path_to_dropbox <- "~/Dropbox/Projects"
+
+CESD_data_wide <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
+                  "CESD_data_wide.csv"), 
+           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+                            death2018 = col_integer(), 
+                            ed_cat = col_factor(), 
+                            r4mstat_cat = col_factor(), 
+                            r9mstat_cat = col_factor(),
+                            drinking4_cat_impute = col_factor(),
+                            drinking9_cat_impute = col_factor(),
+                            female = col_factor(), hispanic = col_factor(), 
+                            black = col_factor(), other = col_factor(), 
+                            smoker = col_integer()))
+
+for(method in tolower(methods)){
+  for(prop in 100*mask_props){
+    readRDS(here("MI datasets", paste0(method, "_mcar", prop)))
+  }
+}
 
 table_effect_ests <- read.xlsx(paste0(path_to_dropbox, 
                                       "/exposure_trajectories/manuscript/", 
@@ -50,7 +75,39 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests.jpeg"), device = "jpeg", 
        dpi = 300, width = 9, height = 5, units = "in")
   
-#---- ***individual imputations ----
+#---- **individual imputations ----
+#---- ***fcs ----
+fcs_mean_imputation <- vector(mode = "list", length = 6)
+for(i in 1:length(fcs_mean_imputation)){
+  wave = i + 3
+  fcs_mean_imputation[[i]] = 
+    rowMeans((as.data.frame(fcs_mcar10$imp[[c(paste0("r", wave, "cesd"))]])) %>% 
+               mutate_all(as.numeric))
+}
+
+plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
+  set_colnames(c("Observed", "Imputed"))
+plot_data[, "Imputed"] <- unlist(mean_imputation)
+
+observed_data <- 
+  cbind(CESD_data_wide %>% 
+          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "rwave", 
+                       values_to = "complete"), 
+        mcar10 %>% 
+          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+          pivot_longer(everything(), names_to = "rwave2", 
+                       values_to = "masked")) %>% 
+  arrange(rwave) %>% filter(is.na(masked))
+
+plot_data[, "Observed"] <- observed_data$complete
+
+
+#---- **derived exposures ----
+
+
+
+
 mean_imputation_mcar <- 
   lapply(mean_imputation_mcar <- vector(mode = "list", length(mask_props)),
          function(x) x <- lapply(x <- vector(mode = "list", 4),
@@ -123,37 +180,15 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
               "manuscript/figures/mcar10_jmvn_obs_pred.jpeg"), 
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
-#---- ***derived exposures ----
+
 
 
 
 
 
 #---- ***visualize imputations ----
-mean_imputation <- vector(mode = "list", length = 6)
-for(i in 1:length(mean_imputation)){
-  wave = i + 3
-  mean_imputation[[i]] = 
-    rowMeans((as.data.frame(fcs$imp[[c(paste0("r", wave, "cesd"))]])) %>% 
-               mutate_all(as.numeric))
-}
 
-plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
-  set_colnames(c("Observed", "Imputed"))
-plot_data[, "Imputed"] <- unlist(mean_imputation)
 
-observed_data <- 
-  cbind(CESD_data_wide %>% 
-          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-          pivot_longer(everything(), names_to = "rwave", 
-                       values_to = "complete"), 
-        mcar10 %>% 
-          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-          pivot_longer(everything(), names_to = "rwave2", 
-                       values_to = "masked")) %>% 
-  arrange(rwave) %>% filter(is.na(masked))
-
-plot_data[, "Observed"] <- observed_data$complete
 
 # #Sanity check
 # head(CESD_data_wide$r4cesd[as.numeric(names(mean_imputation[[1]]))])

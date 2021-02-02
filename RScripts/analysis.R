@@ -201,7 +201,8 @@ predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated",
 
 # #Use values at the current wave to predict-- not sure about this yet
 predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, ncol = 6)
+predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
+                                                       ncol = 6)
 predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
 
 #Exclude values that predict themselves
@@ -235,7 +236,8 @@ predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated",
 
 #Use values at the current wave to predict-- not sure about this yet
 predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, ncol = 6)
+predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
+                                                       ncol = 6)
 predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
 
 #Exclude values that predict themselves
@@ -326,32 +328,36 @@ for(m in methods[1:2]){
       imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
       
       model_list[[m]][[i]][["CES-D Wave 4"]][[j]] <- 
-        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-                r4cesd_elevated, data = imputed_data)
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + 
+                black + other + ed_cat + r4mstat_cat + ever_mem + 
+                ever_arthritis + ever_stroke + ever_heart + ever_lung + 
+                ever_cancer + ever_hibp + ever_diabetes + r4BMI + 
+                drinking4_cat_impute + smoker + r4cesd_elevated, 
+              data = imputed_data)
       
       model_list[[m]][[i]][["CES-D Wave 9"]][[j]] <- 
-        coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
-                other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
-                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
-                r9cesd_elevated, data = imputed_data)
+        coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + 
+                black + other + ed_cat + r9mstat_cat + ever_mem + 
+                ever_arthritis + ever_stroke + ever_heart + ever_lung + 
+                ever_cancer + ever_hibp + ever_diabetes + r9BMI + 
+                drinking9_cat_impute + smoker + r9cesd_elevated, 
+              data = imputed_data)
       
       model_list[[m]][[i]][["Elevated CES-D Count"]][[j]] <- 
-        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-                total_elevated_cesd, data = imputed_data)
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + 
+                black + other + ed_cat + r4mstat_cat + ever_mem + 
+                ever_arthritis + ever_stroke + ever_heart + ever_lung + 
+                ever_cancer + ever_hibp + ever_diabetes + r4BMI + 
+                drinking4_cat_impute + smoker + total_elevated_cesd, 
+              data = imputed_data)
       
       model_list[[m]][[i]][["Elevated Average CES-D"]][[j]] <- 
-        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-                avg_cesd_elevated, data = imputed_data)
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + 
+                black + other + ed_cat + r4mstat_cat + ever_mem + 
+                ever_arthritis + ever_stroke + ever_heart + ever_lung + 
+                ever_cancer + ever_hibp + ever_diabetes + r4BMI + 
+                drinking4_cat_impute + smoker + avg_cesd_elevated, 
+              data = imputed_data)
     }
   }
 }

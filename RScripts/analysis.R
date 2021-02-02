@@ -265,73 +265,82 @@ png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 plot(jmvn10)
 dev.off()
 
-
 #---- effect estimates ----
 #Based on imputations
-jmvn_model_list <- 
-  lapply(jmvn_model_list <- vector(mode = "list", length(mask_props)),
-         function(x) x <- lapply(x <- vector(mode = "list", 4), 
+model_list <- 
+  lapply(model_list <- vector(mode = "list", length(methods)),
+         function(x) x <- lapply(x <- vector(mode = "list", length(mask_props)), 
+                                 function(x) x <- 
+                                   lapply(x <- vector(mode = "list", 
+                                                         length = 4), 
                                  function(x) x <- vector(mode = "list", 
-                                                         length = num_impute)))
+                                                         length = num_impute))))
+
 #naming layers of list
-names(jmvn_model_list) <- mask_props*100
-for(i in 1:length(jmvn_model_list)){
-  names(jmvn_model_list[[i]]) <- exposures
+names(model_list) <- methods
+for(i in 1:length(model_list)){
+  names(model_list[[i]]) <- 100*mask_props
+  for(j in 1:length(model_list[[i]])){
+    names(model_list[[i]][[j]]) <- exposures
+  }
 }
 
-for(i in 1:length(mask_props)){
-  for(j in 1:num_impute){
-    imputations <- get(paste0("jmvn_mcar", mask_props[i]*100))
-    imputed_data = complete(imputations, action = j)
-    #transform back to original values
-    imputed_data[, paste0("r", seq(4, 9), "cesd")] <- 
-      round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
-    
-    #---- **E1a; E1b; E3 ----
-    imputed_data %<>% 
-      mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-             "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
-             "avg_cesd" = imputed_data %>% 
-               dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-               rowMeans(), 
-             "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
-    
-    #---- **E2 ----
-    elevated_cesd <- imputed_data %>% 
-      dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
-    
-    elevated_cesd <- (elevated_cesd > 4)*1
-    
-    imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
-    
-    jmvn_model_list[[i]][["CES-D Wave 4"]][[j]] <- 
-      coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-              other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-              ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-              ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-              r4cesd_elevated, data = imputed_data)
-    
-    jmvn_model_list[[i]][["CES-D Wave 9"]][[j]] <- 
-      coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
-              other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
-              ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-              ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
-              r9cesd_elevated, data = imputed_data)
-    
-    jmvn_model_list[[i]][["Elevated CES-D Count"]][[j]] <- 
-      coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-              other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-              ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-              ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-              total_elevated_cesd, data = imputed_data)
-    
-    jmvn_model_list[[i]][["Elevated Average CES-D"]][[j]] <- 
-      coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-              other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-              ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-              ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
-              avg_cesd_elevated, data = imputed_data)
+for(m in methods){
+  for(i in 1:length(mask_props)){
+    for(j in 1:num_impute){
+      imputations <- get(paste0("jmvn_mcar", mask_props[i]*100))
+      imputed_data = complete(imputations, action = j)
+      #transform back to original values
+      imputed_data[, paste0("r", seq(4, 9), "cesd")] <- 
+        round(exp(imputed_data[, paste0("logr", seq(4, 9), "cesd")]) - 1)
+      
+      #---- **E1a; E1b; E3 ----
+      imputed_data %<>% 
+        mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
+               "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+               "avg_cesd" = imputed_data %>% 
+                 dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+                 rowMeans(), 
+               "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+      
+      #---- **E2 ----
+      elevated_cesd <- imputed_data %>% 
+        dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
+      
+      elevated_cesd <- (elevated_cesd > 4)*1
+      
+      imputed_data %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+      
+      jmvn_model_list[[i]][["CES-D Wave 4"]][[j]] <- 
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+                r4cesd_elevated, data = imputed_data)
+      
+      jmvn_model_list[[i]][["CES-D Wave 9"]][[j]] <- 
+        coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
+                other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
+                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
+                r9cesd_elevated, data = imputed_data)
+      
+      jmvn_model_list[[i]][["Elevated CES-D Count"]][[j]] <- 
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+                total_elevated_cesd, data = imputed_data)
+      
+      jmvn_model_list[[i]][["Elevated Average CES-D"]][[j]] <- 
+        coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
+                other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
+                ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+                avg_cesd_elevated, data = imputed_data)
+    }
   }
+  
 }
 
 pooled_model_list <- 

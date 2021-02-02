@@ -50,7 +50,8 @@ table_effect_ests <-
              "Method" = c(rep("Truth", 4), rep(methods, each = 12)), 
              "Missingness" = c(rep("0%", 4), 
                                rep(rep(paste0(mask_props*100, "%"), each = 4), 
-                                   4)))
+                                   4)), 
+             "Missingness Type" = "MCAR")
 
 #---- truth ----
 #---- **CES-D Wave 4 ----

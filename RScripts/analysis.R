@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ghibli", 
-       "ResourceSelection", "survival", "openxlsx")
+       "ResourceSelection", "survival", "openxlsx", "miceadds")
 
 #No scientific notation
 options(scipen = 999)
@@ -216,6 +216,10 @@ for(prop in mask_props){
               predictorMatrix = predict, where = is.na(data), 
               blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
               seed = 20210126))
+  
+  #---- ***save results ----
+  saveRDS(get(paste0("jmvn_mcar", 100*prop)), 
+          file = here("MI datasets", paste0("jmvn_mcar", 100*prop)))
 }
 
 #---- **FCS ----
@@ -247,6 +251,10 @@ for(prop in mask_props){
               predictorMatrix = predict, where = is.na(data), 
               blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
               seed = 20210126))
+  
+  #---- ***save results ----
+  saveRDS(get(paste0("fcs_mcar", 100*prop)), 
+          file = here("MI datasets", paste0("fcs_mcar", 100*prop)))
 }
 
 #---- **JMVN long ----
@@ -393,6 +401,9 @@ for(m in methods[1:2]){
     }
   }
 }
+
+#---- save data objects ----
+
 
 #---- save tables ----
 #Round numbers in dataframe

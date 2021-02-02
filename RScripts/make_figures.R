@@ -33,7 +33,8 @@ CESD_data_wide <-
 
 for(method in tolower(methods)){
   for(prop in 100*mask_props){
-    readRDS(here("MI datasets", paste0(method, "_mcar", prop)))
+    assign(paste0(method, "_mcar", prop), 
+           readRDS(here("MI datasets", paste0(method, "_mcar", prop))))
   }
 }
 
@@ -77,10 +78,10 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
   
 #---- **individual imputations ----
 #---- ***fcs ----
-fcs_mean_imputation <- vector(mode = "list", length = 6)
-for(i in 1:length(fcs_mean_imputation)){
+fcs_mean_imputation_10 <- vector(mode = "list", length = 6)
+for(i in 1:length(fcs_mean_imputation_10)){
   wave = i + 3
-  fcs_mean_imputation[[i]] = 
+  fcs_mean_imputation_10[[i]] = 
     rowMeans((as.data.frame(fcs_mcar10$imp[[c(paste0("r", wave, "cesd"))]])) %>% 
                mutate_all(as.numeric))
 }

@@ -349,13 +349,18 @@ for(m in methods[1:2]){
 }
 
 pooled_model_list <- 
-  lapply(pooled_model_list <- vector(mode = "list", length(mask_props)),
-         function(x) x <- vector(mode = "list", 4)) 
+  lapply(pooled_model_list <- vector(mode = "list", length(methods)),
+         function(x) x <- lapply(x <- vector(mode = "list", length(mask_props)), 
+                                 function(x) x <- 
+                                   vector(mode = "list", length = 4)))
 
 #naming layers of list
-names(pooled_model_list) <- mask_props*100
+names(pooled_model_list) <- methods
 for(i in 1:length(pooled_model_list)){
-  names(pooled_model_list[[i]]) <- exposures
+  names(pooled_model_list[[i]]) <- 100*mask_props
+  for(j in 1:length(pooled_model_list[[i]])){
+    names(pooled_model_list[[i]][[j]]) <- exposures
+  }
 }
 
 for(i in as.character(mask_props*100)){

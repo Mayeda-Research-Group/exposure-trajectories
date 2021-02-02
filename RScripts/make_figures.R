@@ -1,3 +1,21 @@
+#---- package loading + options ----
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("here", "tidyverse", "ghibli", "openxlsx")
+
+#No scientific notation
+options(scipen = 999)
+
+#---- read in data ----
+#Changing directories here will change them throughout the script
+path_to_dropbox <- "~/Dropbox/Projects"
+
+table_effect_ests <- read.xlsx(paste0(path_to_dropbox, 
+                                      "/exposure_trajectories/manuscript/", 
+                                      "tables/main_text_tables.xlsx"))
+
 #---- diagnostics: trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
 # chainVar in imputation object. Right now not all the variables show in the 
@@ -10,21 +28,28 @@ dev.off()
 
 #---- visualizations ----
 #---- **effect estimates ----
-ggplot(table_effect_ests, 
-       aes(x = beta, y = as.factor(table_effect_ests$Missingness), 
-           color = Method, shape = Method)) +
-  geom_point(size = 4, position = position_dodge(0.70), 
-             alpha = rep(c(1, rep(0.3, 3), rep(1, 2)), 3)) + 
-  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .2, 
-                position = position_dodge(0.70), 
-                alpha = rep(c(1, rep(0.3, 3), rep(1, 2)), 3)) +
-  scale_color_hp_d(option = "LunaLovegood", begin = 0, end = 1) + 
-  scale_shape_manual(values = c("circle", rep("square", 5))) +
-  theme_minimal() + ylab(TeX("$\\widehat{\\bar{IRR}}_{women:men}$")) + 
-  theme(text = element_text(size = 14)) + 
-  geom_hline(yintercept = 1, linetype = "dashed", color = "black") + 
-  theme(legend.position = "bottom", legend.direction = "horizontal")  
+table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) %>% 
+  mutate("Missingness Type" = "MCAR")
+table_effect_ests$Method <- 
+  factor(table_effect_ests$Method, 
+         levels = c("Truth", "JMVN", "FCS", "JMVN Long", "FCS Long"))
 
+ggplot(table_effect_ests, 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 3.5, position = position_dodge(0.60)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .2, 
+                position = position_dodge(0.60)) + theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(`Missingness Type`), cols = vars(Exposure)) 
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests.jpeg"), device = "jpeg", 
+       dpi = 300, width = 9, height = 5, units = "in")
+  
 #---- ***individual imputations ----
 mean_imputation_mcar <- 
   lapply(mean_imputation_mcar <- vector(mode = "list", length(mask_props)),
@@ -102,15 +127,7 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 
 
 
-#---- ***trace plots ----
-#trace plots-- can plot these in ggplot if we want by accessing chainMean and 
-# chainVar in imputation object. Right now not all the variables show in the 
-# saved image
-png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-           "manuscript/figures/mcar10_fcs_traceplot.png"), 
-    width = 7, height = 4.5, units = "in", res = 300)
-plot(fcs)
-dev.off()
+
 
 #---- ***visualize imputations ----
 mean_imputation <- vector(mode = "list", length = 6)

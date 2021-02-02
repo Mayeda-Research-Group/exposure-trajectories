@@ -249,6 +249,12 @@ for(prop in mask_props){
               seed = 20210126))
 }
 
+#---- **JMVN long ----
+#Longitudinal joint multivariate normal model
+
+#---- **FCS long ----
+#Longitudinal fully conditional specification
+
 #---- diagnostics: trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
 # chainVar in imputation object. Right now not all the variables show in the 
@@ -525,12 +531,6 @@ pooled_models <- summary(pool(fcs_model_list))
 pt_ests <- exp(pooled_models$estimate)
 CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
                  pooled_models$estimate + pooled_models$std.error))
-
-#---- **JMVN long ----
-#Longitudinal joint multivariate normal model
-
-#---- **FCS long ----
-#Longitudinal fully conditional specification
 
 
 #---- save tables ----

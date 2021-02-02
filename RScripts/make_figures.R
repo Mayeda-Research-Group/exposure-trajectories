@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "ghibli", "openxlsx")
+p_load("here", "tidyverse", "ghibli", "openxlsx", "magrittr")
 
 #No scientific notation
 options(scipen = 999)
@@ -86,6 +86,8 @@ for(i in 1:length(fcs_mean_imputation_10)){
                mutate_all(as.numeric))
 }
 
+#Just do wave 4
+num_missing <- length(fcs_mean_imputation_10[[1]])
 plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
   set_colnames(c("Observed", "Imputed"))
 plot_data[, "Imputed"] <- unlist(mean_imputation)

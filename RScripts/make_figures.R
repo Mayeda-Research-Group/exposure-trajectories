@@ -1,3 +1,13 @@
+#---- diagnostics: trace plots ----
+#trace plots-- can plot these in ggplot if we want by accessing chainMean and 
+# chainVar in imputation object. Right now not all the variables show in the 
+# saved image
+png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+           "manuscript/figures/mcar10_jmvn_traceplot.png"), 
+    width = 7, height = 4.5, units = "in", res = 300)
+plot(jmvn10)
+dev.off()
+
 #---- visualizations ----
 #---- **effect estimates ----
 ggplot(table_effect_ests, 

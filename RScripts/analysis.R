@@ -363,24 +363,41 @@ for(i in 1:length(pooled_model_list)){
   }
 }
 
-for(i in as.character(mask_props*100)){
-  for(j in exposures){
-    pooled_model_list[[i]][[j]] <- 
-      summary(pool(jmvn_model_list[[i]][[j]]))
-  }
-} 
+for(m in methods[1:2]){
+  for(i in as.character(mask_props*100)){
+    for(j in exposures){
+      pooled_model_list[[m]][[i]][[j]] <- 
+        summary(pool(model_list[[m]][[i]][[j]]))
+    }
+  } 
+}
 
-for(prop in as.character(100*mask_props)){
-  for(exposure in exposures){
-    table_effect_ests
+for(m in methods[1:2]){
+  for(prop in as.character(100*mask_props)){
+    for(exposure in exposures){
+      last_term <- nrow(pooled_model_list[[m]][[prop]][[exposure]])
+      beta <- 
+        exp(pooled_model_list[[m]][[prop]][[exposure]]$estimate[last_term])
+      UCI <- 
+        exp(pooled_model_list[[m]][[prop]][[exposure]]$estimate[last_term] + 
+              pooled_model_list[[m]][[prop]][[exposure]]$std.error[last_term])
+      LCI <- 
+        exp(pooled_model_list[[m]][[prop]][[exposure]]$estimate[last_term] - 
+              pooled_model_list[[m]][[prop]][[exposure]]$std.error[last_term])
+      
+      table_effect_ests[which(table_effect_ests$Exposure == exposure & 
+                                table_effect_ests$Method == m & 
+                                table_effect_ests$Missingness == 
+                                paste0(prop, "%")), 
+                        c("beta", "LCI", "UCI")] <- c(beta, LCI, UCI)
+    }
   }
 }
 
-pt_ests <- exp(pooled_models$estimate)
-CIs <- exp(cbind(pooled_models$estimate - pooled_models$std.error, 
-                 pooled_models$estimate + pooled_models$std.error))
+#---- visualizations ----
+#---- **effect estimates ----
 
-#---- ***visualize imputations ----
+#---- ***individual imputations ----
 mean_imputation_mcar <- 
   lapply(mean_imputation_mcar <- vector(mode = "list", length(mask_props)),
          function(x) x <- lapply(x <- vector(mode = "list", 4),
@@ -453,6 +470,7 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
               "manuscript/figures/mcar10_jmvn_obs_pred.jpeg"), 
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
+#---- ***derived exposures ----
 
 
 

@@ -86,27 +86,40 @@ for(i in 1:length(fcs_mean_imputation_10)){
                mutate_all(as.numeric))
 }
 
-#Just do wave 4
-num_missing <- length(fcs_mean_imputation_10[[1]])
+#Do we want to stratify by wave?-- aggregate for now
+num_missing = 0
+for(i in 1:length(fcs_mean_imputation_10)){
+  num_missing = num_missing + length(fcs_mean_imputation_10[[i]])
+}
+
 plot_data <- as.data.frame(matrix(nrow = num_missing, ncol = 2)) %>% 
   set_colnames(c("Observed", "Imputed"))
-plot_data[, "Imputed"] <- unlist(mean_imputation)
+plot_data[, "Imputed"] <- unlist(fcs_mean_imputation_10)
 
-observed_data <- 
-  cbind(CESD_data_wide %>% 
-          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-          pivot_longer(everything(), names_to = "rwave", 
-                       values_to = "complete"), 
-        mcar10 %>% 
-          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-          pivot_longer(everything(), names_to = "rwave2", 
-                       values_to = "masked")) %>% 
-  arrange(rwave) %>% filter(is.na(masked))
+for(i in 4:9){
+  index <- as.numeric(rownames(fcs_mcar10[["imp"]][[paste0("r", i, "cesd")]]))
+  start <- min(which(is.na(plot_data$Observed)))
+  
+  plot_data[start:(start + length(index) - 1), "Observed"] <- 
+    CESD_data_wide[index, paste0("r", i, "cesd")]
+}
 
-plot_data[, "Observed"] <- observed_data$complete
+#plot
+ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
+  geom_point(color = "#B4DAE5FF") + 
+  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
+  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
+              size = 1) +
+  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
+                 "Imputation Strategy: Fully Conditional Specification")) + 
+  theme_minimal()  
 
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/mcar10_fcs_obs_pred.jpeg"), 
+       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 #---- **derived exposures ----
+
 
 
 
@@ -199,16 +212,4 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
 # tail(CESD_data_wide$r9cesd[as.numeric(names(mean_imputation[[6]]))])
 # tail(plot_data)
 
-#plot
-ggplot(data = plot_data, aes(x = Observed, y = Imputed)) + 
-  geom_point(color = "#B4DAE5FF") + 
-  geom_smooth(method = lm, se = FALSE, color = "#F0D77BFF") +
-  geom_abline(slope = 1, intercept = 0, color = "#5C5992FF", lty = "dashed", 
-              size = 1) +
-  ggtitle(paste0("Missingness Pattern: MCAR 10% \n", 
-                 "Imputation Strategy: Fully Conditional Specification")) + 
-  theme_minimal()  
 
-ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-              "manuscript/figures/mcar10_fcs_obs_pred.jpeg"), 
-       device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)

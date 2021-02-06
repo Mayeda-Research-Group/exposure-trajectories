@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -103,14 +103,21 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", seq(8, 13, by = 1), "bpsys"), 
                     paste0("r", seq(8, 13, by = 1), "bpdia"),
                     paste0("r", number_waves, "hibp"),
+                    paste0("r", number_waves, "hibpe"),
                     paste0("r", number_waves, "diab"),
                     paste0("r", number_waves, "diabe"),
                     paste0("r", number_waves, "cancr"),
+                    paste0("r", number_waves, "cancre"),
                     paste0("r", number_waves, "strok"), 
+                    paste0("r", number_waves, "stroke"),
                     paste0("r", number_waves, "heart"),
+                    paste0("r", number_waves, "hearte"),
                     paste0("r", number_waves, "lung"),
+                    paste0("r", number_waves, "lunge"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
+                    paste0("r", seq(4 ,9 , by = 1), "memrye"),
                     paste0("r", seq(2, 13, by = 1), "arthrs"),
+                    paste0("r", seq(2, 13, by = 1), "arthre"),
                     paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
@@ -490,76 +497,63 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
-#We're creating our own ever/never variables
 
-#---- ** diabetes ----
-hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
-                              c(paste0("diabetes_rx_insulin", seq(4, 9)), 
-                                paste0("diabetes_rx_swallowed", seq(4, 9))), 
-                              hrs_samp)
 
-# #Sanity check
-# for(var in c(paste0("r", seq(1, 13), "diab"),
-#              paste0("diabetes_rx_insulin", seq(4, 9)))){
-#   print(var)
-#   print(table(hrs_samp[, var], useNA = "ifany"))
-# }
+# #We're creating our own ever/never variables
+# 
+# #---- ** diabetes ----
+# hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
+#                               c(paste0("diabetes_rx_insulin", seq(4, 9)), 
+#                                 paste0("diabetes_rx_swallowed", seq(4, 9))), 
+#                               hrs_samp)
+# 
+# # #Sanity check
+# # for(var in c(paste0("r", seq(1, 13), "diab"),
+# #              paste0("diabetes_rx_insulin", seq(4, 9)))){
+# #   print(var)
+# #   print(table(hrs_samp[, var], useNA = "ifany"))
+# # }
+# 
+# #---- **high bp ----
+# hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"), 
+#                               paste0("bp_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **cancer ----
+# hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"), 
+#                               NA, hrs_samp)
+# 
+# #---- **lung ----
+# hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"), 
+#                               paste0("lung_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **heart ----
+# hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"), 
+#                               paste0("heart_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **stroke ----
+# hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"), 
+#                               paste0("stroke_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **arthritis ----
+# hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"), 
+#                               paste0("arthritis_rx", seq(4, 9)), hrs_samp)
+# ## arthritis is reported from wave 2 to wave 13.
+# 
+# #---- **memory ----
+# hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
+#                               NA, hrs_samp)
+# 
+# #---- sum of conditions ----
+# #We're going to create our own version of r[wave]conde from RAND, but ours will
+# #   not be wave-specific
+# cond_mat <- hrs_samp %>%
+#   dplyr::select(contains("ever")) 
+# 
+# #since ever_condition variables are used to derive new conde variable, 
+# #it should not vary across waves
+# hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE) 
 
-#---- **high bp ----
-hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"), 
-                              paste0("bp_rx", seq(4, 9)), hrs_samp)
 
-#---- **cancer ----
-hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"), 
-                              NA, hrs_samp)
-
-#---- **lung ----
-hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"), 
-                              paste0("lung_rx", seq(4, 9)), hrs_samp)
-
-#---- **heart ----
-hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"), 
-                              paste0("heart_rx", seq(4, 9)), hrs_samp)
-
-#---- **stroke ----
-hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"), 
-                              paste0("stroke_rx", seq(4, 9)), hrs_samp)
-
-#---- **arthritis ----
-hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"), 
-                              paste0("arthritis_rx", seq(4, 9)), hrs_samp)
-## arthritis is reported from wave 2 to wave 13.
-
-#---- **memory ----
-hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
-                              NA, hrs_samp)
-
-#---- sum of conditions ----
-#We're going to create our own version of r[wave]conde from RAND, but ours will
-#   not be wave-specific
-cond_mat <- hrs_samp %>%
-  dplyr::select(contains("ever")) 
-
-#since ever_condition variables are used to derive new conde variable, 
-#it should not vary across waves
-hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE) 
-
-#Sanity Check
-# proc_sum<-function(variable){
-#   var_naomit<-na.omit(variable) # remove missing values
-#   summ<-data.frame()# create vector to save info
-#   summ[1,1]<-length(var_naomit) # N
-#   summ[1,2]<-mean(var_naomit) # mean
-#   summ[1,3]<-median(var_naomit) # median
-#   summ[1,4]<-sd(var_naomit) # standard deviation
-#   summ[1,5]<-min(var_naomit) # minimum
-#   summ[1,6]<-max(var_naomit) # maximum
-#   summ[1,7]<-sum(is.na(variable)) # number of missing values
-#   names(summ)<-c("N","Mean","Median","Std",
-#                  "Minimum","Maximum","N_missing")
-#   return(round(summ,2))
-# }
-# proc_sum(hrs_samp$conde)
 
 #---- marital status ----
 # #Variable check

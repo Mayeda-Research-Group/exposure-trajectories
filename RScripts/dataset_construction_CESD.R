@@ -78,7 +78,7 @@ hrs_tracker <-
 ##         reports heart problems this wave，
 ##         report memory prob this wv(4-9), 
 ##         report lung disease this wv,
-##         report arthritis since last wv (2-13),
+##         No(report arthritis since last wv (2-13),)
 ##         count of chronic conditions
 ##         CESD (depression; from wave 2-13)
 ##         Self-reported health
@@ -117,8 +117,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "lunge"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
                     paste0("r", seq(4 ,9 , by = 1), "memrye"),
-                    paste0("r", seq(2, 13, by = 1), "arthrs"),
-                    paste0("r", seq(2, 13, by = 1), "arthre"),
+                    # paste0("r", seq(2, 13, by = 1), "arthrs"),
+                    # paste0("r", seq(2, 13, by = 1), "arthre"),
                     paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
@@ -176,7 +176,7 @@ for(i in 1:length(years)){
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3)))) 
+                     # paste0("arthritis_rx", (i + 3)))) 
   } else{
     dataframes_list[[i]] <-
       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
@@ -197,7 +197,7 @@ for(i in 1:length(years)){
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3))))
+                     # paste0("arthritis_rx", (i + 3))))
   }
 }
 
@@ -524,10 +524,10 @@ hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(4, 9), "hearte"),
 hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(4, 9), "stroke"),
                                      seq(4, 9), hrs_samp)
 
-#---- **arthritis ----
-hrs_samp <- 
-  impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
-                              seq(4, 9), hrs_samp)
+# #---- **arthritis ----
+# hrs_samp <- 
+#   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
+#                               seq(4, 9), hrs_samp)
 
 #---- **memory ----
 hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
@@ -841,9 +841,12 @@ hrs_samp %<>% filter(drop == 0)
 
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", c(4, 9), "_cat_impute"), "conde", 
-          paste0("ever_", c("mem", "arthritis", "stroke", "heart", "lung", 
-                           "cancer", "hibp", "diabetes")), "smoker", 
+          paste0("drinking", c(4, 9), "_cat_impute"), 
+          paste0("r", seq(4,9), 
+                 c("memrye", "stroke", "hearte", "lunge", 
+                          "cancre", "hibpe", "diabe", "conde"), 
+                 "_impute"),
+          "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
           paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 

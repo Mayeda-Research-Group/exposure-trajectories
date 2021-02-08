@@ -26,6 +26,7 @@ source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "measured_self_report.R"))
 source(here::here("RScripts", "read_da_dct.R"))
 source(here::here("Rscripts", "chronic_condition.R"))
+source(here::here("Rscripts", "impute_chronic_condition.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -497,14 +498,76 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
+# Imputing chronic conditions
 
+#---- ** diabetes ----
+hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(4,9), "diabe"),
+                              seq(4,9), hrs_samp)
 
-# #We're creating our own ever/never variables
-# 
-# #---- ** diabetes ----
-# hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"), 
-#                               c(paste0("diabetes_rx_insulin", seq(4, 9)), 
-#                                 paste0("diabetes_rx_swallowed", seq(4, 9))), 
+#---- **high bp ----
+hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(4, 9), "hibpe"),
+                             seq(4, 9), hrs_samp)
+
+#---- **cancer ----
+hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(4, 9), "cancre"),
+                                     seq(4, 9), hrs_samp)
+
+#---- **lung ----
+hrs_samp <- impute_chronic_condition("lunge", paste0("r", seq(4, 9), "lunge"),
+                                     seq(4, 9), hrs_samp)
+
+#---- **heart ----
+hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(4, 9), "hearte"),
+                                     seq(4, 9), hrs_samp)
+
+#---- **stroke ----
+hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(4, 9), "stroke"),
+                                     seq(4, 9), hrs_samp)
+
+#---- **arthritis ----
+hrs_samp <- 
+  impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
+                              seq(4, 9), hrs_samp)
+
+#---- **memory ----
+hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
+                                     seq(4, 9), hrs_samp)
+
+#sanity check
+# table(hrs_samp$r5memrye_impute, hrs_samp$r5memrye, useNA = "ifany")
+# table(hrs_samp$r6memrye_impute, hrs_samp$r6memrye, useNA = "ifany")
+# table(hrs_samp$r7memrye_impute, hrs_samp$r7memrye, useNA = "ifany")
+# table(hrs_samp$r8memrye_impute, hrs_samp$r8memrye, useNA = "ifany")
+# table(hrs_samp$r9memrye_impute, hrs_samp$r9memrye, useNA = "ifany")
+# View(hrs_samp %>% dplyr::select(contains(paste0("r", seq(4, 9), "memrye")),
+#                              -contains("rx"))%>%
+#        filter(!rowSums(is.na(.)) == 0))
+
+#---- sum of conditions ----
+# wave-specific r(wave)conde
+cond_mat <- hrs_samp %>%
+  dplyr::select(contains("_impute"))
+waves <- seq(4,9)
+  for(j in 1:length(waves)){
+    wave <- waves[j] 
+     cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
+       rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
+               na.rm = TRUE)
+  }
+# Pending
+# There's an extra rNAconde_impute in the cond_mat, didn't figure this out yet.
+
+hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute"), 
+                    -contains("NA")))] <- 
+  cond_mat %>% select(contains("conde_impute"), -contains("NA"))
+
+# view(hrs_samp %>% select(contains("conde_impute")))
+
+# # #---- Old code chunk
+# # #---- ** diabetes ----
+# hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
+#                               c(paste0("diabetes_rx_insulin", seq(4, 9)),
+#                                 paste0("diabetes_rx_swallowed", seq(4, 9))),
 #                               hrs_samp)
 # 
 # # #Sanity check
@@ -515,43 +578,43 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # # }
 # 
 # #---- **high bp ----
-# hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"), 
+# hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"),
 #                               paste0("bp_rx", seq(4, 9)), hrs_samp)
 # 
 # #---- **cancer ----
-# hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"), 
+# hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"),
 #                               NA, hrs_samp)
 # 
 # #---- **lung ----
-# hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"), 
+# hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"),
 #                               paste0("lung_rx", seq(4, 9)), hrs_samp)
 # 
 # #---- **heart ----
-# hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"), 
+# hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"),
 #                               paste0("heart_rx", seq(4, 9)), hrs_samp)
 # 
 # #---- **stroke ----
-# hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"), 
+# hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"),
 #                               paste0("stroke_rx", seq(4, 9)), hrs_samp)
 # 
 # #---- **arthritis ----
-# hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"), 
+# hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"),
 #                               paste0("arthritis_rx", seq(4, 9)), hrs_samp)
 # ## arthritis is reported from wave 2 to wave 13.
 # 
 # #---- **memory ----
-# hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"), 
+# hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"),
 #                               NA, hrs_samp)
 # 
 # #---- sum of conditions ----
 # #We're going to create our own version of r[wave]conde from RAND, but ours will
 # #   not be wave-specific
 # cond_mat <- hrs_samp %>%
-#   dplyr::select(contains("ever")) 
+#   dplyr::select(contains("ever"))
 # 
-# #since ever_condition variables are used to derive new conde variable, 
+# #since ever_condition variables are used to derive new conde variable,
 # #it should not vary across waves
-# hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE) 
+# hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
 
 
 

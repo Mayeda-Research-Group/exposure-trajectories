@@ -176,7 +176,8 @@ for(i in 1:length(years)){
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3)), 
-                     # paste0("arthritis_rx", (i + 3)))) 
+                     paste0("arthritis_rx", (i + 3))
+                     )) 
   } else{
     dataframes_list[[i]] <-
       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
@@ -197,7 +198,8 @@ for(i in 1:length(years)){
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3)), 
-                     # paste0("arthritis_rx", (i + 3))))
+                     paste0("arthritis_rx", (i + 3))
+                     ))
   }
 }
 
@@ -546,7 +548,8 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 #---- sum of conditions ----
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
-  dplyr::select(contains("_impute"))
+  dplyr::select(contains("_impute"), -contains("drinking"))
+
 waves <- seq(4,9)
   for(j in 1:length(waves)){
     wave <- waves[j] 
@@ -554,12 +557,9 @@ waves <- seq(4,9)
        rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
                na.rm = TRUE)
   }
-# Pending
-# There's an extra rNAconde_impute in the cond_mat, didn't figure this out yet.
 
-hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute"), 
-                    -contains("NA")))] <- 
-  cond_mat %>% select(contains("conde_impute"), -contains("NA"))
+hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <- 
+  cond_mat %>% select(contains("conde_impute"))
 
 # view(hrs_samp %>% select(contains("conde_impute")))
 
@@ -842,10 +842,14 @@ hrs_samp %<>% filter(drop == 0)
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
           paste0("drinking", c(4, 9), "_cat_impute"), 
-          paste0("r", seq(4,9), 
-                 c("memrye", "stroke", "hearte", "lunge", 
-                          "cancre", "hibpe", "diabe", "conde"), 
-                 "_impute"),
+          paste0("r", seq(4, 9), "memrye", "_impute"),
+          paste0("r", seq(4, 9), "stroke", "_impute"),
+          paste0("r", seq(4, 9), "hearte", "_impute"),
+          paste0("r", seq(4, 9), "lunge", "_impute"),
+          paste0("r", seq(4, 9), "cancre", "_impute"),
+          paste0("r", seq(4, 9), "hibpe", "_impute"),
+          paste0("r", seq(4, 9), "diabe", "_impute"),
+          paste0("r", seq(4, 9), "conde", "_impute"),
           "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 

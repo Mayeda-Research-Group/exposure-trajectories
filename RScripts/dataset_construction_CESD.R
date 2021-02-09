@@ -679,6 +679,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
 # table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
+# table(hrs_samp$r4mstat_cat, hrs_samp$r9mstat_cat)
 
 #---- drinking ----
 drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*

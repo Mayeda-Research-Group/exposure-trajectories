@@ -1,4 +1,5 @@
-mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
+mask_impute <- 
+  function(data_wide, mechanism, mask_props, num_impute, save = "no"){
   #---- create incomplete data ----
   if(mechanism == "MCAR"){
     #---- **MCAR ----
@@ -98,9 +99,11 @@ mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
                 seed = 20210126))
     
     #---- ***save results ----
-    saveRDS(get(paste0("impute", 100*prop)), 
-            file = here::here("MI datasets", 
-                              paste0("jmvn_", tolower(mechanism), 100*prop)))
+    if(save == "yes"){
+      saveRDS(get(paste0("impute", 100*prop)), 
+              file = here::here("MI datasets", 
+                                paste0("jmvn_", tolower(mechanism), 100*prop)))
+    }
   }
   
   #---- **FCS ----
@@ -136,9 +139,11 @@ mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
                 seed = 20210126))
     
     #---- ***save results ----
-    saveRDS(get(paste0("impute", 100*prop)), 
-            file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
-                                                    100*prop)))
+    if(save == "yes"){
+      saveRDS(get(paste0("impute", 100*prop)), 
+              file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
+                                                      100*prop)))
+    }
   }
   
   #---- **JMVN long ----

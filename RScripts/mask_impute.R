@@ -105,9 +105,10 @@ mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
   
   #---- **FCS ----
   #---- ***predictor matrix ----
-  predict <- matrix(1, nrow = 6, ncol = ncol(mcar10)) %>% 
+  predict <- 
+    matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
     set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
-    set_colnames(colnames(mcar10))
+    set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
   #Don't use these as predictors
   predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
               paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
@@ -126,17 +127,18 @@ mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
   
   #---- ***run imputation ----
   for(prop in mask_props){
-    data <- get(paste0("mcar", 100*prop))
+    data <- get(paste0("mask", 100*prop))
     data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-    assign(paste0("fcs_mcar", 100*prop), 
+    assign(paste0("impute", 100*prop), 
            mice(data = data, m = num_impute, method = "polr", 
                 predictorMatrix = predict, where = is.na(data), 
                 blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
                 seed = 20210126))
     
     #---- ***save results ----
-    saveRDS(get(paste0("fcs_mcar", 100*prop)), 
-            file = here("MI datasets", paste0("fcs_mcar", 100*prop)))
+    saveRDS(get(paste0("impute", 100*prop)), 
+            file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
+                                                    100*prop)))
   }
   
   #---- **JMVN long ----

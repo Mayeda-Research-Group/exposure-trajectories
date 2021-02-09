@@ -721,28 +721,28 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # table(hrs_samp$drinking4_cat, useNA = "ifany")
 # table(hrs_samp$drinking9_cat, useNA = "ifany")
 
-#Impute drinking4_cat and drinking9_cat with closest non-missing values
-hrs_samp %<>% 
-  mutate("drinking4_cat_impute" = 
-           ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
-  mutate("drinking4_cat_impute" = 
-           ifelse(is.na(drinking4_cat_impute), 
-                  hrs_samp %>% 
-                    dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
-                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-                  drinking4_cat_impute)) %>% 
-  mutate("drinking9_cat_impute" = 
-           ifelse(is.na(drinking9_cat), 
-                  hrs_samp %>% 
-                    dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
-                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
-                  drinking9_cat)) %>% 
-  mutate("drinking9_cat_impute" = 
-           ifelse(is.na(drinking9_cat_impute), 
-                  hrs_samp %>% 
-                    dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
-                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-                  drinking9_cat_impute))
+# #Impute drinking4_cat and drinking9_cat with closest non-missing values
+# hrs_samp %<>% 
+#   mutate("drinking4_cat_impute" = 
+#            ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
+#   mutate("drinking4_cat_impute" = 
+#            ifelse(is.na(drinking4_cat_impute), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+#                   drinking4_cat_impute)) %>% 
+#   mutate("drinking9_cat_impute" = 
+#            ifelse(is.na(drinking9_cat), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
+#                     apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+#                   drinking9_cat)) %>% 
+#   mutate("drinking9_cat_impute" = 
+#            ifelse(is.na(drinking9_cat_impute), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+#                   drinking9_cat_impute))
 
 # #Sanity check
 # View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))))

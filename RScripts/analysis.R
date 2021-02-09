@@ -45,13 +45,15 @@ methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
 mask_props <- c(.10, .25, .50)
 
 table_effect_ests <- 
-  data.frame("Exposure" = rep(exposures, 13),
+  data.frame("Exposure" = rep(rep(exposures, 13), 3),
              "beta" = NA, "LCI" = NA, "UCI" = NA, 
-             "Method" = c(rep("Truth", 4), rep(methods, each = 12)), 
-             "Missingness" = c(rep("0%", 4), 
+             "Method" = rep(c(rep("Truth", 4), rep(methods, each = 12)), 3), 
+             "Missingness" = rep(c(rep("0%", 4), 
                                rep(rep(paste0(mask_props*100, "%"), each = 4), 
-                                   4)), 
-             "Missingness Type" = "MCAR")
+                                   4)), 3), 
+             "Type" = c(c(rep("Truth", 4), rep("MCAR", 48)), 
+                        c(rep("Truth", 4), rep("MAR", 48)), 
+                        c(rep("Truth", 4), rep("NMAR", 48))))
 
 #---- truth ----
 #---- **CES-D Wave 4 ----

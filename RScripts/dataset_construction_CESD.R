@@ -502,7 +502,7 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
-#Check variability of chronic conditions
+#Check missingness in wave-updated ever/never chronic conditions
 conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
                 "memrye")
 
@@ -511,6 +511,13 @@ for(condition in conditions){
   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition))
   counts <- rowSums(is.na(subset))
   print(table(counts, useNA = "ifany"))
+}
+
+#Check variability in chronic conditions
+for(condition in conditions){
+  print(condition)
+  subset <- hrs_samp %>% dplyr::select(paste0("r", c(4, 9), condition))
+  print(table(subset[, 1], subset[, 2]))
 }
 
 # # Imputing chronic conditions
@@ -629,27 +636,25 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 # #it should not vary across waves
 # hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
 
-
-
 #---- marital status ----
 # #Variable check
 # table(hrs_samp$r4mstat, useNA = "ifany")
 # table(hrs_samp$r9mstat, useNA = "ifany")
 
-#Impute r4mstat with closest non-missing value
-hrs_samp %<>% 
-  mutate("r4mstat_impute" = 
-           ifelse(is.na(r4mstat), 
-                  hrs_samp %>% 
-                    dplyr::select(paste0("r", seq(1, 3), "mstat")) %>% 
-                    apply(., 1, function(x) x[max(which(!is.na(x)))]), 
-                  r4mstat)) %>% 
-  mutate("r4mstat_impute" = 
-           ifelse(is.na(r4mstat_impute), 
-                  hrs_samp %>% 
-                    dplyr::select(paste0("r", seq(5, 13), "mstat")) %>% 
-                    apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-                  r4mstat_impute))
+# #Impute r4mstat with closest non-missing value
+# hrs_samp %<>% 
+#   mutate("r4mstat_impute" = 
+#            ifelse(is.na(r4mstat), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("r", seq(1, 3), "mstat")) %>% 
+#                     apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+#                   r4mstat)) %>% 
+#   mutate("r4mstat_impute" = 
+#            ifelse(is.na(r4mstat_impute), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("r", seq(5, 13), "mstat")) %>% 
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+#                   r4mstat_impute))
 
 # #Sanity check
 # sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)

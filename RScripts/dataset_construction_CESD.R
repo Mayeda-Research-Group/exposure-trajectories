@@ -117,6 +117,8 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "lunge"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
                     paste0("r", seq(4 ,9 , by = 1), "memrye"),
+                    #We don't think this is an important confounder of 
+                    # CESD --> Mortality
                     # paste0("r", seq(2, 13, by = 1), "arthrs"),
                     # paste0("r", seq(2, 13, by = 1), "arthre"),
                     paste0("r", number_waves, "conde"),

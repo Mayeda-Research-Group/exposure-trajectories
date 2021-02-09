@@ -502,40 +502,51 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
-# Imputing chronic conditions
+#Check variability of chronic conditions
+conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
+                "memrye")
 
-#---- ** diabetes ----
-hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(4,9), "diabe"),
-                              seq(4,9), hrs_samp)
+for(condition in conditions){
+  print(condition)
+  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition))
+  counts <- rowSums(is.na(subset))
+  print(table(counts, useNA = "ifany"))
+}
 
-#---- **high bp ----
-hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(4, 9), "hibpe"),
-                             seq(4, 9), hrs_samp)
-
-#---- **cancer ----
-hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(4, 9), "cancre"),
-                                     seq(4, 9), hrs_samp)
-
-#---- **lung ----
-hrs_samp <- impute_chronic_condition("lunge", paste0("r", seq(4, 9), "lunge"),
-                                     seq(4, 9), hrs_samp)
-
-#---- **heart ----
-hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(4, 9), "hearte"),
-                                     seq(4, 9), hrs_samp)
-
-#---- **stroke ----
-hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(4, 9), "stroke"),
-                                     seq(4, 9), hrs_samp)
-
-# #---- **arthritis ----
-# hrs_samp <- 
-#   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
-#                               seq(4, 9), hrs_samp)
-
-#---- **memory ----
-hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
-                                     seq(4, 9), hrs_samp)
+# # Imputing chronic conditions
+# 
+# #---- ** diabetes ----
+# hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(4,9), "diabe"),
+#                               seq(4,9), hrs_samp)
+# 
+# #---- **high bp ----
+# hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(4, 9), "hibpe"),
+#                              seq(4, 9), hrs_samp)
+# 
+# #---- **cancer ----
+# hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(4, 9), "cancre"),
+#                                      seq(4, 9), hrs_samp)
+# 
+# #---- **lung ----
+# hrs_samp <- impute_chronic_condition("lunge", paste0("r", seq(4, 9), "lunge"),
+#                                      seq(4, 9), hrs_samp)
+# 
+# #---- **heart ----
+# hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(4, 9), "hearte"),
+#                                      seq(4, 9), hrs_samp)
+# 
+# #---- **stroke ----
+# hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(4, 9), "stroke"),
+#                                      seq(4, 9), hrs_samp)
+# 
+# # #---- **arthritis ----
+# # hrs_samp <- 
+# #   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
+# #                               seq(4, 9), hrs_samp)
+# 
+# #---- **memory ----
+# hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
+#                                      seq(4, 9), hrs_samp)
 
 #sanity check
 # table(hrs_samp$r5memrye_impute, hrs_samp$r5memrye, useNA = "ifany")

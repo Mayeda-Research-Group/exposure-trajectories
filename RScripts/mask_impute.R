@@ -1,4 +1,4 @@
-mask_impute <- function(data_wide, mechanism, mask_props){
+mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
   #---- create incomplete data ----
   if(mechanism == "MCAR"){
     #---- **MCAR ----
@@ -62,7 +62,7 @@ mask_impute <- function(data_wide, mechanism, mask_props){
   }
   
   #---- imputation ----
-  num_impute <- 5
+  num_impute <- num_impute
   
   #---- **JMVN ----
   #Joint multivariate normal

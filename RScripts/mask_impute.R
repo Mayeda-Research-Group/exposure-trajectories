@@ -53,12 +53,12 @@ mask_impute <- function(data_wide, mechanism, mask_props, num_impute){
   #---- transformations ----
   #Taking the log for joint MNV models
   for(prop in mask_props){
-    data <- get(paste0("mcar", 100*prop))
+    data <- get(paste0(tolower(mechanism), 100*prop))
     for(wave in 4:9){
       data[, paste0("logr", wave, "cesd")] <- 
         log(1 + data[, paste0("r", wave, "cesd")])
     }
-    assign(paste0("mcar", 100*prop), data)
+    assign(paste0(tolower(mechanism), 100*prop), data)
   }
   
   #---- imputation ----

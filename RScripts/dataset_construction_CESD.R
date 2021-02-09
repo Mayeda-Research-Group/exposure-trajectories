@@ -750,6 +750,7 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 #        filter(is.na(drinking4_cat) | is.na(drinking9_cat)))
 # table(hrs_samp$drinking4_cat_impute, useNA = "ifany")
 # table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
+# table(hrs_samp$drinking4_cat, hrs_samp$drinking9_cat)
 
 #Drop the one person who has no information on drinking behavior
 hrs_samp %<>% filter(!is.na(drinking4_cat_impute))

@@ -128,6 +128,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
                             c("estimate", "conf.low", "conf.high")])
 
+#---- create imputed datasets ----
+mask_impute(CESD_data_wide, "MCAR", mask_props, num_impute = 5)
 
 #---- save tables ----
 #Round numbers in dataframe

@@ -92,7 +92,7 @@ mask_impute <-
   #---- ***run imputation ----
   for(prop in mask_props){
     data <- get(paste0("mask", 100*prop))
-    assign(paste0("impute", 100*prop), 
+    assign(paste0("jmvn_impute", 100*prop), 
            mice(data = data, m = num_impute, method = "norm", 
                 predictorMatrix = predict, where = is.na(data), 
                 blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
@@ -100,7 +100,7 @@ mask_impute <-
     
     #---- ***save results ----
     if(save == "yes"){
-      saveRDS(get(paste0("impute", 100*prop)), 
+      saveRDS(get(paste0("jmvn_impute", 100*prop)), 
               file = here::here("MI datasets", 
                                 paste0("jmvn_", tolower(mechanism), 100*prop)))
     }
@@ -132,7 +132,7 @@ mask_impute <-
   for(prop in mask_props){
     data <- get(paste0("mask", 100*prop))
     data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-    assign(paste0("impute", 100*prop), 
+    assign(paste0("fcs_impute", 100*prop), 
            mice(data = data, m = num_impute, method = "polr", 
                 predictorMatrix = predict, where = is.na(data), 
                 blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
@@ -140,7 +140,7 @@ mask_impute <-
     
     #---- ***save results ----
     if(save == "yes"){
-      saveRDS(get(paste0("impute", 100*prop)), 
+      saveRDS(get(paste0("fcs_impute", 100*prop)), 
               file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
                                                       100*prop)))
     }

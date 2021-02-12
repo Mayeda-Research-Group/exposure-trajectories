@@ -28,14 +28,18 @@ impute_chronic_condition <-
 
 
 # Test
-# test2 <- impute_chronic_condition("diabe", paste0("r", seq(4, 9), "diabe"),
-#                                    seq(4, 9), hrs_samp)
+# test2 <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
+#                                    seq(1, 9), hrs_samp)
+# table(test2$r1diabe_impute, test2$r1diabe, useNA = "ifany")
+# table(test2$r2diabe_impute, test2$r2diabe, useNA = "ifany")
+# table(test2$r3diabe_impute, test2$r3diabe, useNA = "ifany")
+# table(test2$r4diabe_impute, test2$r4diabe, useNA = "ifany")
 # table(test2$r5diabe_impute, test2$r5diabe, useNA = "ifany")
 # table(test2$r6diabe_impute, test2$r6diabe, useNA = "ifany")
 # table(test2$r7diabe_impute, test2$r7diabe, useNA = "ifany")
 # table(test2$r8diabe_impute, test2$r8diabe, useNA = "ifany")
 # table(test2$r9diabe_impute, test2$r9diabe, useNA = "ifany")
-# View(test2 %>% dplyr::select(contains(paste0("r", seq(4, 9), "diabe")), 
+# View(test2 %>% dplyr::select(contains(paste0("r", seq(1, 9), "diabe")),
 #                              -contains("rx"))%>%
 #        filter(!rowSums(is.na(.)) == 0))
 # 

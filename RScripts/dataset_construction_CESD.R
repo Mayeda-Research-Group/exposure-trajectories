@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -520,40 +520,41 @@ for(condition in conditions){
   print(table(subset[, 1], subset[, 2]))
 }
 
-# # Imputing chronic conditions
-# 
-# #---- ** diabetes ----
-# hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(4,9), "diabe"),
-#                               seq(4,9), hrs_samp)
-# 
-# #---- **high bp ----
-# hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(4, 9), "hibpe"),
-#                              seq(4, 9), hrs_samp)
-# 
-# #---- **cancer ----
-# hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(4, 9), "cancre"),
-#                                      seq(4, 9), hrs_samp)
-# 
-# #---- **lung ----
-# hrs_samp <- impute_chronic_condition("lunge", paste0("r", seq(4, 9), "lunge"),
-#                                      seq(4, 9), hrs_samp)
-# 
-# #---- **heart ----
-# hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(4, 9), "hearte"),
-#                                      seq(4, 9), hrs_samp)
-# 
-# #---- **stroke ----
-# hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(4, 9), "stroke"),
-#                                      seq(4, 9), hrs_samp)
-# 
-# # #---- **arthritis ----
-# # hrs_samp <- 
-# #   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
-# #                               seq(4, 9), hrs_samp)
-# 
-# #---- **memory ----
-# hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
-#                                      seq(4, 9), hrs_samp)
+# Imputing chronic conditions
+
+#---- ** diabetes ----
+hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1,9), "diabe"),
+                              seq(1,9), hrs_samp)
+
+#---- **high bp ----
+hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(1, 9), "hibpe"),
+                             seq(1, 9), hrs_samp)
+
+#---- **cancer ----
+hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(1, 9), "cancre"),
+                                     seq(1, 9), hrs_samp)
+
+#---- **lung ----
+hrs_samp <- impute_chronic_condition("lunge", paste0("r", seq(1, 9), "lunge"),
+                                     seq(1, 9), hrs_samp)
+
+#---- **heart ----
+hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(1, 9), "hearte"),
+                                     seq(1, 9), hrs_samp)
+
+#---- **stroke ----
+hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(1, 9), "stroke"),
+                                     seq(1, 9), hrs_samp)
+
+# #---- **arthritis ----
+# hrs_samp <-
+#   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
+#                               seq(4, 9), hrs_samp)
+
+#---- **memory ----
+hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
+                                     seq(4, 9), hrs_samp)
+# For memory problems, data starts from wave 4.
 
 #sanity check
 # table(hrs_samp$r5memrye_impute, hrs_samp$r5memrye, useNA = "ifany")
@@ -570,7 +571,7 @@ for(condition in conditions){
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"), -contains("drinking"))
 
-waves <- seq(4,9)
+waves <- seq(1,9)
   for(j in 1:length(waves)){
     wave <- waves[j] 
      cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
@@ -581,7 +582,7 @@ waves <- seq(4,9)
 hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <- 
   cond_mat %>% select(contains("conde_impute"))
 
-# view(hrs_samp %>% select(contains("conde_impute")))
+ # view(hrs_samp %>% select(contains("conde_impute")))
 
 # # #---- Old code chunk
 # # #---- ** diabetes ----

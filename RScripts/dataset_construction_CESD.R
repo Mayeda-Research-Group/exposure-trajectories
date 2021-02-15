@@ -579,11 +579,10 @@ for(condition in conditions){
 
 
 #---- sum of conditions ----
+
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"), -contains("drinking"))
-
-
 
 waves <- seq(1,9)
   for(j in 1:length(waves)){

@@ -655,20 +655,27 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 # table(hrs_samp$r4mstat, useNA = "ifany")
 # table(hrs_samp$r9mstat, useNA = "ifany")
 
-# #Impute r4mstat with closest non-missing value
-# hrs_samp %<>% 
-#   mutate("r4mstat_impute" = 
-#            ifelse(is.na(r4mstat), 
-#                   hrs_samp %>% 
-#                     dplyr::select(paste0("r", seq(1, 3), "mstat")) %>% 
-#                     apply(., 1, function(x) x[max(which(!is.na(x)))]), 
-#                   r4mstat)) %>% 
-#   mutate("r4mstat_impute" = 
-#            ifelse(is.na(r4mstat_impute), 
-#                   hrs_samp %>% 
-#                     dplyr::select(paste0("r", seq(5, 13), "mstat")) %>% 
-#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-#                   r4mstat_impute))
+# Impute mstat with closest non-missing value
+hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
+                            seq(1, 13), seq(4, 9),  hrs_samp)
+# 
+
+# Old code chunk for mstat
+#Impute r4mstat with closest non-missing value
+# hrs_samp %<>%
+#   mutate("r4mstat_impute" =
+#            ifelse(is.na(r4mstat),
+#                   hrs_samp %>%
+#                     dplyr::select(paste0("r", seq(1, 3), "mstat")) %>%
+#                     apply(., 1, function(x) x[max(which(!is.na(x)))]),
+#                   r4mstat)) %>%
+#   mutate("r4mstat_impute" =
+#            ifelse(is.na(r4mstat_impute),
+#                   hrs_samp %>%
+#                     dplyr::select(paste0("r", seq(5, 13), "mstat")) %>%
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]),
+#                   r4mstat_impute)) %>%
+
 
 # #Sanity check
 # sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
@@ -680,15 +687,23 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 #                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
   
 #Create marital status categories
-hrs_samp %<>% 
-  mutate("r9mstat_cat" = 
-           case_when(r9mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
-                     r9mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-                     r9mstat == 7 ~ "Widowed"), 
-         "r4mstat_cat" = 
-           case_when(r4mstat %in% c(1, 2, 3) ~ "Married/Partnered", 
-                     r4mstat %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-                     r4mstat == 7 ~ "Widowed"))
+mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
+
+for(j in 1:ncol(mstat_mat)){
+  mstat_mat[, ] <-
+    case_when(mstat_mat[, j] %in% c(1, 2, 3) ~ "Married/Partnered", 
+              mstat_mat[, j] %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
+              mstat_mat[, j] == 7 ~ "Widowed")
+}
+
+# unique(mstat_mat$r9mstat_impute)
+
+hrs_samp[, colnames(mstat_mat)] <- mstat_mat
+
+# Drop anyone missing marital status for waves 5-8
+subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute"))
+
+hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
 # #Sanity check
 # table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")

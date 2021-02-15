@@ -30,7 +30,7 @@ CESD_data <-
                             black = col_factor(), other = col_factor(), 
                             smoker = col_integer()))
 #---- Label the data ----
-colnames(CESD_data)
+# colnames(CESD_data)
 
 CESD_data %<>% 
   mutate("raceeth" = case_when(hispanic == 0 & white == 1 ~ "Non-hispanic White",
@@ -57,6 +57,7 @@ CESD_data %<>%
     r4shlt = "Self-reported health",
     r4cesd = "CESD score"
   ) %>%
+  drop_unused_value_labels() %>%
   set_value_labels(female = c("Female" = 1, "Male" = 0),
                    r4hibpe_impute = c("Yes" = 1, "No" = 0),
                    r4diabe_impute = c("Yes" = 1, "No" = 0),
@@ -73,9 +74,7 @@ CESD_data %<>%
                               "Fair" = 4, "Poor" = 5)) %>%
   modify_if(is.labelled, to_factor)
 
-table(CESD_data$drinking4_cat_impute)
-
-table1(~ r4age_y_int + female + #raceeth + 
+table1(~ r4age_y_int + female + raceeth + 
          ed_cat + r4mstat_cat + 
          r4hibpe_impute + r4diabe_impute + r4hearte_impute + r4stroke_impute + 
          r4cancre_impute + r4lunge_impute + r4memrye_impute +

@@ -53,3 +53,45 @@ impute_chronic_condition <-
 # View(test3 %>% dplyr::select(contains(paste0("r", seq(4, 9), "hibpe")),
 #                              -contains("rx"))%>%
 #        filter(!rowSums(is.na(.)) == 0))
+
+impute_status <- function(status, status_vars, waves, impute_waves, dataset) {
+  # getting the subset
+  subset <- dataset %>%
+    dplyr::select(all_of(status_vars))
+  
+  for(j in 1:length(impute_waves)){
+    imp_wave <- impute_waves[j] 
+    subset[, paste0("r", imp_wave, status, "_impute")] <- 
+        ifelse(is.na(subset[, paste0("r", imp_wave, status)]), 
+               subset %>% 
+                 dplyr::select(paste0("r", waves[1:imp_wave - 1], status)) %>%
+                 apply(., 1, function(x) x[max(which(!is.na(x)))]),
+               subset[, paste0("r", imp_wave, status)])
+      subset[, paste0("r", imp_wave, status, "_impute")] <-
+        ifelse(is.na(subset[, paste0("r", imp_wave, status, "_impute")]),
+               subset %>% 
+                 dplyr::select(
+                   paste0("r", (imp_wave + 1):length(waves), status)) %>%
+                 apply(., 1, function(x) x[min(which(!is.na(x)))]),
+               subset[, paste0("r", imp_wave, status, "_impute")])
+    }
+  subset %<>% select(contains("impute"))
+  dataset[, colnames(subset)] <- subset
+  return(dataset)
+}
+
+# Test
+# test <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
+#                                    seq(1, 13), seq(4, 9),  hrs_samp)
+# sum(test$r4mstat != test$r4mstat_impute, na.rm = TRUE)
+# View(test %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
+#                      "r4mstat_impute"))
+# View(test %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
+#                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
+# View(test %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
+#                      "r5mstat_impute") %>% filter(is.na(r5mstat)))
+
+

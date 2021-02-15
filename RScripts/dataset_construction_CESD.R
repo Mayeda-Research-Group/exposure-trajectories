@@ -502,23 +502,23 @@ hrs_samp %<>%
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- chronic conditions ----
-#Check missingness in wave-updated ever/never chronic conditions
-conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
-                "memrye")
-
-for(condition in conditions){
-  print(condition)
-  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition))
-  counts <- rowSums(is.na(subset))
-  print(table(counts, useNA = "ifany"))
-}
-
-#Check variability in chronic conditions
-for(condition in conditions){
-  print(condition)
-  subset <- hrs_samp %>% dplyr::select(paste0("r", c(4, 9), condition))
-  print(table(subset[, 1], subset[, 2]))
-}
+# #Check missingness in wave-updated ever/never chronic conditions
+# conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
+#                 "memrye")
+# 
+# for(condition in conditions){
+#   print(condition)
+#   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition))
+#   counts <- rowSums(is.na(subset))
+#   print(table(counts, useNA = "ifany"))
+# }
+# view(hrs_samp[hrs_samp$r5hibpe == 6, c("HHIDPN", colnames(cond_mat))])
+# #Check variability in chronic conditions
+# for(condition in conditions){
+#   print(condition)
+#   subset <- hrs_samp %>% dplyr::select(paste0("r", c(4, 9), condition))
+#   print(table(subset[, 1], subset[, 2]))
+# }
 
 # Imputing chronic conditions
 
@@ -556,25 +556,39 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
                                      seq(4, 9), hrs_samp)
 # For memory problems, data starts from wave 4.
 
+# Drop people missing information for wave-updated ever/never chronic condition
+# at all 6 waves
+conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
+                "memrye")
+
+for(condition in conditions){
+  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
+                                              "_impute"))
+  hrs_samp %<>% filter(rowSums(is.na(subset)) != 6)
+}
+
 #sanity check
-# table(hrs_samp$r5memrye_impute, hrs_samp$r5memrye, useNA = "ifany")
-# table(hrs_samp$r6memrye_impute, hrs_samp$r6memrye, useNA = "ifany")
-# table(hrs_samp$r7memrye_impute, hrs_samp$r7memrye, useNA = "ifany")
-# table(hrs_samp$r8memrye_impute, hrs_samp$r8memrye, useNA = "ifany")
-# table(hrs_samp$r9memrye_impute, hrs_samp$r9memrye, useNA = "ifany")
-# View(hrs_samp %>% dplyr::select(contains(paste0("r", seq(4, 9), "memrye")),
-#                              -contains("rx"))%>%
-#        filter(!rowSums(is.na(.)) == 0))
+# 
+# for(condition in conditions){
+#   print(condition)
+#   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition,
+#                                               "_impute"))
+#   counts <- rowSums(is.na(subset))
+#   print(table(counts, useNA = "ifany"))
+# }
+
 
 #---- sum of conditions ----
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"), -contains("drinking"))
 
+
+
 waves <- seq(1,9)
   for(j in 1:length(waves)){
     wave <- waves[j] 
-     cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
+    cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
        rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
                na.rm = TRUE)
   }

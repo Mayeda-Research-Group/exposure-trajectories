@@ -1,11 +1,19 @@
 mask_impute <- 
   function(data_wide, mechanism, mask_props, num_impute, save = "no"){
-    #---- create incomplete data ----
-    #set all derived variables to NA (so we can define a deterministic equation
-    #for them)
-    data_wide[, c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-                  "avg_cesd", "avg_cesd_elevated")] <- NA
+    #---- create shell for data ----
+    exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
+                   "Elevated Average CES-D")
+    methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
     
+    pooled_effect_ests <- 
+      data.frame("Exposure" = rep(exposures, 12),
+                 "beta" = NA, "LCI" = NA, "UCI" = NA, 
+                 "Method" = rep(methods, each = 12), 
+                 "Missingness" = 
+                   rep(rep(paste0(mask_props*100, "%"), each = 4), 4), 
+                 "Type" = mechanism)
+    
+    #---- create incomplete data ----
     if(mechanism == "MCAR"){
       #---- **MCAR ----
       #it's easier to do this with my own code than the ampute function in MICE, 
@@ -170,12 +178,59 @@ mask_impute <-
     # #---- **FCS long ----
     # #Longitudinal fully conditional specification
     
-    #---- deriving variables ----
-    #
-    #---- fitting models ----
-    fit1 <- with(imp, lm(bmi ~ age + hyp + chl))
+    for(method in methods){
+      for(mask in 100*mask_props){
+        for(exposure in exposures){
+          #---- fitting models ----
+          if(exposure == "CES-D Wave 4" & method == "JMVN"){
+            fitted_models <- 
+              with(get(paste0(tolower(method), "_impute", mask)), 
+                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                           hispanic + black + other + ed_cat + r4mstat_cat + 
+                           ever_mem + ever_arthritis + ever_stroke + 
+                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                           ever_diabetes + r4BMI + drinking4_cat_impute + 
+                           smoker + 
+                           ifelse(round((exp(logr4cesd) - 1), 0) > 4, 1, 0)))
+          } elseif(exposure == "CES-D Wave 9" & method == "JMVN"){
+            fitted_models <- 
+              with(get(paste0(tolower(method), "_impute", mask)), 
+                   coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
+                           hispanic + black + other + ed_cat + r9mstat_cat + 
+                           ever_mem + ever_arthritis + ever_stroke + 
+                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                           ever_diabetes + r4BMI + drinking9_cat_impute + 
+                           smoker + 
+                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
+          } elseif(exposure == "Elevated CES-D Count" & method == "JMVN"){
+            fitted_models <- 
+              with(get(paste0(tolower(method), "_impute", mask)), 
+                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                           hispanic + black + other + ed_cat + r4mstat_cat + 
+                           ever_mem + ever_arthritis + ever_stroke + 
+                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                           ever_diabetes + r4BMI + drinking4_cat_impute + 
+                           smoker + 
+                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
+          } elseif(exposure == "Elevated CES-D Count" & method == "JMVN"){
+            fitted_models <- 
+              with(get(paste0(tolower(method), "_impute", mask)), 
+                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                           hispanic + black + other + ed_cat + r4mstat_cat + 
+                           ever_mem + ever_arthritis + ever_stroke + 
+                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                           ever_diabetes + r4BMI + drinking4_cat_impute + 
+                           smoker + 
+                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
+          }
+          
+        }
+      }
+    }
     
     #---- pooling models ----
-    #
+    test_pool <- pool(test1)
+    summary(test_pool, conf.int = TRUE, conf.level = 0.95, exponentiate = TRUE)
+    
     
   }

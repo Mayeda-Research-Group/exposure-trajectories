@@ -1,6 +1,11 @@
 mask_impute <- 
   function(data_wide, mechanism, mask_props, num_impute, save = "no"){
     #---- create incomplete data ----
+    #set all derived variables to NA (so we can define a deterministic equation
+    #for them)
+    data_wide[, c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+                  "avg_cesd", "avg_cesd_elevated")] <- NA
+    
     if(mechanism == "MCAR"){
       #---- **MCAR ----
       #it's easier to do this with my own code than the ampute function in MICE, 
@@ -47,7 +52,7 @@ mask_impute <-
       assign(paste0("mask", mask), data)
     }
     
-    #Table of num missings per masking proportion
+    #Sanity check-- table of num missings per masking proportion
     # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
     #   set_colnames(c("Mask Prop", seq(0, 6)))
     # missings[, "Mask Prop"] <- 100*mask_props
@@ -82,7 +87,8 @@ mask_impute <-
     #Joint multivariate normal
     #---- ***predictor matrix ----
     predict <- 
-      matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
+      matrix(1, nrow = 6, 
+             ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
       set_rownames(paste0("logr", seq(4, 9), "cesd")) %>% 
       set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
     #Don't use these as predictors
@@ -91,7 +97,7 @@ mask_impute <-
                 "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
                 "observed")] <- 0
     
-    #Use values at the current wave to predict-- not sure about this yet
+    #Use values at the current wave to predict
     predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
     predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
                                                            ncol = 6)
@@ -118,50 +124,58 @@ mask_impute <-
       }
     }
     
-    #---- **FCS ----
-    #---- ***predictor matrix ----
-    predict <- 
-      matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
-      set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
-      set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
-    #Don't use these as predictors
-    predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
-                paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
-                "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-                "observed")] <- 0
+    # #---- **FCS ----
+    # #---- ***predictor matrix ----
+    # predict <- 
+    #   matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
+    #   set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
+    #   set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
+    # #Don't use these as predictors
+    # predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
+    #             paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
+    #             "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+    #             "observed")] <- 0
+    # 
+    # #Use values at the current wave to predict-- not sure about this yet
+    # predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+    # predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
+    #                                                        ncol = 6)
+    # predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+    # 
+    # #Exclude values that predict themselves
+    # predict[, paste0("r", seq(4, 9), "cesd")] <- 
+    #   (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+    # 
+    # #---- ***run imputation ----
+    # for(prop in mask_props){
+    #   data <- get(paste0("mask", 100*prop))
+    #   data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
+    #   assign(paste0("fcs_impute", 100*prop), 
+    #          mice(data = data, m = num_impute, method = "polr", 
+    #               predictorMatrix = predict, where = is.na(data), 
+    #               blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
+    #               seed = 20210126))
+    #   
+    #   #---- ***save results ----
+    #   if(save == "yes"){
+    #     saveRDS(get(paste0("fcs_impute", 100*prop)), 
+    #             file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
+    #                                                     100*prop)))
+    #   }
+    # }
+    # 
+    # #---- **JMVN long ----
+    # #Longitudinal joint multivariate normal model
+    # 
+    # #---- **FCS long ----
+    # #Longitudinal fully conditional specification
     
-    #Use values at the current wave to predict-- not sure about this yet
-    predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
-                                                           ncol = 6)
-    predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+    #---- deriving variables ----
+    #
+    #---- fitting models ----
+    fit1 <- with(imp, lm(bmi ~ age + hyp + chl))
     
-    #Exclude values that predict themselves
-    predict[, paste0("r", seq(4, 9), "cesd")] <- 
-      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    
-    #---- ***run imputation ----
-    for(prop in mask_props){
-      data <- get(paste0("mask", 100*prop))
-      data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-      assign(paste0("fcs_impute", 100*prop), 
-             mice(data = data, m = num_impute, method = "polr", 
-                  predictorMatrix = predict, where = is.na(data), 
-                  blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
-                  seed = 20210126))
-      
-      #---- ***save results ----
-      if(save == "yes"){
-        saveRDS(get(paste0("fcs_impute", 100*prop)), 
-                file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
-                                                        100*prop)))
-      }
-    }
-    
-    #---- **JMVN long ----
-    #Longitudinal joint multivariate normal model
-    
-    #---- **FCS long ----
-    #Longitudinal fully conditional specification
+    #---- pooling models ----
+    #
     
   }

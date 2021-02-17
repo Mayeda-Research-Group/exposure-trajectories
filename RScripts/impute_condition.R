@@ -80,7 +80,7 @@ impute_status <- function(status, status_vars, waves, impute_waves, dataset) {
   return(dataset)
 }
 
-# Test
+# # Test
 # test <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
 #                                    seq(1, 13), seq(4, 9),  hrs_samp)
 # sum(test$r4mstat != test$r4mstat_impute, na.rm = TRUE)
@@ -94,4 +94,16 @@ impute_status <- function(status, status_vars, waves, impute_waves, dataset) {
 #        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
 #                      "r5mstat_impute") %>% filter(is.na(r5mstat)))
 
-
+# #Test
+# test2 <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
+#                        seq(3, 13), seq(4, 9),  hrs_samp)
+# sum(test2$r4drinkd != test2$r4drinkd_impute, na.rm = TRUE)
+# View(test2 %>%
+#        dplyr::select("HHIDPN", paste0("r", seq(3,13), "drinkd"),
+#                      "r4drinkd_impute"))
+# View(test2 %>%
+#        dplyr::select("HHIDPN", paste0("r", seq(3,13), "drinkd"),
+#                      "r4drinkd_impute") %>% filter(is.na(r4drinkd)))
+# View(test2 %>%
+#        dplyr::select("HHIDPN", paste0("r", seq(3,13), "drinkd"),
+#                      "r5drinkd_impute") %>% filter(is.na(r5drinkd)))

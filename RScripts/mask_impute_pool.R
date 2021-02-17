@@ -1,4 +1,4 @@
-mask_impute <- 
+mask_impute_pool <- 
   function(data_wide, mechanism, mask_props, num_impute, save = "no"){
     #---- create shell for data ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
@@ -266,9 +266,10 @@ mask_impute <-
         }
     }
     
-    
-    
-    
-    
-    
+    #---- return values ----
+    return(pooled_effect_ests)
   }
+
+#---- testing ----
+test <- mask_impute(CESD_data_wide, mechanism = "MCAR", mask_props, 
+                    num_impute = 5, save = "no")

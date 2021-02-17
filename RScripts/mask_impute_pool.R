@@ -82,19 +82,16 @@ mask_impute_pool <-
     #                                   "/exposure_trajectories/manuscript/",
     #                                   "tables/missing_counts.csv"))
     
-    #---- transformations ----
-    #Taking the log for joint MVN models
-    for(prop in mask_props){
-      data <- get(paste0("mask", 100*prop))
+    if(method == "JMVN"){
+      #---- transformations ----
+      #Taking the log for joint MVN models
       for(wave in 4:9){
-        data[, paste0("logr", wave, "cesd")] <- 
-          log(1 + data[, paste0("r", wave, "cesd")])
+        data_wide[, paste0("logr", wave, "cesd")] <- 
+          log(1 + data_wide[, paste0("r", wave, "cesd")])
       }
-      assign(paste0("mask", 100*prop), data)
     }
     
     #---- imputation ----
-    num_impute <- num_impute
     
     #---- **JMVN ----
     #Joint multivariate normal

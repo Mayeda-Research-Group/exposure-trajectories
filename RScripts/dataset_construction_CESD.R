@@ -688,20 +688,19 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
   
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
+mstat_mat[, paste0("r", seq(4,9), "mstat_impute_cat")] <- NA
 
-for(j in 1:ncol(mstat_mat)){
-  mstat_mat[, ] <-
+for(j in 1:length(seq(4,9))){
+  mstat_mat[, j + length(seq(4,9))] <-
     case_when(mstat_mat[, j] %in% c(1, 2, 3) ~ "Married/Partnered", 
               mstat_mat[, j] %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
               mstat_mat[, j] == 7 ~ "Widowed")
 }
 
-# unique(mstat_mat$r9mstat_impute)
-
 hrs_samp[, colnames(mstat_mat)] <- mstat_mat
 
 # Drop anyone missing marital status for waves 5-8
-subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute"))
+subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute_cat"))
 
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 

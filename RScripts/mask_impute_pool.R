@@ -64,7 +64,7 @@ mask_impute_pool <-
                          dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
                          mutate_all(function(x) is.na(x)))) %>% 
       filter(CESD_missing < 6)
-             
+    
     #Sanity check-- table of num missings per masking proportion
     # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
     #   set_colnames(c("Mask Prop", seq(0, 6)))
@@ -92,47 +92,94 @@ mask_impute_pool <-
     }
     
     #---- imputation ----
-    
-    #---- **JMVN ----
-    #Joint multivariate normal
-    #---- ***predictor matrix ----
-    predict <- 
-      matrix(1, nrow = 6, 
-             ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
-      set_rownames(paste0("logr", seq(4, 9), "cesd")) %>% 
-      set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
-    #Don't use these as predictors
-    predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
-                paste0("r", seq(4, 9), "cesd"), "r9cesd_elevated", 
-                "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-                "observed")] <- 0
-    
-    #Use values at the current wave to predict
-    predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
-                                                           ncol = 6)
-    predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-    
-    #Exclude values that predict themselves
-    predict[, paste0("logr", seq(4, 9), "cesd")] <- 
-      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    
-    #---- ***run imputation ----
-    for(prop in mask_props){
-      data <- get(paste0("mask", 100*prop))
-      assign(paste0("jmvn_impute", 100*prop), 
-             mice(data = data, m = num_impute, method = "norm", 
-                  predictorMatrix = predict, where = is.na(data), 
-                  blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
-                  seed = 20210126))
+    if(method == "JMVN"){
+      #---- **JMVN ----
+      #Joint multivariate normal
+      #---- ***predictor matrix ----
+      predict <- 
+        matrix(1, nrow = 23, ncol = ncol(data_wide)) %>% 
+        set_rownames(c(paste0("logr", seq(4, 9), "cesd"), 
+                       apply(expand.grid("r", seq(4, 9), 
+                                         mask_wave_specific[2:3]), 1, 
+                             paste, collapse = ""),
+                       "r4cesd_elevated", "r9cesd_elevated", 
+                       "total_elevated_cesd", "avg_cesd", 
+                       "avg_cesd_elevated")) %>% 
+        set_colnames(colnames(data_wide))
       
-      #---- ***save results ----
-      if(save == "yes"){
-        saveRDS(get(paste0("jmvn_impute", 100*prop)), 
-                file = here::here("MI datasets", 
-                                  paste0("jmvn_", tolower(mechanism), 100*prop)))
+      #Don't use these as predictors
+      predict[, c("HHIDPN", "conde", "age_death_y", 
+                  paste0("r", seq(4, 9), "cesd"), "observed", 
+                  "CESD_missing")] <- 0
+      
+      #wave-updated values for prediction: logCESD
+      predict[paste0("r", seq(4, 9), "BMI"), 
+              paste0("logr", seq(4, 9), "cesd")] <- 
+        diag(x = 1, nrow = 6, ncol = 6)
+      predict[paste0("r", seq(4, 9), "shlt"), 
+              paste0("logr", seq(4, 9), "cesd")] <- 
+        diag(x = 1, nrow = 6, ncol = 6)
+      predict[c("r4cesd_elevated", "total_elevated_cesd", "avg_cesd", 
+                "avg_cesd_elevated"), paste0("logr", seq(4, 9), "cesd")] <- 
+        matrix(rep(c(1, rep(0, 5)), 4), nrow = 4, byrow = TRUE)
+      predict["r9cesd_elevated", paste0("logr", seq(4, 9), "cesd")] <- 
+        c(rep(0, 5), 1)
+      
+      #wave-updated values for prediction: BMI
+      predict[paste0("logr", seq(4, 9), "cesd"), 
+              paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+      predict[paste0("r", seq(4, 9), "shlt"), 
+              paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+      predict[c("r4cesd_elevated", "total_elevated_cesd", "avg_cesd", 
+                "avg_cesd_elevated"), paste0("r", seq(4, 9), "BMI")] <- 
+        matrix(rep(c(1, rep(0, 5)), 4), nrow = 4, byrow = TRUE)
+      predict["r9cesd_elevated", paste0("r", seq(4, 9), "BMI")] <- 
+        c(rep(0, 5), 1)
+      
+      #wave-updated values for prediction: age
+      predict[paste0("logr", seq(4, 9), "cesd"), 
+              paste0("r", seq(4, 9), "age_y_int")] <- 
+        diag(x = 1, nrow = 6, ncol = 6)
+      predict[paste0("r", seq(4, 9), "BMI"), 
+              paste0("r", seq(4, 9), "age_y_int")] <- 
+        diag(x = 1, nrow = 6, ncol = 6)
+      predict[paste0("r", seq(4, 9), "shlt"), 
+              paste0("r", seq(4, 9), "age_y_int")] <- 
+        diag(x = 1, nrow = 6, ncol = 6)
+      predict[c("r4cesd_elevated", "total_elevated_cesd", "avg_cesd", 
+                "avg_cesd_elevated"), paste0("r", seq(4, 9), "age_y_int")] <- 
+        matrix(rep(c(1, rep(0, 5)), 4), nrow = 4, byrow = TRUE)
+      predict["r9cesd_elevated", paste0("r", seq(4, 9), "age_y_int")] <- 
+        c(rep(0, 5), 1)
+      
+      predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+      
+      #Exclude values that predict themselves
+      predict[paste0("logr", seq(4, 9), "cesd"), 
+              paste0("logr", seq(4, 9), "cesd")] <- 
+        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+      predict[paste0("r", seq(4, 9), "BMI"), 
+              paste0("r", seq(4, 9), "BMI")] <- 
+        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+      
+      #---- ***run imputation ----
+      for(prop in mask_props){
+        data <- get(paste0("mask", 100*prop))
+        assign(paste0("jmvn_impute", 100*prop), 
+               mice(data = data, m = num_impute, method = "norm", 
+                    predictorMatrix = predict, where = is.na(data), 
+                    blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
+                    seed = 20210126))
+        
+        #---- ***save results ----
+        if(save == "yes"){
+          saveRDS(get(paste0("jmvn_impute", 100*prop)), 
+                  file = here::here("MI datasets", 
+                                    paste0("jmvn_", tolower(mechanism), 100*prop)))
+        }
       }
     }
+    
     
     # #---- **FCS ----
     # #---- ***predictor matrix ----

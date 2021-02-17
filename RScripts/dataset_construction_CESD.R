@@ -255,6 +255,19 @@ hrs_samp %<>% filter(!is.na(QALIVE))
 # write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
 #                              "CESD_complete_subsets.csv"))
 
+# Create indicators for whether CESD is missing at each wave
+hrs_samp[, paste0("r", seq(2, 13), "cesd", "_missing")] <- NA
+
+cesd_mat <- hrs_samp %>% select(contains("cesd"))
+
+for (j in 1:length(seq(2, 13))) {
+  cesd_mat[, j + length(seq(2,13))] <- ifelse(is.na(cesd_mat[, j]), 1, 0)
+}
+# Sanity check
+# table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
+# table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
+# table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
+
 drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
   mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
 

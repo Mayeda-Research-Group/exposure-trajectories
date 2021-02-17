@@ -1,18 +1,12 @@
 mask_impute_pool <- 
-  function(data_wide, mechanism, mask_props, num_impute, save = "no"){
-    #---- create shell for data ----
+  function(data_wide, mechanism, method, mask_percent, num_impute, save = "no"){
+    #---- create shell for output ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
                    "Elevated Average CES-D")
-    methods <- c("JMVN")
     
     pooled_effect_ests <- 
-      data.frame("Exposure" = rep(exposures, length(mask_props)*length(methods)),
-                 "beta" = NA, "LCI" = NA, "UCI" = NA, 
-                 "Method" = rep(methods, 
-                                each = length(exposures)*length(mask_props)), 
-                 "Missingness" = 
-                   rep(rep(paste0(mask_props*100, "%"), 
-                           each = length(exposures)), length(methods)), 
+      data.frame("Exposure" = exposures, "beta" = NA, "LCI" = NA, "UCI" = NA, 
+                 "Method" = method, "Missingness" = mask_percent, 
                  "Type" = mechanism)
     
     #---- create incomplete data ----
@@ -21,6 +15,7 @@ mask_impute_pool <-
       #it's easier to do this with my own code than the ampute function in MICE, 
       # which requires specifying all possible missing patterns you'd like it to 
       # consider
+      #   Need to add the following:
       data_long <- data_wide %>% 
         dplyr::select("HHIDPN", paste0("r", seq(4, 9), "cesd")) %>% 
         pivot_longer(-c("HHIDPN"), names_to = "wave", values_to = "cesd")

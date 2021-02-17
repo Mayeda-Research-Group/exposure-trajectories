@@ -217,9 +217,6 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
              
-#---- remove people who were not sampled in 2018 ----
-hrs_samp %<>% filter(!is.na(QALIVE))
-
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
 # subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
@@ -255,12 +252,17 @@ hrs_samp %<>% filter(!is.na(QALIVE))
 # write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
 #                              "CESD_complete_subsets.csv"))
 
-drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
+# Create indicators for whether CESD is missing at each wave
+hrs_samp[, paste0("r", seq(2, 13), "cesd", "_missing")] <- NA
 
-hrs_samp %<>% mutate("drop" = drop$drop) %>%
-  #drop those with missing CESD observations in these waves
-  filter(drop == 0) 
+cesd_mat <- hrs_samp %>% select(contains("cesd"))
+for (j in 1:length(seq(2, 13))) {
+  cesd_mat[, j + length(seq(2,13))] <- ifelse(is.na(cesd_mat[, j]), 1, 0)
+}
+# Sanity check
+# table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
+# table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
+# table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
 
 #---- death ----
 #death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
@@ -310,22 +312,11 @@ hrs_samp[, paste0("r", number_waves, "age_y_int")] <- floor(age_m/12)
 # View(hrs_samp[, c(paste0(number_waves, "age_y"), 
 #                   paste0(number_waves, "age_y_int"))])
 
-#Check those missing age data-- these people have no birth date data so I am 
-# dropping them; looks like no one is in this group
-still_missing <- 
-  which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
-sum(is.na(hrs_samp[still_missing, "Bday"])) == length(still_missing)
-if(length(still_missing) > 0){
-  hrs_samp <- hrs_samp[-c(still_missing), ]
-}
-
 #Impute date of death for those who are dead in 2018
 hrs_samp %<>% 
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
                                 r13age_y_int + 2, age_death_y))
 
-#Drop those not age-eligible at HRS wave 4 and those who are 91+
-hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
 
 # #Sanity check
 # View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
@@ -366,8 +357,7 @@ hrs_samp %<>%
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
 
-#1 person missing race/ethnicity data
-hrs_samp %<>% filter(unknown_race_eth == 0) %>% 
+hrs_samp %<>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
   dplyr::select(-c("rahispan", "raracem"))
 
@@ -388,8 +378,8 @@ hrs_samp %<>%
 #---- cSES index ----
 # #Sanity check
 # table(is.na(hrs_samp$cses_index))
-
-#none missing!
+# 
+# # none missing!
 
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights 
@@ -409,13 +399,6 @@ hrs_samp %<>%
 #                   paste0("r", number_waves, "height"),
 #                   "med_height", "self_height", "height_measured", "height")] %>%
 #        filter(is.na(height)))
-
-#Drop people missing height data
-#Drop RAND's height variables + extra derived variables
-hrs_samp %<>% filter(!is.na(height)) %>% 
-  dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
-                               paste0("r", number_waves, "height"), 
-                               "med_height", "self_height"))
 
 #---- weight ----
 hrs_samp %<>% 
@@ -482,7 +465,6 @@ missing_bmi <- rowSums(is.na(bmi_mat))
 # head(hrs_samp %>% dplyr::select(c("height", paste0(seq(4, 9), "weight"))))
 
 hrs_samp %<>% cbind(bmi_mat) %>% cbind(missing_bmi) 
-hrs_samp %<>% filter(missing_bmi == 0)
 
 #Drop RAND's BMI variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"), 
@@ -555,17 +537,6 @@ hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(1, 9), "stroke"),
 hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
                                      seq(4, 9), hrs_samp)
 # For memory problems, data starts from wave 4.
-
-# Drop people missing information for wave-updated ever/never chronic condition
-# at all 6 waves
-conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
-                "memrye")
-
-for(condition in conditions){
-  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
-                                              "_impute"))
-  hrs_samp %<>% filter(rowSums(is.na(subset)) != 6)
-}
 
 #sanity check
 # 
@@ -688,7 +659,7 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
   
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
-mstat_mat[, paste0("r", seq(4,9), "mstat_impute_cat")] <- NA
+mstat_mat[, paste0("r", seq(4,9), "mstat_cat")] <- NA
 
 for(j in 1:length(seq(4,9))){
   mstat_mat[, j + length(seq(4,9))] <-
@@ -698,11 +669,6 @@ for(j in 1:length(seq(4,9))){
 }
 
 hrs_samp[, colnames(mstat_mat)] <- mstat_mat
-
-# Drop anyone missing marital status for waves 5-8
-subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute_cat"))
-
-hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
 # #Sanity check
 # table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
@@ -822,8 +788,6 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # #Drop the one person who has no information on drinking behavior
 # hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
 
-# Drop those who miss drinking status at any wave after imputation
-hrs_samp %<>% filter(rowSums(is.na(drinking_cat_mat)) == 0)
 
 # #---- physical activity ----
 # PA_mat <- hrs_samp %>% 
@@ -919,9 +883,75 @@ hrs_samp %<>% filter(rowSums(is.na(drinking_cat_mat)) == 0)
 self_reported_health <- hrs_samp %>%
   dplyr::select(paste0("r", seq(4, 9), "shlt"))
 colSums(is.na(self_reported_health))
-drop <- rowSums(is.na(self_reported_health))
-#table(drop)
 
+
+#---- Dropping people ----
+# remove people who were not sampled in 2018
+# sum(is.na(hrs_samp$QALIVE))
+hrs_samp %<>% filter(!is.na(QALIVE))
+
+#Check those missing age data-- these people have no birth date data so I am 
+# dropping them; looks like no one is in this group
+still_missing <- 
+  which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
+sum(is.na(hrs_samp[still_missing, "Bday"])) == length(still_missing)
+if(length(still_missing) > 0){
+  hrs_samp <- hrs_samp[-c(still_missing), ]
+}
+
+#Dropping those missing race/ethnicity data
+# sum(hrs_samp$unknown_race_eth == 0)
+hrs_samp %<>% filter(unknown_race_eth == 0)
+
+# Drop those missing education data
+# table(hrs_samp$ed_cat, useNA = "ifany")
+hrs_samp %<>% filter(!is.na(ed_cat))
+
+# Drop those missing cSES values
+# sum(is.na(hrs_samp$cses_index))
+hrs_samp %<>% filter(!is.na(cses_index))
+
+#Drop people missing height data
+#Drop RAND's height variables + extra derived variables
+# sum(is.na(hrs_samp$height))
+hrs_samp %<>% filter(!is.na(height)) %>% 
+  dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
+                   paste0("r", number_waves, "height"), 
+                   "med_height", "self_height"))
+
+# Drop those missing BMI
+# sum(hrs_samp$missing_bmi != 0)
+hrs_samp %<>% filter(missing_bmi == 0)
+
+# drop those with missing CESD observations in wave 4 - 9
+drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
+hrs_samp %<>% mutate("drop" = drop$drop) %>% filter(drop == 0) 
+
+# Drop people missing information for wave-updated ever/never chronic condition
+# at all 6 waves
+conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
+                "memrye")
+
+for(condition in conditions){
+  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
+                                              "_impute"))
+  hrs_samp %<>% filter(rowSums(is.na(subset)) != 6)
+}
+
+# Drop anyone missing marital status for waves 5-8
+# subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
+# hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
+# No missing!!!!
+
+# Drop those who miss drinking status at any wave after imputation
+subset <- hrs_samp %>% dplyr::select(contains("drinking"))
+hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
+
+# Drop those without self-reported health
+drop <- rowSums(is.na(hrs_samp %>%
+  dplyr::select(paste0("r", seq(4, 9), "shlt"))))
+# table(drop)
 hrs_samp[, "drop"] <- drop
 
 # #Sanity check
@@ -929,9 +959,14 @@ hrs_samp[, "drop"] <- drop
 
 hrs_samp %<>% filter(drop == 0)
 
+#Drop those not age-eligible at HRS wave 4 and those who are 91+
+sum(hrs_samp$r4age_y_int %in% c(seq(50, 90)))
+hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
+
+
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", c(4, 9), "_cat_impute"), 
+          paste0("drinking", c(4, 9), "_cat"), 
           paste0("r", seq(4, 9), "memrye", "_impute"),
           paste0("r", seq(4, 9), "stroke", "_impute"),
           paste0("r", seq(4, 9), "hearte", "_impute"),

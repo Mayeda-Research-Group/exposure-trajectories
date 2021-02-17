@@ -55,7 +55,7 @@ mask_impute <-
       missing_counts <- 
         data %>% dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% is.na() %>% 
         rowSums()
-        
+      
       data %<>% mutate("CESD_missing" =  missing_counts) %>% 
         filter(missing_counts < 6)
       
@@ -184,55 +184,91 @@ mask_impute <-
       for(mask in 100*mask_props){
         for(exposure in exposures){
           #---- fitting models ----
-          if(exposure == "CES-D Wave 4" & method == "JMVN"){
-            fitted_models <- 
-              with(get(paste0(tolower(method), "_impute", mask)), 
-                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                           hispanic + black + other + ed_cat + r4mstat_cat + 
-                           ever_mem + ever_arthritis + ever_stroke + 
-                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                           ever_diabetes + r4BMI + drinking4_cat_impute + 
-                           smoker + 
-                           ifelse(round((exp(logr4cesd) - 1), 0) > 4, 1, 0)))
-          } elseif(exposure == "CES-D Wave 9" & method == "JMVN"){
-            fitted_models <- 
-              with(get(paste0(tolower(method), "_impute", mask)), 
-                   coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
-                           hispanic + black + other + ed_cat + r9mstat_cat + 
-                           ever_mem + ever_arthritis + ever_stroke + 
-                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                           ever_diabetes + r4BMI + drinking9_cat_impute + 
-                           smoker + 
-                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
-          } elseif(exposure == "Elevated CES-D Count" & method == "JMVN"){
-            fitted_models <- 
-              with(get(paste0(tolower(method), "_impute", mask)), 
-                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                           hispanic + black + other + ed_cat + r4mstat_cat + 
-                           ever_mem + ever_arthritis + ever_stroke + 
-                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                           ever_diabetes + r4BMI + drinking4_cat_impute + 
-                           smoker + 
-                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
-          } elseif(exposure == "Elevated CES-D Count" & method == "JMVN"){
-            fitted_models <- 
-              with(get(paste0(tolower(method), "_impute", mask)), 
-                   coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                           hispanic + black + other + ed_cat + r4mstat_cat + 
-                           ever_mem + ever_arthritis + ever_stroke + 
-                           ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                           ever_diabetes + r4BMI + drinking4_cat_impute + 
-                           smoker + 
-                           ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
+          if(method == "JMVN"){
+            if(exposure == "CES-D Wave 4"){
+              fitted_models <- 
+                with(get(paste0(tolower(method), "_impute", mask)), 
+                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                             hispanic + black + other + ed_cat + r4mstat_cat + 
+                             ever_mem + ever_arthritis + ever_stroke + 
+                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                             ever_diabetes + r4BMI + drinking4_cat_impute + 
+                             smoker + 
+                             ifelse(round((exp(logr4cesd) - 1), 0) > 4, 1, 0)))
+            } else if(exposure == "CES-D Wave 9"){
+              fitted_models <- 
+                with(get(paste0(tolower(method), "_impute", mask)), 
+                     coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
+                             hispanic + black + other + ed_cat + r9mstat_cat + 
+                             ever_mem + ever_arthritis + ever_stroke + 
+                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                             ever_diabetes + r9BMI + drinking9_cat_impute + 
+                             smoker + 
+                             ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
+            } else if(exposure == "Elevated CES-D Count"){
+              fitted_models <- 
+                with(get(paste0(tolower(method), "_impute", mask)), 
+                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                             hispanic + black + other + ed_cat + r4mstat_cat + 
+                             ever_mem + ever_arthritis + ever_stroke + 
+                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                             ever_diabetes + r4BMI + drinking4_cat_impute + 
+                             smoker + 
+                             sum(ifelse(round((exp(logr4cesd) - 1), 0) > 4, 
+                                        1, 0), 
+                                 ifelse(round((exp(logr5cesd) - 1), 0) > 4, 
+                                        1, 0), 
+                                 ifelse(round((exp(logr6cesd) - 1), 0) > 4, 
+                                        1, 0), 
+                                 ifelse(round((exp(logr7cesd) - 1), 0) > 4, 
+                                        1, 0), 
+                                 ifelse(round((exp(logr8cesd) - 1), 0) > 4, 
+                                        1, 0), 
+                                 ifelse(round((exp(logr9cesd) - 1), 0) > 4, 
+                                        1, 0)))) 
+            } else{
+              fitted_models <- 
+                with(get(paste0(tolower(method), "_impute", mask)), 
+                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                             hispanic + black + other + ed_cat + r4mstat_cat + 
+                             ever_mem + ever_arthritis + ever_stroke + 
+                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                             ever_diabetes + r4BMI + drinking4_cat_impute + 
+                             smoker + 
+                             ifelse(sum(ifelse(round((exp(logr4cesd) - 1), 
+                                                     0) > 4, 1, 0), 
+                                        ifelse(round((exp(logr5cesd) - 1), 
+                                                     0) > 4, 1, 0), 
+                                        ifelse(round((exp(logr6cesd) - 1), 
+                                                     0) > 4, 1, 0), 
+                                        ifelse(round((exp(logr7cesd) - 1), 
+                                                     0) > 4, 1, 0), 
+                                        ifelse(round((exp(logr8cesd) - 1), 
+                                                     0) > 4, 1, 0), 
+                                        ifelse(round((exp(logr9cesd) - 1), 
+                                                     0) > 4, 1, 0))/6 > 4, 
+                                    1, 0)))
+            }
           }
+          #---- pooling models ----
+          pooled <- pool(fitted_models)
           
+          #---- storing results ----
+          pooled_effect_ests[which(
+            pooled_effect_ests$Exposure == exposure & 
+              pooled_effect_ests$Method == method & 
+              pooled_effect_ests$Missingness == paste0(mask, "%")), 
+            c("beta", "LCI", "UCI")] <- 
+            summary(pooled, conf.int = TRUE, conf.level = 0.95, 
+                    exponentiate = TRUE)[nrow(summary(pooled)), 
+                                         c("estimate", "2.5 %", "97.5 %")]
+          }
         }
-      }
     }
     
-    #---- pooling models ----
-    test_pool <- pool(test1)
-    summary(test_pool, conf.int = TRUE, conf.level = 0.95, exponentiate = TRUE)
+    
+    
+    
     
     
   }

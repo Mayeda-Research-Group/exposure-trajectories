@@ -15,25 +15,31 @@ mask_impute_pool <-
       #it's easier to do this with my own code than the ampute function in MICE, 
       # which requires specifying all possible missing patterns you'd like it to 
       # consider
-      #   Need to add the following:
-      data_long <- data_wide %>% 
-        dplyr::select("HHIDPN", paste0("r", seq(4, 9), "cesd")) %>% 
-        pivot_longer(-c("HHIDPN"), names_to = "wave", values_to = "cesd")
+      #   Need to add the following: wave-updated marital status, wave-updated 
+      #   drinking behavior, wave-updated chronic conditions,
+      mask_prop <- as.numeric(sub("%","", mask_percent))/100
+      total_indices <- nrow(data_wide)*6 #6 waves of data per person
+      mask_index <- sample(seq(1, total_indices), 
+                           size = floor(mask_prop*total_indices), 
+                           replace = FALSE)
       
-      for(prop in mask_props){
-        assign(paste0(prop*100, "_mask"), 
-               sample.int(n = nrow(data_long), 
-                          size = floor(prop*nrow(data_long))))
-      }
+      mask_wave_specific <- c("cesd", "BMI", "shlt")
+      mask_derived <- c("r4cesd_elevated", "r9cesd_elevated", 
+                        "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated")
       
-      for(mask in 100*mask_props){
-        #mask these values in long data
-        data_mask <- data_long
-        data_mask[get(paste0(mask, "_mask")), "cesd"] <- NA
-        data_mask %<>% na.omit() %>% 
-          pivot_wider(names_from = "wave", values_from = "cesd")
+      for(var in mask_wave_specific){
+        #mask values
+        data_long <- data_wide %>% 
+          dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
+          pivot_longer(-"HHIDPN")
+        data_long[mask_index, "value"] <- NA
         
-        wide_data <- data_wide
+        #need to get rid of rows with NA values to pivot back to wide
+        data_long %<>% na.omit() %>% 
+          pivot_wider(names_from = "name", values_from = "value")
+        
+        #create new wide dataset with masked values
+        wide_data <- data_long
         wide_data[which(wide_data$HHIDPN %in% data_mask$HHIDPN), 
                   paste0("r", seq(4, 9), "cesd")] <- data_mask[, -1] 
         wide_data[which(!wide_data$HHIDPN %in% data_mask$HHIDPN), 

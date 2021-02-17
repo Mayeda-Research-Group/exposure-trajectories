@@ -22,32 +22,39 @@ mask_impute_pool <-
       mask_index <- sample(seq(1, total_indices), 
                            size = floor(mask_prop*total_indices), 
                            replace = FALSE)
-      
-      mask_wave_specific <- c("cesd", "BMI", "shlt")
-      mask_derived <- c("r4cesd_elevated", "r9cesd_elevated", 
-                        "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated")
-      
-      for(var in mask_wave_specific){
-        #mask values
-        data_long <- data_wide %>% 
-          dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
-          pivot_longer(-"HHIDPN")
-        data_long[mask_index, "value"] <- NA
-        
-        #need to get rid of rows with NA values to pivot back to wide
-        data_long %<>% na.omit() %>% 
-          pivot_wider(names_from = "name", values_from = "value")
-        
-        #create new wide dataset with masked values
-        wide_data <- data_long
-        wide_data[which(wide_data$HHIDPN %in% data_mask$HHIDPN), 
-                  paste0("r", seq(4, 9), "cesd")] <- data_mask[, -1] 
-        wide_data[which(!wide_data$HHIDPN %in% data_mask$HHIDPN), 
-                  paste0("r", seq(4, 9), "cesd")] <- NA
-        
-        assign(paste0("mask", mask), wide_data)
-      }
     }
+    #making wave-specific values
+    mask_wave_specific <- c("cesd", "BMI", "shlt")
+    for(var in mask_wave_specific){
+      #mask values
+      data_long <- data_wide %>% 
+        dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
+        pivot_longer(-"HHIDPN")
+      data_long[mask_index, "value"] <- NA
+      
+      #need to get rid of rows with NA values to pivot back to wide
+      data_long %<>% na.omit() %>% 
+        pivot_wider(names_from = "name", values_from = "value")
+      
+      #mask in wide dataset with masked values
+      data_wide[which(data_wide$HHIDPN %in% data_long$HHIDPN), 
+                paste0("r", seq(4, 9), var)] <- data_long[, -1] 
+      data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN), 
+                paste0("r", seq(4, 9), var)] <- NA
+    }
+    
+    #masking derived values
+    data_wide %<>% 
+      mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
+             "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+             "total_elevated_cesd" = 
+               rowSums(data_wide %>% 
+                         dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                         mutate_all(function(x) x > 4)), 
+             "avg_cesd" = 
+               rowMeans(data_wide %>% 
+                          dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
+             "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
     
     #---- check missings ----
     #make sure no one is missing every cesd measure
@@ -263,8 +270,8 @@ mask_impute_pool <-
             summary(pooled, conf.int = TRUE, conf.level = 0.95, 
                     exponentiate = TRUE)[nrow(summary(pooled)), 
                                          c("estimate", "2.5 %", "97.5 %")]
-          }
         }
+      }
     }
     
     #---- return values ----

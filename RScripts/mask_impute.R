@@ -3,14 +3,16 @@ mask_impute <-
     #---- create shell for data ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
                    "Elevated Average CES-D")
-    methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
+    methods <- c("JMVN")
     
     pooled_effect_ests <- 
-      data.frame("Exposure" = rep(exposures, 12),
+      data.frame("Exposure" = rep(exposures, length(mask_props)*length(methods)),
                  "beta" = NA, "LCI" = NA, "UCI" = NA, 
-                 "Method" = rep(methods, each = 12), 
+                 "Method" = rep(methods, 
+                                each = length(exposures)*length(mask_props)), 
                  "Missingness" = 
-                   rep(rep(paste0(mask_props*100, "%"), each = 4), 4), 
+                   rep(rep(paste0(mask_props*100, "%"), 
+                           each = length(exposures)), length(methods)), 
                  "Type" = mechanism)
     
     #---- create incomplete data ----

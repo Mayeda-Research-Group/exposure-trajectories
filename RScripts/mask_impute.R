@@ -80,7 +80,7 @@ mask_impute <-
     #                                   "tables/missing_counts.csv"))
     
     #---- transformations ----
-    #Taking the log for joint MNV models
+    #Taking the log for joint MVN models
     for(prop in mask_props){
       data <- get(paste0("mask", 100*prop))
       for(wave in 4:9){

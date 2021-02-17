@@ -58,18 +58,13 @@ mask_impute_pool <-
     
     #---- check missings ----
     #make sure no one is missing every cesd measure
-    for(mask in 100*mask_props){
-      data <- get(paste0("mask", mask))
-      missing_counts <- 
-        data %>% dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% is.na() %>% 
-        rowSums()
-      
-      data %<>% mutate("CESD_missing" =  missing_counts) %>% 
-        filter(missing_counts < 6)
-      
-      assign(paste0("mask", mask), data)
-    }
-    
+    data_wide %<>% 
+      mutate("CESD_missing" = 
+               rowSums(data_wide %>% 
+                         dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                         mutate_all(function(x) is.na(x)))) %>% 
+      filter(CESD_missing < 6)
+             
     #Sanity check-- table of num missings per masking proportion
     # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
     #   set_colnames(c("Mask Prop", seq(0, 6)))

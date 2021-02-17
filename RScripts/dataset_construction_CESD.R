@@ -688,20 +688,19 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
   
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
+mstat_mat[, paste0("r", seq(4,9), "mstat_impute_cat")] <- NA
 
-for(j in 1:ncol(mstat_mat)){
-  mstat_mat[, ] <-
+for(j in 1:length(seq(4,9))){
+  mstat_mat[, j + length(seq(4,9))] <-
     case_when(mstat_mat[, j] %in% c(1, 2, 3) ~ "Married/Partnered", 
               mstat_mat[, j] %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
               mstat_mat[, j] == 7 ~ "Widowed")
 }
 
-# unique(mstat_mat$r9mstat_impute)
-
 hrs_samp[, colnames(mstat_mat)] <- mstat_mat
 
 # Drop anyone missing marital status for waves 5-8
-subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute"))
+subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_impute_cat"))
 
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
@@ -711,17 +710,26 @@ hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 # table(hrs_samp$r4mstat_cat, hrs_samp$r9mstat_cat)
 
 #---- drinking ----
-drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
-  (hrs_samp %>% dplyr::select(contains("drinkn")))
-ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
+# Imputing drinking per day and drinking per week
+hrs_samp <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
+                       seq(3, 13), seq(4, 9),  hrs_samp)
+hrs_samp <- impute_status("drinkn", paste0("r", seq(3, 13), "drinkn"),
+                          seq(3, 13), seq(4, 9),  hrs_samp)
+
+#Sanity check
+# table(hrs_samp$r4drinkn, hrs_samp$r4drinkn_impute, useNA = "ifany")
+
+drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd_impute")))*
+  (hrs_samp %>% dplyr::select(contains("drinkn_impute")))
+ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn_impute"))
 
 drinking_cat_mat <- 
   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("drinking", seq(3, 13), "_cat"))
+  set_colnames(paste0("drinking", seq(4, 9), "_cat"))
 
 for(i in 1:ncol(drinking_cat_mat)){
   for(j in 1:nrow(drinking_cat_mat)){
-    drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
+    drinking_cat_mat[j, paste0("drinking", (i + 3), "_cat")] = 
       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
@@ -736,12 +744,42 @@ for(i in 1:ncol(drinking_cat_mat)){
   }
 }
 
+# Old code chunk
+# drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
+#   (hrs_samp %>% dplyr::select(contains("drinkn")))
+# ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
+# 
+# 
+# drinking_cat_mat <- 
+#   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+#   set_colnames(paste0("drinking", seq(3, 13), "_cat"))
+# 
+# for(i in 1:ncol(drinking_cat_mat)){
+#   for(j in 1:nrow(drinking_cat_mat)){
+#     drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
+#       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
+#                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
+#                   hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 1 & 
+#                    drinks_per_week_mat[j, i] < 7) & 
+#                   hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 1 & 
+#                    drinks_per_week_mat[j, i] < 14) & 
+#                   hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
+#   }
+# }
+
 # #Sanity Check
 # View(drinking_cat_mat)
 
 hrs_samp %<>% cbind(drinking_cat_mat)
 
 # #Sanity Check
+# View(hrs_samp %>% dplyr::select("r9drinkn", "female",
+#                                 "drinking9_cat") %>%
+#        filter(drinking9_cat == "Heavy Drinking"))
 # View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
 #                                 "drinking9_cat") %>%
 #        filter(drinking9_cat == "Heavy Drinking"))
@@ -781,8 +819,11 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
 # table(hrs_samp$drinking4_cat, hrs_samp$drinking9_cat)
 
-#Drop the one person who has no information on drinking behavior
-hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
+# #Drop the one person who has no information on drinking behavior
+# hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
+
+# Drop those who miss drinking status at any wave after imputation
+hrs_samp %<>% filter(rowSums(is.na(drinking_cat_mat)) == 0)
 
 # #---- physical activity ----
 # PA_mat <- hrs_samp %>% 

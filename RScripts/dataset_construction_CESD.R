@@ -886,11 +886,18 @@ colSums(is.na(self_reported_health))
 
 
 #---- Dropping people ----
-# remove people who were not sampled in 2018
+# 1. full HRSsample (n = 43398)
+
+# 2. remove people who were not sampled in 2018
 # sum(is.na(hrs_samp$QALIVE))
 hrs_samp %<>% filter(!is.na(QALIVE))
 
-#Check those missing age data-- these people have no birth date data so I am 
+# 3. drop those with missing CESD observations in wave 4 - 9
+drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
+hrs_samp %<>% mutate("drop" = drop$drop) %>% filter(drop == 0)
+
+# 4.1 Check those missing age data-- these people have no birth date data so I am 
 # dropping them; looks like no one is in this group
 still_missing <- 
   which(is.na(rowSums(hrs_samp %>% dplyr::select(contains("age_y")))))
@@ -899,69 +906,60 @@ if(length(still_missing) > 0){
   hrs_samp <- hrs_samp[-c(still_missing), ]
 }
 
-#Dropping those missing race/ethnicity data
+# 4 + 5 Drop those not age-eligible at HRS wave 4 and those who are 91+
+sum(hrs_samp$r4age_y_int %in% c(seq(50, 90)))
+hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
+
+# 6. Dropping those missing race/ethnicity data
 # sum(hrs_samp$unknown_race_eth == 0)
 hrs_samp %<>% filter(unknown_race_eth == 0)
 
-# Drop those missing education data
-# table(hrs_samp$ed_cat, useNA = "ifany")
-hrs_samp %<>% filter(!is.na(ed_cat))
-
-# Drop those missing cSES values
-# sum(is.na(hrs_samp$cses_index))
-hrs_samp %<>% filter(!is.na(cses_index))
-
-#Drop people missing height data
+# 7. Drop people missing height data
 #Drop RAND's height variables + extra derived variables
 # sum(is.na(hrs_samp$height))
 hrs_samp %<>% filter(!is.na(height)) %>% 
   dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
                    paste0("r", number_waves, "height"), 
                    "med_height", "self_height"))
-
-# Drop those missing BMI
+# 8. Drop those missing BMI （weight)
 # sum(hrs_samp$missing_bmi != 0)
 hrs_samp %<>% filter(missing_bmi == 0)
 
-# drop those with missing CESD observations in wave 4 - 9
-drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-  mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
-hrs_samp %<>% mutate("drop" = drop$drop) %>% filter(drop == 0) 
-
-# Drop people missing information for wave-updated ever/never chronic condition
-# at all 6 waves
-conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
-                "memrye")
-
-for(condition in conditions){
-  subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
-                                              "_impute"))
-  hrs_samp %<>% filter(rowSums(is.na(subset)) != 6)
-}
-
-# Drop anyone missing marital status for waves 5-8
-# subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
-# hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
-# No missing!!!!
-
-# Drop those who miss drinking status at any wave after imputation
+# 9.  Drop those who miss drinking status at any wave after imputation
 subset <- hrs_samp %>% dplyr::select(contains("drinking"))
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
-# Drop those without self-reported health
+# 10. Drop those without self-reported health
 drop <- rowSums(is.na(hrs_samp %>%
-  dplyr::select(paste0("r", seq(4, 9), "shlt"))))
+                        dplyr::select(paste0("r", seq(4, 9), "shlt"))))
 # table(drop)
 hrs_samp[, "drop"] <- drop
-
 # #Sanity check
 # table(hrs_samp$drop, useNA = "ifany")
-
 hrs_samp %<>% filter(drop == 0)
 
-#Drop those not age-eligible at HRS wave 4 and those who are 91+
-sum(hrs_samp$r4age_y_int %in% c(seq(50, 90)))
-hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
+
+# Checking other variables missingness
+
+# No missing education data
+# table(hrs_samp$ed_cat, useNA = "ifany")
+
+# Chronic conditions
+# No people missing information for wave-updated ever/never chronic condition
+# at all 6 waves
+# conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
+#                 "memrye")
+# 
+# for(condition in conditions){
+#   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
+#                                               "_impute"))
+#   test <- hrs_samp %>% filter(rowSums(is.na(subset)) != 6)
+# }
+
+# No missing marital status for waves 5-8
+# subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
+# test2 <- hrs_samp %>% filter(rowSums(is.na(subset)) == 0)
+
 
 
 #---- select variables ----

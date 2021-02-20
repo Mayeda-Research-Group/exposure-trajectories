@@ -895,39 +895,39 @@ summary(r4cesdmissing_mod <- glm(r4cesd_missing ~
                                    r4age_y_int + r3cesd + r4conde_impute,
                         family = binomial(link = "logit"), 
                         data = hrs_samp))
-r4results <- tidy(r4cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
                                    r5age_y_int + r4cesd + r5conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
-r5results <- tidy(r5cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
                                    r6age_y_int + r5cesd + r6conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
-r6results <- tidy(r6cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
                                    r7age_y_int + r6cesd + r7conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
-r7results <- tidy(r7cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
                                    r8age_y_int + r7cesd + r8conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
-r8results <- tidy(r8cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
                                    r9age_y_int + r8cesd + r9conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
-r9results <- tidy(r9cesdmissing_mod, exponentiate = FALSE, conf.int = TRUE)
+r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
-tibble(
+results_tbl <- tibble(
   variables = c("Intercept", "age at current wave", "previous CESD value",
                 "Previous chronic condition count"),
   r4beta = round(r4results$estimate, 4),
@@ -936,10 +936,15 @@ tibble(
   r7beta = round(r7results$estimate, 4),
   r8beta = round(r8results$estimate, 4),
   r9beta = round(r9results$estimate, 4)
-) %>%
-  kbl(caption = "betas of the CESD missing model (wave 4 - 9)") %>%
+) 
+
+results_tbl %>%
+  kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
   kable_classic(full_width = F, html_font = "Arial")
 
+write_csv(results_tbl, paste0(path_to_dropbox,
+                              "/exposure_trajectories/data/",
+                              "CESD_missing_model_betas.csv"))
 
 #---- Dropping people ----
 # 1. full HRSsample (n = 43398)

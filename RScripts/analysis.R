@@ -53,8 +53,8 @@ table_effect_ests <-
              "beta" = NA, "LCI" = NA, "UCI" = NA, 
              "Method" = rep(c(rep("Truth", 4), rep(methods, each = 12)), 3), 
              "Missingness" = rep(c(rep("0%", 4), 
-                               rep(rep(paste0(mask_props*100, "%"), each = 4), 
-                                   4)), 3), 
+                                   rep(rep(paste0(mask_props*100, "%"), each = 4), 
+                                       4)), 3), 
              "Type" = c(c(rep("Truth", 4), rep("MCAR", 48)), 
                         c(rep("Truth", 4), rep("MAR", 48)), 
                         c(rep("Truth", 4), rep("NMAR", 48))))
@@ -96,7 +96,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" &
                           table_effect_ests$Method == "Truth"), 
                   c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                         c("estimate", "conf.low", "conf.high")])
+                           c("estimate", "conf.low", "conf.high")])
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
@@ -113,7 +113,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" &
                           table_effect_ests$Method == "Truth"), 
                   c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                              c("estimate", "conf.low", "conf.high")])
+                                c("estimate", "conf.low", "conf.high")])
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
@@ -124,13 +124,13 @@ TTEmodel_elevated_avg_CESD <-
           avg_cesd_elevated, data = CESD_data_wide)
 
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
-                                  exponentiate = TRUE, conf.int = TRUE)
+                                           exponentiate = TRUE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
                           table_effect_ests$Method == "Truth"), 
                   c("beta", "LCI", "UCI")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                            c("estimate", "conf.low", "conf.high")])
+                                       c("estimate", "conf.low", "conf.high")])
 
 #---- create one set of imputations for plot ----
 all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
@@ -138,10 +138,12 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 
 apply(all_combos[1:3, ], 1, function(x) 
   mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2], 
-                       mask_percent = x[4], 
+                   mask_percent = x[4], 
                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
+test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "JMVN", 
+                         mask_percent = "10%", num_impute = 5, save = "no")
 
 #---- save tables ----
 #Round numbers in dataframe
@@ -183,8 +185,8 @@ pred_lmm <- make.predictorMatrix(imputation_data_long)
 
 #Don't use these as predictors
 pred_lmm[, c("log_CysC", "observed", "mcar10", "height_measured", 
-         "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ", 
-         "CysC_masked")] <- 0
+             "Wave", "weight_measured", "BMI_measured", "CYSC_ADJ", 
+             "CysC_masked")] <- 0
 
 #Formulas are already specified for these
 pred_lmm[c("BMI", "CysC_masked"), ] <- 0
@@ -194,22 +196,22 @@ pred_lmm[, "HHIDPN"] <- -2
 
 #Specify fixed effects
 pred_lmm[, c("female", "hispanic", "black", "other", "raedyrs", "cses_index", 
-           "smoker", "height")] <- 1
+             "smoker", "height")] <- 1
 
 #Specify random effect
 pred_lmm[, c("weight", "age_y_int", "A1C_ADJ", "TC_ADJ", "HDL_ADJ", 
-           "bpsys", "bpdia", "BMI")] <- 2
+             "bpsys", "bpdia", "BMI")] <- 2
 
 
 #Do not need imputations for these-- do I even need to specify this?
 pred_lmm[c("female", "hispanic", "black", "other", "raedyrs", "death", 
-       "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
-       "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
+           "height", "height_measured", "Wave", "age_y_int", "weight_measured", 
+           "BMI_measured", "CYSC_ADJ", "log_CysC", "observed", "mcar10"), ] <- 0
 
 lmm_imputations <- mice(imputation_data_long, m = num_impute, maxit = 5, 
-                    predictorMatrix = pred_lmm, 
-                    where = impute_here_long,
-                    defaultMethod = rep("2l.pan", 4), seed = 20200812)
+                        predictorMatrix = pred_lmm, 
+                        where = impute_here_long,
+                        defaultMethod = rep("2l.pan", 4), seed = 20200812)
 
 # #check diagnostics
 # View(lmm_imputations$loggedEvents)

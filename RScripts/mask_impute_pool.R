@@ -249,11 +249,8 @@ mask_impute_pool <-
       pooled <- pool(fitted_models)
       
       #---- storing results ----
-      pooled_effect_ests[which(
-        pooled_effect_ests$Exposure == exposure & 
-          pooled_effect_ests$Method == method & 
-          pooled_effect_ests$Missingness == paste0(mask, "%")), 
-        c("beta", "LCI", "UCI")] <- 
+      pooled_effect_ests[which(pooled_effect_ests$Exposure == exposure), 
+                         c("beta", "LCI", "UCI")] <- 
         summary(pooled, conf.int = TRUE, conf.level = 0.95, 
                 exponentiate = TRUE)[nrow(summary(pooled)), 
                                      c("estimate", "2.5 %", "97.5 %")]
@@ -313,5 +310,21 @@ mask_impute_pool <-
 # #Longitudinal fully conditional specification
 
 # #---- testing ----
-# test <- mask_impute(CESD_data_wide, mechanism = "MCAR", mask_props, 
-#                     num_impute = 5, save = "no")
+# #Single run
+# test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "JMVN", 
+#                          mask_percent = "10%", num_impute = 5, save = "no")
+# #Multiple runs
+# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, 
+#                                                mechanism = "MCAR", 
+#                                                method = "JMVN", 
+#                                                mask_percent = "10%", 
+#                                                num_impute = 5, save = "no"), 
+#                     simplify = FALSE)
+# 
+# #Formatting data
+# formatted <- do.call(rbind, test_2)
+# 
+# #Summarizing results
+# results <- formatted %>% group_by(Exposure) %>% 
+#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+

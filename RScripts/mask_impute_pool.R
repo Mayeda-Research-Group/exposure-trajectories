@@ -197,7 +197,7 @@ mask_impute_pool <-
         saveRDS(data_imputed, 
                 file = here::here("MI datasets", 
                                   paste0("jmvn_", tolower(mechanism), 
-                                         100*prop)))
+                                         as.numeric(sub("%","", mask_percent)))))
       }
     }
     
@@ -259,9 +259,6 @@ mask_impute_pool <-
     #---- return values ----
     return(pooled_effect_ests)
   }
-
-
-
 
 # #---- **FCS ----
 # #---- ***predictor matrix ----

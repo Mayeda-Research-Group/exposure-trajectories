@@ -45,6 +45,7 @@ CESD_data_wide <-
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
                "Elevated Average CES-D")
 methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
+mechanisms <- c("MCAR", "MAR", "NMAR")
 mask_props <- c(.10, .25, .50)
 
 table_effect_ests <- 
@@ -132,7 +133,13 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                             c("estimate", "conf.low", "conf.high")])
 
 #---- create one set of imputations for plot ----
-mask_impute(data_wide, "MCAR", mask_props, num_impute, save = "yes")
+all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
+  mutate("mask_percent" = paste0(100*mask_props, "%"))
+
+apply(all_combos[1:3, ], 1, function(x) 
+  mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2], 
+                       mask_percent = x[4], 
+                   num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
 

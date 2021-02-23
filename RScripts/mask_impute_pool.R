@@ -169,7 +169,7 @@ mask_impute_pool <-
       
       #---- ****Exposure models ----
       predict[c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-              "avg_cesd", "avg_cesd_elevated"),  
+                "avg_cesd", "avg_cesd_elevated"),  
               c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
                 "avg_cesd", "avg_cesd_elevated")] <- 
         diag(x = 0, nrow = 5, ncol = 5)
@@ -187,160 +187,131 @@ mask_impute_pool <-
                                    paste0("logr", seq(4, 8), "cesd"))] <- 0
       
       #---- ***run imputation ----
-      for(prop in mask_props){
-        data <- get(paste0("mask", 100*prop))
-        assign(paste0("jmvn_impute", 100*prop), 
-               mice(data = data, m = num_impute, method = "norm", 
-                    predictorMatrix = predict, where = is.na(data), 
-                    blocks = as.list(paste0("logr", seq(4, 9), "cesd")), 
-                    seed = 20210126))
-        
-        #---- ***save results ----
-        if(save == "yes"){
-          saveRDS(get(paste0("jmvn_impute", 100*prop)), 
-                  file = here::here("MI datasets", 
-                                    paste0("jmvn_", tolower(mechanism), 100*prop)))
-        }
+      data_imputed <- mice(data = data_wide, m = num_impute, method = "norm", 
+                           predictorMatrix = predict, where = is.na(data_wide), 
+                           blocks = as.list(rownames(predict)), 
+                           seed = 20210126)
+      
+      #---- ***save results ----
+      if(save == "yes"){
+        saveRDS(data_imputed, 
+                file = here::here("MI datasets", 
+                                  paste0("jmvn_", tolower(mechanism), 
+                                         100*prop)))
       }
     }
     
-    
-    # #---- **FCS ----
-    # #---- ***predictor matrix ----
-    # predict <- 
-    #   matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
-    #   set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
-    #   set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
-    # #Don't use these as predictors
-    # predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
-    #             paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
-    #             "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-    #             "observed")] <- 0
-    # 
-    # #Use values at the current wave to predict-- not sure about this yet
-    # predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-    # predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
-    #                                                        ncol = 6)
-    # predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-    # 
-    # #Exclude values that predict themselves
-    # predict[, paste0("r", seq(4, 9), "cesd")] <- 
-    #   (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    # 
-    # #---- ***run imputation ----
-    # for(prop in mask_props){
-    #   data <- get(paste0("mask", 100*prop))
-    #   data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-    #   assign(paste0("fcs_impute", 100*prop), 
-    #          mice(data = data, m = num_impute, method = "polr", 
-    #               predictorMatrix = predict, where = is.na(data), 
-    #               blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
-    #               seed = 20210126))
-    #   
-    #   #---- ***save results ----
-    #   if(save == "yes"){
-    #     saveRDS(get(paste0("fcs_impute", 100*prop)), 
-    #             file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
-    #                                                     100*prop)))
-    #   }
-    # }
-    # 
-    # #---- **JMVN long ----
-    # #Longitudinal joint multivariate normal model
-    # 
-    # #---- **FCS long ----
-    # #Longitudinal fully conditional specification
-    
-    for(method in methods){
-      for(mask in 100*mask_props){
-        for(exposure in exposures){
-          #---- fitting models ----
-          if(method == "JMVN"){
-            if(exposure == "CES-D Wave 4"){
-              fitted_models <- 
-                with(get(paste0(tolower(method), "_impute", mask)), 
-                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                             hispanic + black + other + ed_cat + r4mstat_cat + 
-                             ever_mem + ever_arthritis + ever_stroke + 
-                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                             ever_diabetes + r4BMI + drinking4_cat_impute + 
-                             smoker + 
-                             ifelse(round((exp(logr4cesd) - 1), 0) > 4, 1, 0)))
-            } else if(exposure == "CES-D Wave 9"){
-              fitted_models <- 
-                with(get(paste0(tolower(method), "_impute", mask)), 
-                     coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
-                             hispanic + black + other + ed_cat + r9mstat_cat + 
-                             ever_mem + ever_arthritis + ever_stroke + 
-                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                             ever_diabetes + r9BMI + drinking9_cat_impute + 
-                             smoker + 
-                             ifelse(round((exp(logr9cesd) - 1), 0) > 4, 1, 0)))
-            } else if(exposure == "Elevated CES-D Count"){
-              fitted_models <- 
-                with(get(paste0(tolower(method), "_impute", mask)), 
-                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                             hispanic + black + other + ed_cat + r4mstat_cat + 
-                             ever_mem + ever_arthritis + ever_stroke + 
-                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                             ever_diabetes + r4BMI + drinking4_cat_impute + 
-                             smoker + 
-                             sum(ifelse(round((exp(logr4cesd) - 1), 0) > 4, 
-                                        1, 0), 
-                                 ifelse(round((exp(logr5cesd) - 1), 0) > 4, 
-                                        1, 0), 
-                                 ifelse(round((exp(logr6cesd) - 1), 0) > 4, 
-                                        1, 0), 
-                                 ifelse(round((exp(logr7cesd) - 1), 0) > 4, 
-                                        1, 0), 
-                                 ifelse(round((exp(logr8cesd) - 1), 0) > 4, 
-                                        1, 0), 
-                                 ifelse(round((exp(logr9cesd) - 1), 0) > 4, 
-                                        1, 0)))) 
-            } else{
-              fitted_models <- 
-                with(get(paste0(tolower(method), "_impute", mask)), 
-                     coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                             hispanic + black + other + ed_cat + r4mstat_cat + 
-                             ever_mem + ever_arthritis + ever_stroke + 
-                             ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                             ever_diabetes + r4BMI + drinking4_cat_impute + 
-                             smoker + 
-                             ifelse(sum(ifelse(round((exp(logr4cesd) - 1), 
-                                                     0) > 4, 1, 0), 
-                                        ifelse(round((exp(logr5cesd) - 1), 
-                                                     0) > 4, 1, 0), 
-                                        ifelse(round((exp(logr6cesd) - 1), 
-                                                     0) > 4, 1, 0), 
-                                        ifelse(round((exp(logr7cesd) - 1), 
-                                                     0) > 4, 1, 0), 
-                                        ifelse(round((exp(logr8cesd) - 1), 
-                                                     0) > 4, 1, 0), 
-                                        ifelse(round((exp(logr9cesd) - 1), 
-                                                     0) > 4, 1, 0))/6 > 4, 
-                                    1, 0)))
-            }
-          }
-          #---- pooling models ----
-          pooled <- pool(fitted_models)
-          
-          #---- storing results ----
-          pooled_effect_ests[which(
-            pooled_effect_ests$Exposure == exposure & 
-              pooled_effect_ests$Method == method & 
-              pooled_effect_ests$Missingness == paste0(mask, "%")), 
-            c("beta", "LCI", "UCI")] <- 
-            summary(pooled, conf.int = TRUE, conf.level = 0.95, 
-                    exponentiate = TRUE)[nrow(summary(pooled)), 
-                                         c("estimate", "2.5 %", "97.5 %")]
+    for(exposure in exposures){
+      #---- fitted models ----
+      if(method == "JMVN"){
+        if(exposure == "CES-D Wave 4"){
+          fitted_models <- 
+            with(data_imputed, 
+                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                         hispanic + black + other + ed_cat + r4mstat_cat + 
+                         ever_mem + ever_arthritis + ever_stroke + 
+                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                         ever_diabetes + r4BMI + drinking4_cat_impute + 
+                         smoker + r4cesd_elevated))
+        } else if(exposure == "CES-D Wave 9"){
+          fitted_models <- 
+            with(data_imputed, 
+                 coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
+                         hispanic + black + other + ed_cat + r9mstat_cat + 
+                         ever_mem + ever_arthritis + ever_stroke + 
+                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                         ever_diabetes + r9BMI + drinking9_cat_impute + 
+                         smoker + r9cesd_elevated))
+        } else if(exposure == "Elevated CES-D Count"){
+          fitted_models <- 
+            with(data_imputed, 
+                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                         hispanic + black + other + ed_cat + r4mstat_cat + 
+                         ever_mem + ever_arthritis + ever_stroke + 
+                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                         ever_diabetes + r4BMI + drinking4_cat_impute + 
+                         smoker + total_elevated_cesd))
+        } else{
+          fitted_models <- 
+            with(data_imputed, 
+                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                         hispanic + black + other + ed_cat + r4mstat_cat + 
+                         ever_mem + ever_arthritis + ever_stroke + 
+                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                         ever_diabetes + r4BMI + drinking4_cat_impute + 
+                         smoker + avg_cesd_elevated))
         }
+      } else{
+        
       }
+      
+      #---- pooling models ----
+      pooled <- pool(fitted_models)
+      
+      #---- storing results ----
+      pooled_effect_ests[which(
+        pooled_effect_ests$Exposure == exposure & 
+          pooled_effect_ests$Method == method & 
+          pooled_effect_ests$Missingness == paste0(mask, "%")), 
+        c("beta", "LCI", "UCI")] <- 
+        summary(pooled, conf.int = TRUE, conf.level = 0.95, 
+                exponentiate = TRUE)[nrow(summary(pooled)), 
+                                     c("estimate", "2.5 %", "97.5 %")]
     }
     
     #---- return values ----
     return(pooled_effect_ests)
   }
 
-#---- testing ----
-test <- mask_impute(CESD_data_wide, mechanism = "MCAR", mask_props, 
-                    num_impute = 5, save = "no")
+
+
+
+# #---- **FCS ----
+# #---- ***predictor matrix ----
+# predict <- 
+#   matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
+#   set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
+#   set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
+# #Don't use these as predictors
+# predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
+#             paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
+#             "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+#             "observed")] <- 0
+# 
+# #Use values at the current wave to predict-- not sure about this yet
+# predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+# predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
+#                                                        ncol = 6)
+# predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+# 
+# #Exclude values that predict themselves
+# predict[, paste0("r", seq(4, 9), "cesd")] <- 
+#   (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+# 
+# #---- ***run imputation ----
+# for(prop in mask_props){
+#   data <- get(paste0("mask", 100*prop))
+#   data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
+#   assign(paste0("fcs_impute", 100*prop), 
+#          mice(data = data, m = num_impute, method = "polr", 
+#               predictorMatrix = predict, where = is.na(data), 
+#               blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
+#               seed = 20210126))
+#   
+#   #---- ***save results ----
+#   if(save == "yes"){
+#     saveRDS(get(paste0("fcs_impute", 100*prop)), 
+#             file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
+#                                                     100*prop)))
+#   }
+# }
+# 
+# #---- **JMVN long ----
+# #Longitudinal joint multivariate normal model
+# 
+# #---- **FCS long ----
+# #Longitudinal fully conditional specification
+
+# #---- testing ----
+# test <- mask_impute(CESD_data_wide, mechanism = "MCAR", mask_props, 
+#                     num_impute = 5, save = "no")

@@ -11,6 +11,9 @@ options(scipen = 999)
 
 set.seed(20200819)
 
+#---- source scripts ----
+source(here("RScripts", "mask_impute_pool.R"))
+
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu

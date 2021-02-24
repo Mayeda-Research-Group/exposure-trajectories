@@ -42,9 +42,9 @@ CESD_data_wide <-
                             smoker = col_integer()))
 
 #---- Table 2 shell: Effect Estimates ----
-exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
-               "Elevated Average CES-D")
-methods <- c("JMVN", "FCS", "JMVN Long", "FCS Long")
+exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
+               "Elevated CES-D Count")
+methods <- c("JMVN", "FCS")
 mechanisms <- c("MCAR", "MAR", "NMAR")
 mask_props <- c(.10, .25, .50)
 
@@ -53,11 +53,9 @@ table_effect_ests <-
              "beta" = NA, "LCI" = NA, "UCI" = NA, 
              "Method" = rep(c(rep("Truth", 4), rep(methods, each = 12)), 3), 
              "Missingness" = rep(c(rep("0%", 4), 
-                                   rep(rep(paste0(mask_props*100, "%"), each = 4), 
-                                       4)), 3), 
-             "Type" = c(c(rep("Truth", 4), rep("MCAR", 48)), 
-                        c(rep("Truth", 4), rep("MAR", 48)), 
-                        c(rep("Truth", 4), rep("NMAR", 48))))
+                                   rep(rep(paste0(mask_props*100, "%"), 
+                                           each = 4), 4)), 3), 
+             "Type" = rep(mechanisms, each = 52))
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
@@ -136,14 +134,36 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
   mutate("mask_percent" = paste0(100*mask_props, "%"))
 
-apply(all_combos[1:3, ], 1, function(x) 
-  mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2], 
-                   mask_percent = x[4], 
-                   num_impute = 5, save = "yes"))
+# apply(all_combos[1:3, ], 1, function(x) 
+#   mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2], 
+#                    mask_percent = x[4], 
+#                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
-test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "JMVN", 
-                         mask_percent = "10%", num_impute = 5, save = "no")
+for(i in 1:3){
+  mechanism = unlist(all_combos[i, "mechanisms"])
+  method = unlist(all_combos[i, "methods"])
+  mask_percent = unlist(all_combos[i, "mask_percent"])
+  
+  multi_runs <- 
+    replicate(2, mask_impute_pool(CESD_data_wide, mechanism = mechanism, 
+                                  method = method, mask_percent = mask_percent,
+                                  num_impute = 5, save = "no"), 
+              simplify = FALSE)
+  
+  #Formatting data
+  formatted <- do.call(rbind, multi_runs)
+  
+  #Summarizing results
+  results <- formatted %>% group_by(Exposure) %>%
+    summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+  
+  #Storing results
+  table_effect_ests[which(table_effect_ests$Method == method & 
+                            table_effect_ests$Missingness == mask_percent & 
+                            table_effect_ests$Type == mechanism), 
+                    c("Exposure", "beta", "LCI", "UCI")] <- results
+}
 
 #---- save tables ----
 #Round numbers in dataframe

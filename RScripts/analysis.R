@@ -134,13 +134,13 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
   mutate("mask_percent" = paste0(100*mask_props, "%"))
 
-# apply(all_combos[1:3, ], 1, function(x) 
-#   mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2], 
-#                    mask_percent = x[4], 
-#                    num_impute = 5, save = "yes"))
+apply(all_combos[1:6, ], 1, function(x)
+  mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2],
+                   mask_percent = x[4],
+                   num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
-for(i in 1:3){
+for(i in 1:6){
   mechanism = as.character(all_combos[i, "mechanisms"])
   method = as.character(all_combos[i, "methods"])
   mask_percent = as.character(all_combos[i, "mask_percent"])

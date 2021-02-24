@@ -141,9 +141,9 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 
 #---- get pooled effect estimates ----
 for(i in 1:3){
-  mechanism = unlist(all_combos[i, "mechanisms"])
-  method = unlist(all_combos[i, "methods"])
-  mask_percent = unlist(all_combos[i, "mask_percent"])
+  mechanism = as.character(all_combos[i, "mechanisms"])
+  method = as.character(all_combos[i, "methods"])
+  mask_percent = as.character(all_combos[i, "mask_percent"])
   
   multi_runs <- 
     replicate(2, mask_impute_pool(CESD_data_wide, mechanism = mechanism, 

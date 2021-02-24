@@ -321,7 +321,6 @@ hrs_samp %<>%
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
                                 r13age_y_int + 2, age_death_y))
 
-
 # #Sanity check
 # View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
 # table(hrs_samp$age_death_y, useNA = "ifany")

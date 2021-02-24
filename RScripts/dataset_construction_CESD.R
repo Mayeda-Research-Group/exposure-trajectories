@@ -255,7 +255,7 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #                              "CESD_complete_subsets.csv"))
 
 # Create indicators for whether CESD is missing at each wave
-hrs_samp[, paste0("r", seq(2, 13), "cesd", "_missing")] <- NA
+hrs_samp[, paste0("r", seq(2, 13), "cesd_missing")] <- NA
 
 cesd_mat <- hrs_samp %>% select(contains("cesd"))
 for (j in 1:length(seq(2, 13))) {

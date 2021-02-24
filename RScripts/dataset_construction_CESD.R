@@ -508,8 +508,8 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # Imputing chronic conditions
 
 #---- ** diabetes ----
-hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1,9), "diabe"),
-                              seq(1,9), hrs_samp)
+hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
+                              seq(1, 9), hrs_samp)
 
 #---- **high bp ----
 hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(1, 9), "hibpe"),
@@ -556,7 +556,7 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
-  dplyr::select(contains("_impute"), -contains("drinking"))
+  dplyr::select(contains("_impute"))
 
 waves <- seq(1,9)
   for(j in 1:length(waves)){

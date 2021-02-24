@@ -1,8 +1,8 @@
 mask_impute_pool <- 
   function(data_wide, mechanism, method, mask_percent, num_impute, save = "no"){
     #---- create shell for output ----
-    exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated CES-D Count", 
-                   "Elevated Average CES-D")
+    exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
+                   "Elevated CES-D Count")
     
     pooled_effect_ests <- 
       data.frame("Exposure" = exposures, "beta" = NA, "LCI" = NA, "UCI" = NA, 

@@ -172,7 +172,7 @@ for(i in 1:length(years)){
                     contains("F1151"), contains("G1284"),
                     contains("F1157"), contains("G1290"),
                     contains("F1184"), contains("G1317")) %>%
-                    #contains("F1198"), contains("G1331")) 
+      #contains("F1198"), contains("G1331")) 
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
@@ -181,7 +181,7 @@ for(i in 1:length(years)){
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3)) 
                      #paste0("arthritis_rx", (i + 3))
-                     )) 
+      )) 
   } else{
     dataframes_list[[i]] <-
       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
@@ -194,7 +194,7 @@ for(i in 1:length(years)){
       dplyr::select("HHIDPN", 
                     contains("C011"), contains("C012"), contains("C006"), 
                     contains("C032"), contains("C037"), contains("C060")) %>% 
-                    #contains("C074")) %>%
+      #contains("C074")) %>%
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
@@ -203,7 +203,7 @@ for(i in 1:length(years)){
                      paste0("heart_rx", (i + 3)), 
                      paste0("stroke_rx", (i + 3))
                      #paste0("arthritis_rx", (i + 3))
-                     ))
+      ))
   }
 }
 
@@ -218,7 +218,7 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 #Use this to subset RAND data
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
-             
+
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
 # subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
@@ -431,7 +431,7 @@ hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
                    207810010, 208021020, 210114010, 35201010, 
-                      25391010)), "9weight"] <- NA
+                   25391010)), "9weight"] <- NA
 
 #Fix measured indicators
 hrs_samp[which(hrs_samp$HHIDPN %in% 
@@ -442,7 +442,7 @@ hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight_measured"] <- 0
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
                    207810010, 208021020, 210114010, 35201010, 
-                        25391010)), "9weight_measured"] <- 0
+                   25391010)), "9weight_measured"] <- 0
 
 #Drop RAND's weight variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
@@ -509,11 +509,11 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 
 #---- ** diabetes ----
 hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
-                              seq(1, 9), hrs_samp)
+                                     seq(1, 9), hrs_samp)
 
 #---- **high bp ----
 hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(1, 9), "hibpe"),
-                             seq(1, 9), hrs_samp)
+                                     seq(1, 9), hrs_samp)
 
 #---- **cancer ----
 hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(1, 9), "cancre"),
@@ -558,20 +558,20 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"))
 
-waves <- seq(1,9)
-  for(j in 1:length(waves)){
-    wave <- waves[j] 
-    cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
-       rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
-               na.rm = TRUE)
-  }
+waves <- seq(1, 9)
+for(j in 1:length(waves)){
+  wave <- waves[j] 
+  cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
+    rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
+            na.rm = TRUE)
+}
 
 hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <- 
   cond_mat %>% select(contains("conde_impute"))
 
- # view(hrs_samp %>% select(contains("conde_impute")))
+# view(hrs_samp %>% select(contains("conde_impute")))
 
-# # #---- Old code chunk
+# # #---- Old code chunk ----
 # # #---- ** diabetes ----
 # hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
 #                               c(paste0("diabetes_rx_insulin", seq(4, 9)),
@@ -631,7 +631,7 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 
 # Impute mstat with closest non-missing value
 hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
-                            seq(1, 13), seq(4, 9),  hrs_samp)
+                          seq(1, 13), seq(4, 9),  hrs_samp)
 # 
 
 # Old code chunk for mstat
@@ -659,7 +659,7 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
 # View(hrs_samp %>%
 #        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
 #                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
-  
+
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
 mstat_mat[, paste0("r", seq(4,9), "mstat_cat")] <- NA
@@ -681,7 +681,7 @@ hrs_samp[, colnames(mstat_mat)] <- mstat_mat
 #---- drinking ----
 # Imputing drinking per day and drinking per week
 hrs_samp <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
-                       seq(3, 13), seq(4, 9),  hrs_samp)
+                          seq(3, 13), seq(4, 9),  hrs_samp)
 hrs_samp <- impute_status("drinkn", paste0("r", seq(3, 13), "drinkn"),
                           seq(3, 13), seq(4, 9),  hrs_samp)
 
@@ -894,8 +894,8 @@ colSums(is.na(self_reported_health))
 
 summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
                                    r4age_y_int + r3cesd + r4conde_impute,
-                        family = binomial(link = "logit"), 
-                        data = hrs_samp))
+                                 family = binomial(link = "logit"), 
+                                 data = hrs_samp))
 r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 

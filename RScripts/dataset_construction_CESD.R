@@ -1034,11 +1034,11 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
           paste0("r", seq(4, 9), "cancre", "_impute"),
           paste0("r", seq(4, 9), "hibpe", "_impute"),
           paste0("r", seq(4, 9), "diabe", "_impute"),
-          paste0("r", seq(4, 9), "conde", "_impute"),
+          paste0("r", seq(3, 9), "conde", "_impute"),
           "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
-          paste0("r", seq(4, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
+          paste0("r", seq(3, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
           "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))

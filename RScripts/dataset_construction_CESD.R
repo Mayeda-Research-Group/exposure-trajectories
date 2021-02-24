@@ -1041,10 +1041,14 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
           "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))
+
+#---- Exposures ----
+
+#---- Outcome ----
                         
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
-                           "hrs_samp_6CESD_waves4-9.csv"))
+                           "CESD_data_wide.csv"))
 
 

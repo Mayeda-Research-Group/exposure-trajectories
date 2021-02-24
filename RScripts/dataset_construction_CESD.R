@@ -359,6 +359,10 @@ hrs_samp %<>%
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
+# colSums(is.na(hrs_samp[, c("hispanic", "white", "black", "other", 
+#                            "unknown_race_eth")]))
+# table(hrs_samp$white, hrs_samp$raracem, useNA = "ifany")
+# table(hrs_samp$rahispan, hrs_samp$hispanic, useNA = "ifany")
 
 hrs_samp %<>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
@@ -1000,40 +1004,35 @@ hrs_samp[, "drop"] <- drop
 # table(hrs_samp$drop, useNA = "ifany")
 hrs_samp %<>% filter(drop == 0)
 
+#11. Drop people missing wave-updated ever/never chronic conditions
+conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke",
+                "memrye")
+subset <- hrs_samp %>% 
+  dplyr::select(do.call(paste, 
+                        c(expand.grid("r", seq(4, 9), conditions, "_impute"), 
+                          sep = ""))) 
+hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 
 # Checking other variables missingness
 
 # No missing education data
 # table(hrs_samp$ed_cat, useNA = "ifany")
 
-# Chronic conditions
-# No people missing information for wave-updated ever/never chronic condition
-# at all 6 waves
-# conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
-#                 "memrye")
-# 
-# for(condition in conditions){
-#   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
-#                                               "_impute"))
-#   test <- hrs_samp %>% filter(rowSums(is.na(subset)) != 6)
-# }
-
-# No missing marital status for waves 5-8
+# #No missing marital status for waves 5-8
 # subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
-# test2 <- hrs_samp %>% filter(rowSums(is.na(subset)) == 0)
+# drop <- rowSums(is.na(subset))
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", c(4, 9), "_cat"), 
-          paste0("r", seq(4, 9), "memrye", "_impute"),
-          paste0("r", seq(4, 9), "stroke", "_impute"),
-          paste0("r", seq(4, 9), "hearte", "_impute"),
-          paste0("r", seq(4, 9), "lunge", "_impute"),
-          paste0("r", seq(4, 9), "cancre", "_impute"),
-          paste0("r", seq(4, 9), "hibpe", "_impute"),
-          paste0("r", seq(4, 9), "diabe", "_impute"),
-          paste0("r", seq(3, 9), "conde", "_impute"),
-          "smoker", 
+vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+          paste0("drinking", seq(4, 9), "_cat"), 
+          paste0("r", seq(4, 9), "memrye_impute"),
+          paste0("r", seq(4, 9), "stroke_impute"),
+          paste0("r", seq(4, 9), "hearte_impute"),
+          paste0("r", seq(4, 9), "lunge_impute"),
+          paste0("r", seq(4, 9), "cancre_impute"),
+          paste0("r", seq(4, 9), "hibpe_impute"),
+          paste0("r", seq(4, 9), "diabe_impute"),
+          paste0("r", seq(3, 9), "conde_impute"), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
           paste0("r", seq(3, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 

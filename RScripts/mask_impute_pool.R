@@ -240,6 +240,12 @@ mask_impute_pool <-
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
+    } else if(method == "FCS"){
+      #Fully conditional specification
+      data_imputed <- mice(data = data_wide, m = num_impute, method = "polr", 
+                           predictorMatrix = predict, where = is.na(data_wide), 
+                           blocks = as.list(rownames(predict)), 
+                           seed = 20210126)
     }
     
     #---- ***save results ----

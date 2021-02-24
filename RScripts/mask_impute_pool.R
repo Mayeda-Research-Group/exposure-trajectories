@@ -93,13 +93,12 @@ mask_impute_pool <-
     }
     
     #---- imputation ----
+    #---- **predictor matrix ----
     if(method == "JMVN"){
-      #---- **JMVN ----
-      #Joint multivariate normal
-      #---- ***predictor matrix ----
       predict <- 
-        matrix(1, nrow = 23, ncol = ncol(data_wide)) %>% 
-        set_rownames(c(paste0("logr", seq(4, 9), "cesd"), 
+        matrix(1, nrow = 29, ncol = ncol(data_wide)) %>% 
+        set_rownames(c(paste0("r", seq(4, 9), "cesd"), 
+                       paste0("logr", seq(4, 9), "cesd"), 
                        apply(expand.grid("r", seq(4, 9), 
                                          mask_wave_specific[2:3]), 1, 
                              paste, collapse = ""),
@@ -107,19 +106,34 @@ mask_impute_pool <-
                        "total_elevated_cesd", "avg_cesd", 
                        "avg_cesd_elevated")) %>% 
         set_colnames(colnames(data_wide))
-      
-      #Don't use these as predictors
-      predict[, c("HHIDPN", "conde", "age_death_y", 
-                  paste0("r", seq(4, 9), "cesd"), "observed", 
-                  "CESD_missing")] <- 0
-      
-      #---- EDIT HERE ----
-      #---- ****logCESD models ----
+    } else{
+      predict <- 
+        matrix(1, nrow = 23, ncol = ncol(data_wide)) %>% 
+        set_rownames(c(paste0("r", seq(4, 9), "cesd"), 
+                       apply(expand.grid("r", seq(4, 9), 
+                                         mask_wave_specific[2:3]), 1, 
+                             paste, collapse = ""),
+                       "r4cesd_elevated", "r9cesd_elevated", 
+                       "total_elevated_cesd", "avg_cesd", 
+                       "avg_cesd_elevated")) %>% 
+        set_colnames(colnames(data_wide))
+    }
+    
+    #Don't use these as predictors
+    predict[, c("HHIDPN", "conde", "age_death_y", "observed", 
+                "CESD_missing")] <- 0
+    
+    #---- EDIT HERE ----
+    if(method == "JMVN"){
+      #---- ***logCESD models ----
       predict[paste0("logr", seq(4, 9), "cesd"), 
               paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
       predict[paste0("logr", seq(4, 9), "cesd"), 
               paste0("r", seq(4, 9), "age_y_int")] <- 
         diag(x = 1, nrow = 6, ncol = 6)
+      predict[paste0("logr", seq(4, 9), "cesd"), 
+              paste0("r", seq(4, 9), "cesd")] <- 
+        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
       predict[paste0("logr", seq(4, 9), "cesd"), 
               paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
       predict[paste0("logr", seq(4, 9), "cesd"), 
@@ -130,119 +144,150 @@ mask_impute_pool <-
       predict[paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated"] <- 
         c(rep(0, 5), 1)
       
-      #---- ****BMI models ----
-      predict[paste0("r", seq(4, 9), "BMI"), 
-              paste0("r", seq(4, 9), "BMI")] <- 
+      #additional for other models
+      predict[paste0("r", seq(4, 9), "cesd"), 
+              paste0("logr", seq(4, 9), "cesd")] <- 
         (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-      predict[paste0("r", seq(4, 9), "BMI"), 
-              paste0("r", seq(4, 9), "cesd")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "BMI"), 
-              paste0("r", seq(4, 9), "age_y_int")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "BMI"), 
-              paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+      
       predict[paste0("r", seq(4, 9), "BMI"), 
               paste0("logr", seq(4, 9), "cesd")] <- 
         diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "BMI"), "r4cesd_elevated"] <- 
-        c(1, rep(0, 5))
-      predict[paste0("r", seq(4, 9), "BMI"), "r9cesd_elevated"] <- 
-        c(rep(0, 5), 1)
       
-      #---- ****shlt models ----
-      predict[paste0("r", seq(4, 9), "shlt"), 
-              paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "shlt"), 
-              paste0("r", seq(4, 9), "age_y_int")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "shlt"), 
-              paste0("r", seq(4, 9), "shlt")] <- 
-        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
       predict[paste0("r", seq(4, 9), "shlt"), 
               paste0("logr", seq(4, 9), "cesd")] <- 
         diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("r", seq(4, 9), "shlt"), "r4cesd_elevated"] <- 
-        c(1, rep(0, 5))
-      predict[paste0("r", seq(4, 9), "shlt"), "r9cesd_elevated"] <- 
-        c(rep(0, 5), 1)
       
-      #---- ****Exposure models ----
-      predict[c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-                "avg_cesd", "avg_cesd_elevated"),  
-              c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-                "avg_cesd", "avg_cesd_elevated")] <- 
-        diag(x = 0, nrow = 5, ncol = 5)
-      
-      #E1a
-      predict["r4cesd_elevated", c(paste0("r", seq(5, 9), "BMI"), 
-                                   paste0("r", seq(5, 9), "age_y_int"), 
-                                   paste0("r", seq(5, 9), "shlt"), 
-                                   paste0("logr", seq(5, 9), "cesd"))] <- 0
-      
-      #E1a
-      predict["r9cesd_elevated", c(paste0("r", seq(4, 8), "BMI"), 
-                                   paste0("r", seq(4, 8), "age_y_int"), 
-                                   paste0("r", seq(4, 8), "shlt"), 
-                                   paste0("logr", seq(4, 8), "cesd"))] <- 0
-      
-      #---- ***run imputation ----
+      predict["r4cesd_elevated", paste0("logr", seq(5, 9), "cesd")] <- 0
+      predict["r9cesd_elevated", paste0("logr", seq(4, 8), "cesd")] <- 0
+    }
+    
+    #---- ***CESD models ----
+    predict[paste0("r", seq(4, 9), "cesd"), 
+            paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "cesd"), 
+            paste0("r", seq(4, 9), "age_y_int")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "cesd"), 
+            paste0("r", seq(4, 9), "cesd")] <- 
+      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+    predict[paste0("r", seq(4, 9), "cesd"), 
+            paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "cesd"), "r4cesd_elevated"] <- 
+      c(1, rep(0, 5))
+    predict[paste0("r", seq(4, 9), "cesd"), "r9cesd_elevated"] <- 
+      c(rep(0, 5), 1)
+    
+    #---- ****BMI models ----
+    predict[paste0("r", seq(4, 9), "BMI"), 
+            paste0("r", seq(4, 9), "BMI")] <- 
+      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+    predict[paste0("r", seq(4, 9), "BMI"), 
+            paste0("r", seq(4, 9), "cesd")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "BMI"), 
+            paste0("r", seq(4, 9), "age_y_int")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "BMI"), 
+            paste0("r", seq(4, 9), "cesd")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "BMI"), 
+            paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "BMI"), "r4cesd_elevated"] <- 
+      c(1, rep(0, 5))
+    predict[paste0("r", seq(4, 9), "BMI"), "r9cesd_elevated"] <- 
+      c(rep(0, 5), 1)
+    
+    #---- ****shlt models ----
+    predict[paste0("r", seq(4, 9), "shlt"), 
+            paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "shlt"), 
+            paste0("r", seq(4, 9), "age_y_int")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "shlt"), 
+            paste0("r", seq(4, 9), "cesd")] <- 
+      diag(x = 1, nrow = 6, ncol = 6)
+    predict[paste0("r", seq(4, 9), "shlt"), 
+            paste0("r", seq(4, 9), "shlt")] <- 
+      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+    predict[paste0("r", seq(4, 9), "shlt"), "r4cesd_elevated"] <- 
+      c(1, rep(0, 5))
+    predict[paste0("r", seq(4, 9), "shlt"), "r9cesd_elevated"] <- 
+      c(rep(0, 5), 1)
+    
+    #---- ****Exposure models ----
+    predict[c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+              "avg_cesd", "avg_cesd_elevated"),  
+            c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+              "avg_cesd", "avg_cesd_elevated")] <- 
+      diag(x = 0, nrow = 5, ncol = 5)
+    
+    #E1a
+    predict["r4cesd_elevated", c(paste0("r", seq(5, 9), "BMI"), 
+                                 paste0("r", seq(5, 9), "age_y_int"), 
+                                 paste0("r", seq(5, 9), "shlt"), 
+                                 paste0("r", seq(5, 9), "cesd"))] <- 0
+    
+    #E1a
+    predict["r9cesd_elevated", c(paste0("r", seq(4, 8), "BMI"), 
+                                 paste0("r", seq(4, 8), "age_y_int"), 
+                                 paste0("r", seq(4, 8), "shlt"), 
+                                 paste0("r", seq(4, 8), "cesd"))] <- 0
+    
+    #---- ***run imputation ----
+    if(method == "JMVN"){
+      #Joint multivariate normal
       data_imputed <- mice(data = data_wide, m = num_impute, method = "norm", 
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      
-      #---- ***save results ----
-      if(save == "yes"){
-        saveRDS(data_imputed, 
-                file = here::here("MI datasets", 
-                                  paste0("jmvn_", tolower(mechanism), 
-                                         as.numeric(sub("%","", mask_percent)))))
-      }
+    }
+    
+    #---- ***save results ----
+    if(save == "yes"){
+      saveRDS(data_imputed, 
+              file = here::here("MI datasets", 
+                                paste0(tolower(method), "_", tolower(mechanism), 
+                                       as.numeric(sub("%","", mask_percent)))))
     }
     
     for(exposure in exposures){
       #---- fitted models ----
-      if(method == "JMVN"){
-        if(exposure == "CES-D Wave 4"){
-          fitted_models <- 
-            with(data_imputed, 
-                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                         hispanic + black + other + ed_cat + r4mstat_cat + 
-                         ever_mem + ever_arthritis + ever_stroke + 
-                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                         ever_diabetes + r4BMI + drinking4_cat_impute + 
-                         smoker + r4cesd_elevated))
-        } else if(exposure == "CES-D Wave 9"){
-          fitted_models <- 
-            with(data_imputed, 
-                 coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
-                         hispanic + black + other + ed_cat + r9mstat_cat + 
-                         ever_mem + ever_arthritis + ever_stroke + 
-                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                         ever_diabetes + r9BMI + drinking9_cat_impute + 
-                         smoker + r9cesd_elevated))
-        } else if(exposure == "Elevated CES-D Count"){
-          fitted_models <- 
-            with(data_imputed, 
-                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                         hispanic + black + other + ed_cat + r4mstat_cat + 
-                         ever_mem + ever_arthritis + ever_stroke + 
-                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                         ever_diabetes + r4BMI + drinking4_cat_impute + 
-                         smoker + total_elevated_cesd))
-        } else{
-          fitted_models <- 
-            with(data_imputed, 
-                 coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
-                         hispanic + black + other + ed_cat + r4mstat_cat + 
-                         ever_mem + ever_arthritis + ever_stroke + 
-                         ever_heart + ever_lung + ever_cancer + ever_hibp + 
-                         ever_diabetes + r4BMI + drinking4_cat_impute + 
-                         smoker + avg_cesd_elevated))
-        }
+      if(exposure == "CES-D Wave 4"){
+        fitted_models <- 
+          with(data_imputed, 
+               coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                       hispanic + black + other + ed_cat + r4mstat_cat + 
+                       ever_mem + ever_arthritis + ever_stroke + 
+                       ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                       ever_diabetes + r4BMI + drinking4_cat_impute + 
+                       smoker + r4cesd_elevated))
+      } else if(exposure == "CES-D Wave 9"){
+        fitted_models <- 
+          with(data_imputed, 
+               coxph(Surv(survtime, observed) ~ r9age_y_int + female + 
+                       hispanic + black + other + ed_cat + r9mstat_cat + 
+                       ever_mem + ever_arthritis + ever_stroke + 
+                       ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                       ever_diabetes + r9BMI + drinking9_cat_impute + 
+                       smoker + r9cesd_elevated))
+      } else if(exposure == "Elevated CES-D Count"){
+        fitted_models <- 
+          with(data_imputed, 
+               coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                       hispanic + black + other + ed_cat + r4mstat_cat + 
+                       ever_mem + ever_arthritis + ever_stroke + 
+                       ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                       ever_diabetes + r4BMI + drinking4_cat_impute + 
+                       smoker + total_elevated_cesd))
       } else{
-        
+        fitted_models <- 
+          with(data_imputed, 
+               coxph(Surv(survtime, observed) ~ r4age_y_int + female + 
+                       hispanic + black + other + ed_cat + r4mstat_cat + 
+                       ever_mem + ever_arthritis + ever_stroke + 
+                       ever_heart + ever_lung + ever_cancer + ever_hibp + 
+                       ever_diabetes + r4BMI + drinking4_cat_impute + 
+                       smoker + avg_cesd_elevated))
       }
       
       #---- pooling models ----

@@ -631,7 +631,7 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 
 # Impute mstat with closest non-missing value
 hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
-                          seq(1, 13), seq(4, 9),  hrs_samp)
+                          seq(1, 13), seq(4, 9), hrs_samp)
 # 
 
 # Old code chunk for mstat
@@ -893,37 +893,37 @@ colSums(is.na(self_reported_health))
 # \beta_3* chronic condition count (at last wave)
 
 summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
-                                   r4age_y_int + r3cesd + r4conde_impute,
+                                   r4age_y_int + r3cesd + r3conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
-                                   r5age_y_int + r4cesd + r5conde_impute,
+                                   r5age_y_int + r4cesd + r4conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
-                                   r6age_y_int + r5cesd + r6conde_impute,
+                                   r6age_y_int + r5cesd + r5conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
-                                   r7age_y_int + r6cesd + r7conde_impute,
+                                   r7age_y_int + r6cesd + r6conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
-                                   r8age_y_int + r7cesd + r8conde_impute,
+                                   r8age_y_int + r7cesd + r7conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
-                                   r9age_y_int + r8cesd + r9conde_impute,
+                                   r9age_y_int + r8cesd + r8conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)

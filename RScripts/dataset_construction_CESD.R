@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -125,9 +125,11 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
-                    paste0("r", seq(7, 13, by = 1), "vgactx"),
-                    paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    paste0("r", seq(7, 13, by = 1), "ltactx"),
+                    #We don't think this is an important confounder of 
+                    # CESD --> Mortality
+                    # paste0("r", seq(7, 13, by = 1), "vgactx"),
+                    # paste0("r", seq(7, 13, by = 1), "mdactx"), 
+                    # paste0("r", seq(7, 13, by = 1), "ltactx"),
                     paste0("r", seq(2, 13, by = 1), "cesd"),
                     paste0("r", number_waves, "shlt"))
 
@@ -169,16 +171,16 @@ for(i in 1:length(years)){
                     contains("F1110"), contains("G1239"),
                     contains("F1151"), contains("G1284"),
                     contains("F1157"), contains("G1290"),
-                    contains("F1184"), contains("G1317"),
-                    contains("F1198"), contains("G1331")) %>%
+                    contains("F1184"), contains("G1317")) %>%
+                    #contains("F1198"), contains("G1331")) 
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
                      paste0("bp_rx", (i + 3)), 
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3))
+                     paste0("stroke_rx", (i + 3)) 
+                     #paste0("arthritis_rx", (i + 3))
                      )) 
   } else{
     dataframes_list[[i]] <-
@@ -191,16 +193,16 @@ for(i in 1:length(years)){
       #select variables of interest
       dplyr::select("HHIDPN", 
                     contains("C011"), contains("C012"), contains("C006"), 
-                    contains("C032"), contains("C037"), contains("C060"), 
-                    contains("C074")) %>%
+                    contains("C032"), contains("C037"), contains("C060")) %>% 
+                    #contains("C074")) %>%
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
                      paste0("bp_rx", (i + 3)), 
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3))
+                     paste0("stroke_rx", (i + 3))
+                     #paste0("arthritis_rx", (i + 3))
                      ))
   }
 }

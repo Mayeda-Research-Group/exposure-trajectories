@@ -1043,9 +1043,100 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
 hrs_samp %<>% dplyr::select(all_of(vars))
 
 #---- Exposures ----
+#---- **E1a Def: CESD at HRS wave 4 (1998) ----
+#Effect of E1a on survival to HRS wave 14 (2018) 
+hrs_samp %<>% 
+  mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0))
+
+# #Sanity check
+# table(hrs_samp$r4cesd, hrs_samp$r4cesd_elevated, useNA = "ifany")
+
+#---- **E1b Def: CESD at HRS wave 9 (2008) ----
+#Effect of E1a on survival to HRS wave 14 (2018) 
+hrs_samp %<>% 
+  mutate("r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0))
+
+# #Sanity check
+# table(hrs_samp$r9cesd, hrs_samp$r9cesd_elevated, useNA = "ifany")
+
+#---- **E2 Def: Cumulative Exposure (number occasions) ----
+#Number of occasions with elevated depressive symptoms in HRS waves 4-9
+elevated_cesd <- hrs_samp %>% 
+  dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
+
+elevated_cesd <- (elevated_cesd > 4)*1
+
+hrs_samp %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
+
+# #Sanity check
+# head(elevated_cesd)
+# head(hrs_samp$total_elevated_cesd)
+# table(hrs_samp$total_elevated_cesd, useNA = "ifany")
+
+#---- **E3 Def: Cumulative Exposure (average CESD score) ----
+hrs_samp %<>% 
+  mutate("avg_cesd" = hrs_samp %>% 
+           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+           rowMeans(), 
+         "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+
+# #Sanity check
+# View(hrs_samp %<>% 
+#        dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"), "avg_cesd", 
+#                      "avg_cesd_elevated"))
+# plot(hrs_samp$avg_cesd, hrs_samp$avg_cesd_elevated)
+
+# #---- **E4 Def: Latent Classes ----
+# #Model is based off of example in Proust-Lima et al. JSS 2017 
+# CESD_data_long <- hrs_samp %>% 
+#   dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
+#   pivot_longer(cols = contains("age"), 
+#                names_to = "age_waves", values_to = "age") %>% 
+#   cbind(hrs_samp %>% 
+#           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
+#           pivot_longer(cols = everything(), 
+#                        names_to = "waves", values_to = "cesd")) %>% 
+#   dplyr::select(-c("age_waves")) %>%
+#   mutate("age_c65_decades" = (age - 65)/10)
+# 
+# #Subject IDs have to be numeric
+# CESD_data_long %<>% mutate_at("HHIDPN", as.numeric)
+# 
+# msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+#                  mixture = ~ 1,
+#                  random = ~ age_c65_decades, 
+#                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+#                  ng = 4, maxiter = 500)
+# 
+# #summary(msplines1)
+# saveRDS(msplines1, file = paste0(path_to_dropbox, 
+#                                  "/exposure_trajectories/data/models", 
+#                                  "msplines1.rds"))
+# 
+# msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
+#                   mixture = ~ age_c65_decades,
+#                   random = ~ age_c65_decades, 
+#                   subject = "HHIDPN", data = CESD_data_long, link = "splines", 
+#                   ng = 4, maxiter = 1000)
+# 
+# #summary(msplines2)
+# saveRDS(msplines2, file = paste0(path_to_dropbox, 
+#                                  "/exposure_trajectories/data/models", 
+#                                  "msplines2.rds"))
+# 
+# # #Sanity check-- 65 is close to the mean age
+# # hist(CESD_data_long$age)
+# # class(CESD_data_long$HHIDPN)
 
 #---- Outcome ----
-                        
+#---- ** survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
+hrs_samp %<>% mutate(survtime = age_death_y - r9age_y_int) %>% 
+  mutate(survtime = ifelse(is.na(survtime), 10, survtime), 
+         observed = ifelse(is.na(age_death_y), 0, 1))
+
+# #Sanity check
+# View(hrs_samp %>% dplyr::select("age_death_y", "survtime", "observed"))
+
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",

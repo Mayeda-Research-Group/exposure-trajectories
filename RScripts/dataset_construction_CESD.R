@@ -1022,8 +1022,6 @@ hrs_samp %<>% filter(drop == 0)
 # subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
 # test2 <- hrs_samp %>% filter(rowSums(is.na(subset)) == 0)
 
-
-
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
           paste0("drinking", c(4, 9), "_cat"), 
@@ -1042,6 +1040,11 @@ vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat",
           "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))
+
+#---- check missingness ----
+#Should have no missingness except in age_death_y 
+#(for those who are still living)
+colSums(is.na(hrs_samp))
 
 #---- Exposures ----
 #---- **E1a Def: CESD at HRS wave 4 (1998) ----

@@ -90,8 +90,7 @@ beta_0_NMAR_50 <- logit(0.50) - (
 MAR_NMAR_func <- function (beta_0, dataset){ # x needs to be changed
   
   n <- nrow(dataset)
-beta_0 <- beta_0_MAR_10
-  subset <- CESD_data_wide %>%
+  subset <- dataset %>%
     mutate( 
       #MAR
       r4pcesd_MAR = expit(beta_0 + log(1.05) * r4age_y_int + 
@@ -133,21 +132,50 @@ beta_0 <- beta_0_MAR_10
                            + log(1.25) * r9conde_impute)
     ) %>%
     select(contains("MAR"))
-# summary(subset$r5pcesd_MAR)
   
-  # flag for missingness based on the score?
-  data_boot %>%
-    select(contains("cesd_MAR")) %>%
-    mutate(r4cesd_missing_MAR = case_when())
-  # calculate missingness for the whole dataset
-  newdataset <- data_boot %>%
-    mutate(beta_0 = beta_0,
-           prop_missing = ....)
-  return(newdataset)
-           
-           
+  # Flag the score based on bernoulli distribution, prob = p_wave_MAR/NMAR
+  for (j in 1:ncol(subset)){
+    if (j <= 6){
+      subset[, paste0("r", j + 3, "cesd_missing_MAR")] <- 
+        rbinom(nrow(subset), size = 1, prob = subset[[j]])
+    } 
+    else{
+      subset[, paste0("r", j - 3, "cesd_missing_NMAR")] <-
+        rbinom(nrow(subset), size = 1, prob = subset[[j]])
+    }
+  }
+
+  # Calculate the missing proportion for MAR and NMAR
+MAR_long <- subset %>%
+    select(contains("cesd_missing_MAR")) %>%
+    pivot_longer(
+      everything(),
+      names_to = "Variables",
+      values_to = "Missingness"
+    )
+
+NMAR_long <- subset %>%
+  select(contains("cesd_missing_NMAR")) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Variables",
+    values_to = "Missingness"
+  )
+
+return(
+  Missing_prop_results <- tibble(
+    MAR_missing_prop = round(mean(MAR_long$Missingness, na.rm = T), 4),
+    NMAR_missing_prop = round(mean(NMAR_long$Missingness, na.rm = T), 4)
+  )
+)
 }
 
-# bootstrap the function for 1000 times
-
-# to get a mean estimate of the beta_0 and prop_missing????
+# Bootstrap for 1000 times
+bootsize = 1000
+set.seed(123)
+missing_prop_bootresults <- 
+  map_dfr(1:bootsize, ~MAR_NMAR_func(beta_0_MAR_10, CESD_data_wide),
+          .id = "replication")
+  
+summary(missing_prop_bootresults$MAR_missing_prop)
+summary(missing_prop_bootresults$NMAR_missing_prop)

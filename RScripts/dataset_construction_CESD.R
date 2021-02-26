@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -125,9 +125,11 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
-                    paste0("r", seq(7, 13, by = 1), "vgactx"),
-                    paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    paste0("r", seq(7, 13, by = 1), "ltactx"),
+                    #We don't think this is an important confounder of 
+                    # CESD --> Mortality
+                    # paste0("r", seq(7, 13, by = 1), "vgactx"),
+                    # paste0("r", seq(7, 13, by = 1), "mdactx"), 
+                    # paste0("r", seq(7, 13, by = 1), "ltactx"),
                     paste0("r", seq(2, 13, by = 1), "cesd"),
                     paste0("r", number_waves, "shlt"))
 
@@ -169,17 +171,17 @@ for(i in 1:length(years)){
                     contains("F1110"), contains("G1239"),
                     contains("F1151"), contains("G1284"),
                     contains("F1157"), contains("G1290"),
-                    contains("F1184"), contains("G1317"),
-                    contains("F1198"), contains("G1331")) %>%
+                    contains("F1184"), contains("G1317")) %>%
+      #contains("F1198"), contains("G1331")) 
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
                      paste0("bp_rx", (i + 3)), 
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3))
-                     )) 
+                     paste0("stroke_rx", (i + 3)) 
+                     #paste0("arthritis_rx", (i + 3))
+      )) 
   } else{
     dataframes_list[[i]] <-
       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
@@ -191,17 +193,17 @@ for(i in 1:length(years)){
       #select variables of interest
       dplyr::select("HHIDPN", 
                     contains("C011"), contains("C012"), contains("C006"), 
-                    contains("C032"), contains("C037"), contains("C060"), 
-                    contains("C074")) %>%
+                    contains("C032"), contains("C037"), contains("C060")) %>% 
+      #contains("C074")) %>%
       set_colnames(c("HHIDPN", 
                      paste0("diabetes_rx_swallowed", (i + 3)),
                      paste0("diabetes_rx_insulin", (i + 3)), 
                      paste0("bp_rx", (i + 3)), 
                      paste0("lung_rx", (i + 3)), 
                      paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3)), 
-                     paste0("arthritis_rx", (i + 3))
-                     ))
+                     paste0("stroke_rx", (i + 3))
+                     #paste0("arthritis_rx", (i + 3))
+      ))
   }
 }
 
@@ -216,7 +218,7 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 #Use this to subset RAND data
 hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
                      by = "HHIDPN", type = "left") 
-             
+
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up
 # subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
@@ -253,7 +255,7 @@ hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list),
 #                              "CESD_complete_subsets.csv"))
 
 # Create indicators for whether CESD is missing at each wave
-hrs_samp[, paste0("r", seq(2, 13), "cesd", "_missing")] <- NA
+hrs_samp[, paste0("r", seq(2, 13), "cesd_missing")] <- NA
 
 cesd_mat <- hrs_samp %>% select(contains("cesd"))
 for (j in 1:length(seq(2, 13))) {
@@ -319,7 +321,6 @@ hrs_samp %<>%
   mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
                                 r13age_y_int + 2, age_death_y))
 
-
 # #Sanity check
 # View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
 # table(hrs_samp$age_death_y, useNA = "ifany")
@@ -358,6 +359,10 @@ hrs_samp %<>%
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
+# colSums(is.na(hrs_samp[, c("hispanic", "white", "black", "other", 
+#                            "unknown_race_eth")]))
+# table(hrs_samp$white, hrs_samp$raracem, useNA = "ifany")
+# table(hrs_samp$rahispan, hrs_samp$hispanic, useNA = "ifany")
 
 hrs_samp %<>% 
   #Drop the RAND rahispan variable (recoded as hispanic) and race variables
@@ -430,7 +435,7 @@ hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight"] <- NA
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
                    207810010, 208021020, 210114010, 35201010, 
-                      25391010)), "9weight"] <- NA
+                   25391010)), "9weight"] <- NA
 
 #Fix measured indicators
 hrs_samp[which(hrs_samp$HHIDPN %in% 
@@ -441,7 +446,7 @@ hrs_samp[which(hrs_samp$HHIDPN == 47242010), "8weight_measured"] <- 0
 hrs_samp[which(hrs_samp$HHIDPN %in% 
                  c(31605040, 76793010, 79557010, 112747020, 
                    207810010, 208021020, 210114010, 35201010, 
-                        25391010)), "9weight_measured"] <- 0
+                   25391010)), "9weight_measured"] <- 0
 
 #Drop RAND's weight variables
 hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"), 
@@ -507,12 +512,12 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # Imputing chronic conditions
 
 #---- ** diabetes ----
-hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1,9), "diabe"),
-                              seq(1,9), hrs_samp)
+hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
+                                     seq(1, 9), hrs_samp)
 
 #---- **high bp ----
 hrs_samp <- impute_chronic_condition("hibpe", paste0("r", seq(1, 9), "hibpe"),
-                             seq(1, 9), hrs_samp)
+                                     seq(1, 9), hrs_samp)
 
 #---- **cancer ----
 hrs_samp <- impute_chronic_condition("cancre", paste0("r", seq(1, 9), "cancre"),
@@ -555,22 +560,22 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
-  dplyr::select(contains("_impute"), -contains("drinking"))
+  dplyr::select(contains("_impute"))
 
-waves <- seq(1,9)
-  for(j in 1:length(waves)){
-    wave <- waves[j] 
-    cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
-       rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
-               na.rm = TRUE)
-  }
+waves <- seq(1, 9)
+for(j in 1:length(waves)){
+  wave <- waves[j] 
+  cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
+    rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
+            na.rm = TRUE)
+}
 
 hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <- 
   cond_mat %>% select(contains("conde_impute"))
 
- # view(hrs_samp %>% select(contains("conde_impute")))
+# view(hrs_samp %>% select(contains("conde_impute")))
 
-# # #---- Old code chunk
+# # #---- Old code chunk ----
 # # #---- ** diabetes ----
 # hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
 #                               c(paste0("diabetes_rx_insulin", seq(4, 9)),
@@ -630,7 +635,7 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 
 # Impute mstat with closest non-missing value
 hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
-                            seq(1, 13), seq(4, 9),  hrs_samp)
+                          seq(1, 13), seq(4, 9), hrs_samp)
 # 
 
 # Old code chunk for mstat
@@ -658,7 +663,7 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
 # View(hrs_samp %>%
 #        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
 #                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
-  
+
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
 mstat_mat[, paste0("r", seq(4,9), "mstat_cat")] <- NA
@@ -680,7 +685,7 @@ hrs_samp[, colnames(mstat_mat)] <- mstat_mat
 #---- drinking ----
 # Imputing drinking per day and drinking per week
 hrs_samp <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
-                       seq(3, 13), seq(4, 9),  hrs_samp)
+                          seq(3, 13), seq(4, 9),  hrs_samp)
 hrs_samp <- impute_status("drinkn", paste0("r", seq(3, 13), "drinkn"),
                           seq(3, 13), seq(4, 9),  hrs_samp)
 
@@ -892,37 +897,37 @@ colSums(is.na(self_reported_health))
 # \beta_3* chronic condition count (at last wave)
 
 summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
-                                   r4age_y_int + r3cesd + r4conde_impute,
-                        family = binomial(link = "logit"), 
-                        data = hrs_samp))
+                                   r4age_y_int + r3cesd + r3conde_impute,
+                                 family = binomial(link = "logit"), 
+                                 data = hrs_samp))
 r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
-                                   r5age_y_int + r4cesd + r5conde_impute,
+                                   r5age_y_int + r4cesd + r4conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
-                                   r6age_y_int + r5cesd + r6conde_impute,
+                                   r6age_y_int + r5cesd + r5conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
-                                   r7age_y_int + r6cesd + r7conde_impute,
+                                   r7age_y_int + r6cesd + r6conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
-                                   r8age_y_int + r7cesd + r8conde_impute,
+                                   r8age_y_int + r7cesd + r7conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 
 summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
-                                   r9age_y_int + r8cesd + r9conde_impute,
+                                   r9age_y_int + r8cesd + r8conde_impute,
                                  family = binomial(link = "logit"), 
                                  data = hrs_samp))
 r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
@@ -999,48 +1004,46 @@ hrs_samp[, "drop"] <- drop
 # table(hrs_samp$drop, useNA = "ifany")
 hrs_samp %<>% filter(drop == 0)
 
+#11. Drop people missing wave-updated ever/never chronic conditions
+conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke",
+                "memrye")
+subset <- hrs_samp %>% 
+  dplyr::select(do.call(paste, 
+                        c(expand.grid("r", seq(4, 9), conditions, "_impute"), 
+                          sep = ""))) 
+hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 
 # Checking other variables missingness
 
 # No missing education data
 # table(hrs_samp$ed_cat, useNA = "ifany")
 
-# Chronic conditions
-# No people missing information for wave-updated ever/never chronic condition
-# at all 6 waves
-# conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke", 
-#                 "memrye")
-# 
-# for(condition in conditions){
-#   subset <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), condition, 
-#                                               "_impute"))
-#   test <- hrs_samp %>% filter(rowSums(is.na(subset)) != 6)
-# }
-
-# No missing marital status for waves 5-8
+# #No missing marital status for waves 5-8
 # subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
-# test2 <- hrs_samp %>% filter(rowSums(is.na(subset)) == 0)
-
-
+# drop <- rowSums(is.na(subset))
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", c(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", c(4, 9), "_cat"), 
-          paste0("r", seq(4, 9), "memrye", "_impute"),
-          paste0("r", seq(4, 9), "stroke", "_impute"),
-          paste0("r", seq(4, 9), "hearte", "_impute"),
-          paste0("r", seq(4, 9), "lunge", "_impute"),
-          paste0("r", seq(4, 9), "cancre", "_impute"),
-          paste0("r", seq(4, 9), "hibpe", "_impute"),
-          paste0("r", seq(4, 9), "diabe", "_impute"),
-          paste0("r", seq(3, 9), "conde", "_impute"),
-          "smoker", 
+vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+          paste0("drinking", seq(4, 9), "_cat"), 
+          paste0("r", seq(4, 9), "memrye_impute"),
+          paste0("r", seq(4, 9), "stroke_impute"),
+          paste0("r", seq(4, 9), "hearte_impute"),
+          paste0("r", seq(4, 9), "lunge_impute"),
+          paste0("r", seq(4, 9), "cancre_impute"),
+          paste0("r", seq(4, 9), "hibpe_impute"),
+          paste0("r", seq(4, 9), "diabe_impute"),
+          paste0("r", seq(3, 9), "conde_impute"), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
           paste0("r", seq(3, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
           "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))
+
+#---- check missingness ----
+#Should have no missingness except in age_death_y 
+#(for those who are still living)
+colSums(is.na(hrs_samp))
 
 #---- Exposures ----
 #---- **E1a Def: CESD at HRS wave 4 (1998) ----

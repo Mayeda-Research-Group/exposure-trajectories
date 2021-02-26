@@ -6,8 +6,13 @@ if (!require("pacman")){
 p_load("here", "tidyverse", "magrittr")
 
 #---- **Expit function ----
-expit<-function(x) {
-  output<-(exp(x)/(1+exp(x)))
+expit <- function(x) {
+  output <- (exp(x)/(1+exp(x)))
+  return(output)
+}
+
+logit <- function(x){
+  output <- log(x/(1-x))
   return(output)
 }
 
@@ -62,21 +67,21 @@ e_CESD_4_9 <- mean(CESD_4_9_long$cesd)
 e_conde <- mean(conde_3_8_long$conde_impute, na.rm = T)
 
 #---- ** beta 0 for MAR ----  
-beta_0_MAR_10 <- 0.1 - expit(
+beta_0_MAR_10 <- logit(0.1) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
-beta_0_MAR_25 <- 0.25 - expit(
+beta_0_MAR_25 <- logit(0.25) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
-beta_0_MAR_50 <- 0.50 - expit(
+beta_0_MAR_50 <- logit(0.50) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
 
 #---- ** beta 0 for NMAR ---- 
-beta_0_NMAR_10 <- 0.1 - expit(
+beta_0_NMAR_10 <- logit(0.1) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde + 
     log(1.15)*e_CESD_4_9)
-beta_0_NMAR_25 <- 0.25 - expit(
+beta_0_NMAR_25 <- logit(0.25) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde + 
     log(1.15)*e_CESD_4_9)
-beta_0_NMAR_50 <- 0.50 - expit(
+beta_0_NMAR_50 <- logit(0.50) - (
   log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde +
     log(1.15)*e_CESD_4_9)
 
@@ -128,7 +133,7 @@ beta_0 <- beta_0_MAR_10
                            + log(1.25) * r9conde_impute)
     ) %>%
     select(contains("MAR"))
-mean(subset$r6pcesd_MAR, na.rm = T)
+# summary(subset$r5pcesd_MAR)
   
   # flag for missingness based on the score?
   data_boot %>%

@@ -68,26 +68,26 @@ e_conde <- mean(conde_3_8_long$conde_impute, na.rm = T)
 
 #---- ** beta 0 for MAR ----  
 beta_0_MAR_10 <- logit(0.1) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde)
 beta_0_MAR_25 <- logit(0.25) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde)
 beta_0_MAR_50 <- logit(0.50) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde)
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde)
 
-#---- ** beta 0 for NMAR ---- 
-beta_0_NMAR_10 <- logit(0.1) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde + 
+#---- ** beta 0 for MNAR ---- 
+beta_0_MNAR_10 <- logit(0.1) - (
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde + 
     log(1.15)*e_CESD_4_9)
-beta_0_NMAR_25 <- logit(0.25) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde + 
+beta_0_MNAR_25 <- logit(0.25) - (
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde + 
     log(1.15)*e_CESD_4_9)
-beta_0_NMAR_50 <- logit(0.50) - (
-  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.25)*e_conde +
+beta_0_MNAR_50 <- logit(0.50) - (
+  log(1.05)*e_age + log(1.10)*e_CESD_3_8 + log(1.30)*e_conde +
     log(1.15)*e_CESD_4_9)
 
-#----  MAR and NMAR function ----
+#----  MAR and MNAR function ----
 # TBC!!!
-MAR_NMAR_func <- function (beta_0, dataset){ # x needs to be changed
+MAR_MNAR_func <- function (beta_0, dataset){ # x needs to be changed
   
   n <- nrow(dataset)
   subset <- dataset %>%
@@ -95,57 +95,57 @@ MAR_NMAR_func <- function (beta_0, dataset){ # x needs to be changed
       #MAR
       r4pcesd_MAR = expit(beta_0 + log(1.05) * r4age_y_int + 
                             log(1.10) * r3cesd
-                          + log(1.25) * r4conde_impute),
+                          + log(1.30) * r4conde_impute),
       r5pcesd_MAR = expit(beta_0 + log(1.05) * r5age_y_int + 
                             log(1.10) * r4cesd
-                          + log(1.25) * r5conde_impute),
+                          + log(1.30) * r5conde_impute),
       r6pcesd_MAR = expit(beta_0 + log(1.05) * r6age_y_int + 
                             log(1.10) * r5cesd
-                          + log(1.25) * r6conde_impute),
+                          + log(1.30) * r6conde_impute),
       r7pcesd_MAR = expit(beta_0 + log(1.05) * r7age_y_int + 
                             log(1.10) * r6cesd
-                          + log(1.25) * r7conde_impute),
+                          + log(1.30) * r7conde_impute),
       r8pcesd_MAR = expit(beta_0 + log(1.05) * r8age_y_int + 
                             log(1.10) * r7cesd
-                          + log(1.25) * r8conde_impute),
+                          + log(1.30) * r8conde_impute),
       r9pcesd_MAR = expit(beta_0 + log(1.05) * r9age_y_int + 
                             log(1.10) * r8cesd
-                          + log(1.25) * r9conde_impute),
-      # NMAR
-      r4pcesd_NMAR = expit(beta_0 + log(1.05) * r4age_y_int + 
+                          + log(1.30) * r9conde_impute),
+      # MNAR
+      r4pcesd_MNAR = expit(beta_0 + log(1.05) * r4age_y_int + 
                              log(1.10) * r3cesd + log(1.15) * r4cesd +
-                           + log(1.25) * r4conde_impute),
-      r5pcesd_NMAR = expit(beta_0 + log(1.05) * r5age_y_int + 
+                           + log(1.30) * r4conde_impute),
+      r5pcesd_MNAR = expit(beta_0 + log(1.05) * r5age_y_int + 
                              log(1.10) * r4cesd + log(1.15) * r5cesd +
-                           + log(1.25) * r5conde_impute),
-      r6pcesd_NMAR = expit(beta_0 + log(1.05) * r6age_y_int + 
+                           + log(1.30) * r5conde_impute),
+      r6pcesd_MNAR = expit(beta_0 + log(1.05) * r6age_y_int + 
                              log(1.10) * r5cesd + log(1.15) * r6cesd +
-                           + log(1.25) * r6conde_impute),
-      r7pcesd_NMAR = expit(beta_0 + log(1.05) * r7age_y_int + 
+                           + log(1.30) * r6conde_impute),
+      r7pcesd_MNAR = expit(beta_0 + log(1.05) * r7age_y_int + 
                              log(1.10) * r6cesd + log(1.15) * r7cesd +
-                           + log(1.25) * r7conde_impute),
-      r8pcesd_NMAR = expit(beta_0 + log(1.05) * r8age_y_int + 
+                           + log(1.30) * r7conde_impute),
+      r8pcesd_MNAR = expit(beta_0 + log(1.05) * r8age_y_int + 
                              log(1.10) * r7cesd + log(1.15) * r8cesd +
-                           + log(1.25) * r8conde_impute),
-      r9pcesd_NMAR = expit(beta_0 + log(1.05) * r9age_y_int + 
+                           + log(1.30) * r8conde_impute),
+      r9pcesd_MNAR = expit(beta_0 + log(1.05) * r9age_y_int + 
                              log(1.10) * r8cesd + log(1.15) * r9cesd +
-                           + log(1.25) * r9conde_impute)
+                           + log(1.30) * r9conde_impute)
     ) %>%
-    select(contains("MAR"))
+    select(contains(c("MAR", "MNAR")))
   
-  # Flag the score based on bernoulli distribution, prob = p_wave_MAR/NMAR
+  # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
   for (j in 1:ncol(subset)){
     if (j <= 6){
       subset[, paste0("r", j + 3, "cesd_missing_MAR")] <- 
         rbinom(nrow(subset), size = 1, prob = subset[[j]])
     } 
     else{
-      subset[, paste0("r", j - 3, "cesd_missing_NMAR")] <-
+      subset[, paste0("r", j - 3, "cesd_missing_MNAR")] <-
         rbinom(nrow(subset), size = 1, prob = subset[[j]])
     }
   }
 
-  # Calculate the missing proportion for MAR and NMAR
+  # Calculate the missing proportion for MAR and MNAR
 MAR_long <- subset %>%
     select(contains("cesd_missing_MAR")) %>%
     pivot_longer(
@@ -154,8 +154,8 @@ MAR_long <- subset %>%
       values_to = "Missingness"
     )
 
-NMAR_long <- subset %>%
-  select(contains("cesd_missing_NMAR")) %>%
+MNAR_long <- subset %>%
+  select(contains("cesd_missing_MNAR")) %>%
   pivot_longer(
     everything(),
     names_to = "Variables",
@@ -165,17 +165,21 @@ NMAR_long <- subset %>%
 return(
   Missing_prop_results <- tibble(
     MAR_missing_prop = round(mean(MAR_long$Missingness, na.rm = T), 4),
-    NMAR_missing_prop = round(mean(NMAR_long$Missingness, na.rm = T), 4)
+    MNAR_missing_prop = round(mean(MNAR_long$Missingness, na.rm = T), 4)
   )
 )
 }
 
 # Bootstrap for 1000 times
 bootsize = 1000
-set.seed(123)
-missing_prop_bootresults <- 
-  map_dfr(1:bootsize, ~MAR_NMAR_func(beta_0_MAR_10, CESD_data_wide),
+set.seed(20210226)
+missing_prop_bootresults_10 <- 
+  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
+          .id = "replication")
+
+missing_prop_bootresults_25 <- 
+  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_25, CESD_data_wide),
           .id = "replication")
   
-summary(missing_prop_bootresults$MAR_missing_prop)
-summary(missing_prop_bootresults$NMAR_missing_prop)
+summary(missing_prop_bootresults_25$MAR_missing_prop)
+summary(missing_prop_bootresults_25$MNAR_missing_prop)

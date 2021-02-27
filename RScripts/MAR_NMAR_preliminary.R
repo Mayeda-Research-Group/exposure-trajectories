@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr")
+p_load("here", "tidyverse", "magrittr", "kableExtra")
 
 #---- **Expit function ----
 expit <- function(x) {
@@ -15,6 +15,15 @@ logit <- function(x){
   output <- log(x/(1-x))
   return(output)
 }
+
+round_df <- function(df, digits) {
+  nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
+  
+  df[,nums] <- round(df[,nums], digits = digits)
+  
+  (df)
+}
+
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
@@ -77,7 +86,7 @@ beta_0_MAR_10 <- logit(0.1) - (
   beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
 beta_0_MAR_25 <- logit(0.25) - (
   beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
-beta_0_MAR_50 <- logit(0.50) - (
+beta_0_MAR_50 <- logit(0.5) - (
   beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
 
 #---- ** beta 0 for MNAR ---- 
@@ -87,7 +96,7 @@ beta_0_MNAR_10 <- logit(0.1) - (
 beta_0_MNAR_25 <- logit(0.25) - (
   beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde + 
     beta_cesdcurrent*e_CESD_4_9)
-beta_0_MNAR_50 <- logit(0.50) - (
+beta_0_MNAR_50 <- logit(0.5) - (
   beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
     beta_cesdcurrent*e_CESD_4_9)
 
@@ -170,10 +179,9 @@ MAR_MNAR_func <- function (beta_0, dataset){ # x needs to be changed
   
   return(
     Missing_prop_results <- tibble(
-      MAR_missing_prop = round(mean(MAR_long$Missingness, na.rm = T), 4),
-      MNAR_missing_prop = round(mean(MNAR_long$Missingness, na.rm = T), 4)
+      MAR_missing_prop = mean(MAR_long$Missingness, na.rm = T),
+      MNAR_missing_prop = mean(MNAR_long$Missingness, na.rm = T))
     )
-  )
 }
 
 # Bootstrap for 1000 times
@@ -195,18 +203,63 @@ missing_prop_bootresults_50 <-
   map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_50, CESD_data_wide),
           .id = "replication")
 
-#10%
-summary(missing_prop_bootresults_10$MAR_missing_prop)
-summary(missing_prop_bootresults_10$MNAR_missing_prop)
-#25%
-summary(missing_prop_bootresults_25$MAR_missing_prop)
-summary(missing_prop_bootresults_25$MNAR_missing_prop)
-#50%
-summary(missing_prop_bootresults_50$MAR_missing_prop)
-summary(missing_prop_bootresults_50$MNAR_missing_prop)
+#---- ** tibble results ----
+#MAR
+missing_prop_MAR_summary <- tibble(
+  "Prop_Missingness" = c(0.1, 0.25, 0.50),
+  "Min" = c(min(missing_prop_bootresults_10$MAR_missing_prop),
+            min(missing_prop_bootresults_25$MAR_missing_prop),
+            min(missing_prop_bootresults_50$MAR_missing_prop)),
+  "Mean" = c(mean(missing_prop_bootresults_10$MAR_missing_prop),
+             mean(missing_prop_bootresults_25$MAR_missing_prop),
+             mean(missing_prop_bootresults_50$MAR_missing_prop)),
+  "Max" = c(max(missing_prop_bootresults_10$MAR_missing_prop),
+            max(missing_prop_bootresults_25$MAR_missing_prop),
+            max(missing_prop_bootresults_50$MAR_missing_prop))
+) %>%
+  round_df(digits = 4)
+
+missing_prop_MAR_summary %>%
+  kbl(caption = "MAR missingness") %>%
+  kable_classic(full_width = F, html_font = "Arial")
+
+# MNAR
+missing_prop_MNAR_summary <- tibble(
+  "Prop_Missingness" = c(0.1, 0.25, 0.50),
+  "Min" = c(min(missing_prop_bootresults_10$MNAR_missing_prop),
+            min(missing_prop_bootresults_25$MNAR_missing_prop),
+            min(missing_prop_bootresults_50$MNAR_missing_prop)),
+  "Mean" = c(mean(missing_prop_bootresults_10$MNAR_missing_prop),
+             mean(missing_prop_bootresults_25$MNAR_missing_prop),
+             mean(missing_prop_bootresults_50$MNAR_missing_prop)),
+  "Max" = c(max(missing_prop_bootresults_10$MNAR_missing_prop),
+            max(missing_prop_bootresults_25$MNAR_missing_prop),
+            max(missing_prop_bootresults_50$MNAR_missing_prop))
+) %>%
+  round_df(digits = 4)
+
+ missing_prop_MNAR_summary %>%
+   kbl(caption = "MNAR missingness") %>%
+   kable_classic(full_width = F, html_font = "Arial")
+
+# Test
+# p <- 0.5; (p_new <- 1/((1/(p/(1-p))^2) + 1))
+
+
+# #10%
+# summary(missing_prop_bootresults_10$MAR_missing_prop)
+# summary(missing_prop_bootresults_10$MNAR_missing_prop)
+# #25%
+# summary(missing_prop_bootresults_25$MAR_missing_prop)
+# summary(missing_prop_bootresults_25$MNAR_missing_prop)
+# #50%
+# summary(missing_prop_bootresults_50$MAR_missing_prop)
+# summary(missing_prop_bootresults_50$MNAR_missing_prop)
+# 
+# 
 
 system.time(
-  missing_prop_bootresults_10 <- 
+  missing_prop_bootresults_10 <-
     map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
             .id = "replication")
 )

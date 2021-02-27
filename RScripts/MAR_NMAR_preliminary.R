@@ -102,47 +102,47 @@ beta_0_MNAR_50 <- logit(0.5) - (
 
 #----  MAR and MNAR function ----
 
-MAR_MNAR_func <- function (beta_0, dataset){ # x needs to be changed
+MAR_MNAR_func <- function (beta_0_MAR, beta_0_MNAR, dataset){
   
   n <- nrow(dataset)
   subset <- dataset %>%
     mutate( 
       #MAR
-      r4pcesd_MAR = expit(beta_0 + beta_age * r4age_y_int + 
+      r4pcesd_MAR = expit(beta_0_MAR + beta_age * r4age_y_int + 
                             beta_cesdpre * r3cesd
                           + beta_condepre * r4conde_impute),
-      r5pcesd_MAR = expit(beta_0 + beta_age * r5age_y_int + 
+      r5pcesd_MAR = expit(beta_0_MAR + beta_age * r5age_y_int + 
                             beta_cesdpre * r4cesd
                           + beta_condepre * r5conde_impute),
-      r6pcesd_MAR = expit(beta_0 + beta_age * r6age_y_int + 
+      r6pcesd_MAR = expit(beta_0_MAR + beta_age * r6age_y_int + 
                             beta_cesdpre * r5cesd
                           + beta_condepre * r6conde_impute),
-      r7pcesd_MAR = expit(beta_0 + beta_age * r7age_y_int + 
+      r7pcesd_MAR = expit(beta_0_MAR + beta_age * r7age_y_int + 
                             beta_cesdpre * r6cesd
                           + beta_condepre * r7conde_impute),
-      r8pcesd_MAR = expit(beta_0 + beta_age * r8age_y_int + 
+      r8pcesd_MAR = expit(beta_0_MAR + beta_age * r8age_y_int + 
                             beta_cesdpre * r7cesd
                           + beta_condepre * r8conde_impute),
-      r9pcesd_MAR = expit(beta_0 + beta_age * r9age_y_int + 
+      r9pcesd_MAR = expit(beta_0_MAR + beta_age * r9age_y_int + 
                             beta_cesdpre * r8cesd
                           + beta_condepre * r9conde_impute),
       # MNAR
-      r4pcesd_MNAR = expit(beta_0 + beta_age * r4age_y_int + 
+      r4pcesd_MNAR = expit(beta_0_MNAR + beta_age * r4age_y_int + 
                              beta_cesdpre * r3cesd + beta_cesdcurrent * r4cesd +
                              + beta_condepre * r4conde_impute),
-      r5pcesd_MNAR = expit(beta_0 + beta_age * r5age_y_int + 
+      r5pcesd_MNAR = expit(beta_0_MNAR + beta_age * r5age_y_int + 
                              beta_cesdpre * r4cesd + beta_cesdcurrent * r5cesd +
                              + beta_condepre * r5conde_impute),
-      r6pcesd_MNAR = expit(beta_0 + beta_age * r6age_y_int + 
+      r6pcesd_MNAR = expit(beta_0_MNAR + beta_age * r6age_y_int + 
                              beta_cesdpre * r5cesd + beta_cesdcurrent * r6cesd +
                              + beta_condepre * r6conde_impute),
-      r7pcesd_MNAR = expit(beta_0 + beta_age * r7age_y_int + 
+      r7pcesd_MNAR = expit(beta_0_MNAR + beta_age * r7age_y_int + 
                              beta_cesdpre * r6cesd + beta_cesdcurrent * r7cesd +
                              + beta_condepre * r7conde_impute),
-      r8pcesd_MNAR = expit(beta_0 + beta_age * r8age_y_int + 
+      r8pcesd_MNAR = expit(beta_0_MNAR + beta_age * r8age_y_int + 
                              beta_cesdpre * r7cesd + beta_cesdcurrent * r8cesd +
                              + beta_condepre * r8conde_impute),
-      r9pcesd_MNAR = expit(beta_0 + beta_age * r9age_y_int + 
+      r9pcesd_MNAR = expit(beta_0_MNAR + beta_age * r9age_y_int + 
                              beta_cesdpre * r8cesd + beta_cesdcurrent * r9cesd +
                              + beta_condepre * r9conde_impute)
     ) %>%
@@ -190,17 +190,20 @@ set.seed(20210226)
 #---- Missing proportion results ----
 # 10%
 missing_prop_bootresults_10 <- 
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
+  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, beta_0_MNAR_10, 
+                                     CESD_data_wide),
           .id = "replication")
 
 #25%
 missing_prop_bootresults_25 <- 
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_25, CESD_data_wide),
+  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_25, beta_0_MNAR_25,
+                                     CESD_data_wide),
           .id = "replication")
 
 #50%
 missing_prop_bootresults_50 <-
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_50, CESD_data_wide),
+  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_50, beta_0_MNAR_50,
+                                     CESD_data_wide),
           .id = "replication")
 
 #---- ** tibble results ----
@@ -255,11 +258,10 @@ missing_prop_MNAR_summary <- tibble(
 # #50%
 # summary(missing_prop_bootresults_50$MAR_missing_prop)
 # summary(missing_prop_bootresults_50$MNAR_missing_prop)
-# 
-# 
 
-system.time(
-  missing_prop_bootresults_10 <-
-    map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
-            .id = "replication")
-)
+
+# system.time(
+#   missing_prop_bootresults_10 <-
+#     map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
+#             .id = "replication")
+# )

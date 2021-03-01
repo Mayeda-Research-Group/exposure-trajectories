@@ -184,41 +184,43 @@ MAR_MNAR_func <- function (beta_0_MAR, beta_0_MNAR, dataset){
     )
 }
 
-# Bootstrap for 1000 times
-bootsize = 1000
+# Repeat for 1000 times
+replicate = 1000
 set.seed(20210226)
 #---- Missing proportion results ----
-# 10%
-missing_prop_bootresults_10 <- 
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, beta_0_MNAR_10, 
-                                     CESD_data_wide),
-          .id = "replication")
+
+system.time({
+  # 10%
+  missing_prop_represults_10 <- 
+    map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_10, beta_0_MNAR_10, 
+                                        CESD_data_wide),
+            .id = "replication")
 
 #25%
-missing_prop_bootresults_25 <- 
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_25, beta_0_MNAR_25,
-                                     CESD_data_wide),
+missing_prop_represults_25 <- 
+  map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_25, beta_0_MNAR_25,
+                                      CESD_data_wide),
           .id = "replication")
 
 #50%
-missing_prop_bootresults_50 <-
-  map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_50, beta_0_MNAR_50,
-                                     CESD_data_wide),
+missing_prop_represults_50 <-
+  map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_50, beta_0_MNAR_50,
+                                      CESD_data_wide),
           .id = "replication")
-
+})
 #---- ** tibble results ----
 #MAR
 missing_prop_MAR_summary <- tibble(
   "Prop_Missingness" = c(0.1, 0.25, 0.50),
-  "Min" = c(min(missing_prop_bootresults_10$MAR_missing_prop),
-            min(missing_prop_bootresults_25$MAR_missing_prop),
-            min(missing_prop_bootresults_50$MAR_missing_prop)),
-  "Mean" = c(mean(missing_prop_bootresults_10$MAR_missing_prop),
-             mean(missing_prop_bootresults_25$MAR_missing_prop),
-             mean(missing_prop_bootresults_50$MAR_missing_prop)),
-  "Max" = c(max(missing_prop_bootresults_10$MAR_missing_prop),
-            max(missing_prop_bootresults_25$MAR_missing_prop),
-            max(missing_prop_bootresults_50$MAR_missing_prop))
+  "Min" = c(min(missing_prop_represults_10$MAR_missing_prop),
+            min(missing_prop_represults_25$MAR_missing_prop),
+            min(missing_prop_represults_50$MAR_missing_prop)),
+  "Mean" = c(mean(missing_prop_represults_10$MAR_missing_prop),
+             mean(missing_prop_represults_25$MAR_missing_prop),
+             mean(missing_prop_represults_50$MAR_missing_prop)),
+  "Max" = c(max(missing_prop_represults_10$MAR_missing_prop),
+            max(missing_prop_represults_25$MAR_missing_prop),
+            max(missing_prop_represults_50$MAR_missing_prop))
 ) %>%
   round_df(digits = 4)
 
@@ -229,15 +231,15 @@ missing_prop_MAR_summary %>%
 # MNAR
 missing_prop_MNAR_summary <- tibble(
   "Prop_Missingness" = c(0.1, 0.25, 0.50),
-  "Min" = c(min(missing_prop_bootresults_10$MNAR_missing_prop),
-            min(missing_prop_bootresults_25$MNAR_missing_prop),
-            min(missing_prop_bootresults_50$MNAR_missing_prop)),
-  "Mean" = c(mean(missing_prop_bootresults_10$MNAR_missing_prop),
-             mean(missing_prop_bootresults_25$MNAR_missing_prop),
-             mean(missing_prop_bootresults_50$MNAR_missing_prop)),
-  "Max" = c(max(missing_prop_bootresults_10$MNAR_missing_prop),
-            max(missing_prop_bootresults_25$MNAR_missing_prop),
-            max(missing_prop_bootresults_50$MNAR_missing_prop))
+  "Min" = c(min(missing_prop_represults_10$MNAR_missing_prop),
+            min(missing_prop_represults_25$MNAR_missing_prop),
+            min(missing_prop_represults_50$MNAR_missing_prop)),
+  "Mean" = c(mean(missing_prop_represults_10$MNAR_missing_prop),
+             mean(missing_prop_represults_25$MNAR_missing_prop),
+             mean(missing_prop_represults_50$MNAR_missing_prop)),
+  "Max" = c(max(missing_prop_represults_10$MNAR_missing_prop),
+            max(missing_prop_represults_25$MNAR_missing_prop),
+            max(missing_prop_represults_50$MNAR_missing_prop))
 ) %>%
   round_df(digits = 4)
 
@@ -250,18 +252,18 @@ missing_prop_MNAR_summary <- tibble(
 
 
 # #10%
-# summary(missing_prop_bootresults_10$MAR_missing_prop)
-# summary(missing_prop_bootresults_10$MNAR_missing_prop)
+# summary(missing_prop_represults_10$MAR_missing_prop)
+# summary(missing_prop_represults_10$MNAR_missing_prop)
 # #25%
-# summary(missing_prop_bootresults_25$MAR_missing_prop)
-# summary(missing_prop_bootresults_25$MNAR_missing_prop)
+# summary(missing_prop_represults_25$MAR_missing_prop)
+# summary(missing_prop_represults_25$MNAR_missing_prop)
 # #50%
-# summary(missing_prop_bootresults_50$MAR_missing_prop)
-# summary(missing_prop_bootresults_50$MNAR_missing_prop)
+# summary(missing_prop_represults_50$MAR_missing_prop)
+# summary(missing_prop_represults_50$MNAR_missing_prop)
 
 
 # system.time(
-#   missing_prop_bootresults_10 <-
-#     map_dfr(1:bootsize, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
+#   missing_prop_represults_10 <-
+#     map_dfr(1:replicate, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
 #             .id = "replication")
 # )

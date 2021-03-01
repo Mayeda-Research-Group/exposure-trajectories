@@ -253,7 +253,7 @@ missing_prop_MNAR_summary <- tibble(
 }
 
 # Test
-# p <- 0.5; (p_new <- 1/((1/(p/(1-p))^0.5) + 1))
+# p <- 0.5; (p_new <- 1/((1/(p/(1-p))^2) + 1))
 
 
 # #10%

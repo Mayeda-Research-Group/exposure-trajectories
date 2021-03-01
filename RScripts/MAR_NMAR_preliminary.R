@@ -208,47 +208,52 @@ missing_prop_represults_50 <-
                                       CESD_data_wide),
           .id = "replication")
 })
+
 #---- ** tibble results ----
 #MAR
+{
 missing_prop_MAR_summary <- tibble(
-  "Prop_Missingness" = c(0.1, 0.25, 0.50),
-  "Min" = c(min(missing_prop_represults_10$MAR_missing_prop),
-            min(missing_prop_represults_25$MAR_missing_prop),
-            min(missing_prop_represults_50$MAR_missing_prop)),
+  "Prop_Missingness" = c("10%","25%", "50%"),
   "Mean" = c(mean(missing_prop_represults_10$MAR_missing_prop),
              mean(missing_prop_represults_25$MAR_missing_prop),
              mean(missing_prop_represults_50$MAR_missing_prop)),
-  "Max" = c(max(missing_prop_represults_10$MAR_missing_prop),
-            max(missing_prop_represults_25$MAR_missing_prop),
-            max(missing_prop_represults_50$MAR_missing_prop))
+  "p2.5th" = c(quantile(missing_prop_represults_10$MAR_missing_prop, 0.025),
+               quantile(missing_prop_represults_25$MAR_missing_prop, 0.025),
+               quantile(missing_prop_represults_50$MAR_missing_prop, 0.025)),
+  "p97.5th" = c(quantile(missing_prop_represults_10$MAR_missing_prop, 0.975),
+                quantile(missing_prop_represults_25$MAR_missing_prop, 0.975),
+                quantile(missing_prop_represults_50$MAR_missing_prop, 0.975))
 ) %>%
   round_df(digits = 4)
 
 missing_prop_MAR_summary %>%
   kbl(caption = "MAR missingness") %>%
   kable_classic(full_width = F, html_font = "Arial")
+}
 
 # MNAR
+{
 missing_prop_MNAR_summary <- tibble(
-  "Prop_Missingness" = c(0.1, 0.25, 0.50),
-  "Min" = c(min(missing_prop_represults_10$MNAR_missing_prop),
-            min(missing_prop_represults_25$MNAR_missing_prop),
-            min(missing_prop_represults_50$MNAR_missing_prop)),
+  "Prop_Missingness" = c("10%","25%", "50%"),
   "Mean" = c(mean(missing_prop_represults_10$MNAR_missing_prop),
              mean(missing_prop_represults_25$MNAR_missing_prop),
              mean(missing_prop_represults_50$MNAR_missing_prop)),
-  "Max" = c(max(missing_prop_represults_10$MNAR_missing_prop),
-            max(missing_prop_represults_25$MNAR_missing_prop),
-            max(missing_prop_represults_50$MNAR_missing_prop))
+  "p2.5th" = c(quantile(missing_prop_represults_10$MNAR_missing_prop, 0.025),
+               quantile(missing_prop_represults_25$MNAR_missing_prop, 0.025),
+               quantile(missing_prop_represults_50$MNAR_missing_prop, 0.025)),
+  "p97.5th" = c(quantile(missing_prop_represults_10$MNAR_missing_prop, 0.975),
+                quantile(missing_prop_represults_25$MNAR_missing_prop, 0.975),
+                quantile(missing_prop_represults_50$MNAR_missing_prop, 0.975))
 ) %>%
   round_df(digits = 4)
 
  missing_prop_MNAR_summary %>%
    kbl(caption = "MNAR missingness") %>%
    kable_classic(full_width = F, html_font = "Arial")
+}
 
 # Test
-# p <- 0.5; (p_new <- 1/((1/(p/(1-p))^2) + 1))
+# p <- 0.5; (p_new <- 1/((1/(p/(1-p))^0.5) + 1))
 
 
 # #10%

@@ -716,6 +716,14 @@ for(i in 1:ncol(drinking_cat_mat)){
   }
 }
 
+drinking_impute_mat <- 
+  matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+  set_colnames(paste0("drinking", seq(4, 9), "_impute"))
+
+drinking_impute_mat[drinking_cat_mat == "No Drinking"] <- 0
+drinking_impute_mat[drinking_cat_mat == "Moderate Drinking"] <- 1
+drinking_impute_mat[drinking_cat_mat == "Heavy Drinking"] <- 2
+
 # Old code chunk
 # drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
 #   (hrs_samp %>% dplyr::select(contains("drinkn")))
@@ -746,7 +754,7 @@ for(i in 1:ncol(drinking_cat_mat)){
 # #Sanity Check
 # View(drinking_cat_mat)
 
-hrs_samp %<>% cbind(drinking_cat_mat)
+hrs_samp %<>% cbind(drinking_cat_mat) %>% cbind(drinking_impute_mat)
 
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select("r9drinkn", "female",
@@ -1023,7 +1031,9 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # drop <- rowSums(is.na(subset))
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_impute"),
+          paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+          paste0("drinking", seq(4, 9), "_impute"), 
           paste0("drinking", seq(4, 9), "_cat"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),
@@ -1041,8 +1051,9 @@ vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat",
 hrs_samp %<>% dplyr::select(all_of(vars))
 
 #---- check missingness ----
-#Should have no missingness except in age_death_y 
-#(for those who are still living)
+#Should have no missingness except in 
+# r3cesd (not part of optimal wave range)
+# age_death_y (for those who are still living)
 colSums(is.na(hrs_samp))
 
 #---- Exposures ----

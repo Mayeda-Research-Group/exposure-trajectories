@@ -216,7 +216,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
+hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES)), 
+                       #dataframes_list), 
                      by = "HHIDPN", type = "left") 
 
 #---- looking for optimal subset ----
@@ -555,9 +556,7 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 #   print(table(counts, useNA = "ifany"))
 # }
 
-
 #---- sum of conditions ----
-
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"))
@@ -886,70 +885,71 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # sum(table(test[, 7]))
 
 #---- self-reported health ----
-#Variable check
-self_reported_health <- hrs_samp %>%
-  dplyr::select(paste0("r", seq(4, 9), "shlt"))
-colSums(is.na(self_reported_health))
+# #Variable check
+# self_reported_health <- hrs_samp %>%
+#   dplyr::select(paste0("r", seq(4, 9), "shlt"))
+# colSums(is.na(self_reported_health))
 
-#---- Preliminary models ----
-# logit(P(missing CESD this wave)) = 
-# \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
-# \beta_3* chronic condition count (at last wave)
-
-summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
-                                   r4age_y_int + r3cesd + r3conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
-                                   r5age_y_int + r4cesd + r4conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
-                                   r6age_y_int + r5cesd + r5conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
-                                   r7age_y_int + r6cesd + r6conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
-                                   r8age_y_int + r7cesd + r7conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
-                                   r9age_y_int + r8cesd + r8conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-results_tbl <- tibble(
-  variables = c("Intercept", "age at current wave", "previous CESD value",
-                "Previous chronic condition count"),
-  r4beta = round(r4results$estimate, 4),
-  r5beta = round(r5results$estimate, 4),
-  r6beta = round(r6results$estimate, 4),
-  r7beta = round(r7results$estimate, 4),
-  r8beta = round(r8results$estimate, 4),
-  r9beta = round(r9results$estimate, 4)
-) 
-
-results_tbl %>%
-  kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
-  kable_classic(full_width = F, html_font = "Arial")
-
-write_csv(results_tbl, paste0(path_to_dropbox,
-                              "/exposure_trajectories/data/",
-                              "CESD_missing_model_betas.csv"))
+# #---- Preliminary models ----
+# # DO NOT DELETE DURING CODE CLEAN-UP
+# # logit(P(missing CESD this wave)) = 
+# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
+# # \beta_3* chronic condition count (at last wave)
+# 
+# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
+#                                    r4age_y_int + r3cesd + r3conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
+#                                    r5age_y_int + r4cesd + r4conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
+#                                    r6age_y_int + r5cesd + r5conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
+#                                    r7age_y_int + r6cesd + r6conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
+#                                    r8age_y_int + r7cesd + r7conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
+#                                    r9age_y_int + r8cesd + r8conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# results_tbl <- tibble(
+#   variables = c("Intercept", "age at current wave", "previous CESD value",
+#                 "Previous chronic condition count"),
+#   r4beta = round(r4results$estimate, 4),
+#   r5beta = round(r5results$estimate, 4),
+#   r6beta = round(r6results$estimate, 4),
+#   r7beta = round(r7results$estimate, 4),
+#   r8beta = round(r8results$estimate, 4),
+#   r9beta = round(r9results$estimate, 4)
+# ) 
+# 
+# results_tbl %>%
+#   kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
+#   kable_classic(full_width = F, html_font = "Arial")
+# 
+# write_csv(results_tbl, paste0(path_to_dropbox,
+#                               "/exposure_trajectories/data/",
+#                               "CESD_missing_model_betas.csv"))
 
 #---- Dropping people ----
 # 1. full HRSsample (n = 43398)

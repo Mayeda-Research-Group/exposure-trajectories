@@ -67,9 +67,10 @@ TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
-                           c("estimate", "conf.low", "conf.high")])
+                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
+
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -86,9 +87,9 @@ TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                           c("estimate", "conf.low", "conf.high")])
+                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
@@ -103,9 +104,10 @@ TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                                c("estimate", "conf.low", "conf.high")])
+                                c("estimate", 
+                                  rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
@@ -120,18 +122,19 @@ TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                                       c("estimate", "conf.low", "conf.high")])
+                                       c("estimate", 
+                                         rep(c("conf.low", "conf.high"), 2))])
 
-#---- create one set of imputations for plot ----
-all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
-  mutate("mask_percent" = paste0(100*mask_props, "%"))
-
-apply(all_combos[1:6, ], 1, function(x)
-  mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2],
-                   mask_percent = x[4],
-                   num_impute = 5, save = "yes"))
+# #---- create one set of imputations for plot ----
+# all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
+#   mutate("mask_percent" = paste0(100*mask_props, "%"))
+# 
+# apply(all_combos[1:6, ], 1, function(x)
+#   mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2],
+#                    mask_percent = x[4],
+#                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
 for(i in 1:6){

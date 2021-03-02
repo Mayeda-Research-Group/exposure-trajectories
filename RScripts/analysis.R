@@ -137,10 +137,10 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 #                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
-for(i in 1:6){
-  mechanism = as.character(all_combos[i, "mechanisms"])
-  method = as.character(all_combos[i, "methods"])
-  mask_percent = as.character(all_combos[i, "mask_percent"])
+for(i in which(!table_effect_ests$Method == "Truth")){
+  mechanism = table_effect_ests[i, "Type"]
+  method = table_effect_ests[i, "Method"]
+  mask_percent = table_effect_ests[i, "Missingness"]
   
   multi_runs <- 
     replicate(2, mask_impute_pool(CESD_data_wide, mechanism = mechanism, 

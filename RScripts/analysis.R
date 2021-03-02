@@ -138,29 +138,32 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 
 #---- get pooled effect estimates ----
 for(i in which(!table_effect_ests$Method == "Truth")){
-  mechanism = table_effect_ests[i, "Type"]
-  method = table_effect_ests[i, "Method"]
-  mask_percent = table_effect_ests[i, "Missingness"]
-  
-  multi_runs <- 
-    replicate(2, mask_impute_pool(CESD_data_wide, exposures, 
-                                  mechanism = mechanism, 
-                                  method = method, mask_percent = mask_percent,
-                                  num_impute = 5, save = "no"), 
-              simplify = FALSE)
-  
-  #Formatting data
-  formatted <- do.call(rbind, multi_runs)
-  
-  #Summarizing results
-  results <- formatted %>% group_by(Exposure) %>%
-    summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-  
-  #Storing results
-  table_effect_ests[which(table_effect_ests$Method == method & 
-                            table_effect_ests$Missingness == mask_percent & 
-                            table_effect_ests$Type == mechanism), 
-                    c("Exposure", "beta", "LCI", "UCI")] <- results
+  #because we fill multiple rows at a time
+  if(is.na(table_effect_ests[i, "beta"])){
+    mechanism = table_effect_ests[i, "Type"]
+    method = table_effect_ests[i, "Method"]
+    mask_percent = table_effect_ests[i, "Missingness"]
+    
+    multi_runs <- replicate(2, mask_impute_pool(CESD_data_wide, exposures, 
+                                                mechanism = mechanism, 
+                                                method = method, 
+                                                mask_percent = mask_percent,
+                                                num_impute = 5, save = "no"), 
+                            simplify = FALSE)
+    
+    #Formatting data
+    formatted <- do.call(rbind, multi_runs)
+    
+    #Summarizing results
+    results <- formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+    
+    #Storing results
+    table_effect_ests[which(table_effect_ests$Method == method & 
+                              table_effect_ests$Missingness == mask_percent & 
+                              table_effect_ests$Type == mechanism), 
+                      c("Exposure", "beta", "LCI", "UCI")] <- results
+  }
 }
 
 #---- save tables ----

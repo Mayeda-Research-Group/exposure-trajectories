@@ -1,5 +1,5 @@
 mask_impute_pool <- 
-  function(data_wide, mechanism, method, mask_percent, num_impute, save = "no"){
+  function(data_wide, exposures, mechanism, method, mask_percent, num_impute, save = "no"){
     #---- create shell for output ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                    "Elevated CES-D Count")

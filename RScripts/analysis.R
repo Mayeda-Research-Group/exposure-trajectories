@@ -143,7 +143,8 @@ for(i in which(!table_effect_ests$Method == "Truth")){
   mask_percent = table_effect_ests[i, "Missingness"]
   
   multi_runs <- 
-    replicate(2, mask_impute_pool(CESD_data_wide, mechanism = mechanism, 
+    replicate(2, mask_impute_pool(CESD_data_wide, exposures, 
+                                  mechanism = mechanism, 
                                   method = method, mask_percent = mask_percent,
                                   num_impute = 5, save = "no"), 
               simplify = FALSE)

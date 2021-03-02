@@ -697,11 +697,11 @@ ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn_impute"))
 
 drinking_cat_mat <- 
   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("drinking", seq(4, 9), "_cat"))
+  set_colnames(paste0("r", seq(4, 9), "drinking_cat"))
 
 for(i in 1:ncol(drinking_cat_mat)){
   for(j in 1:nrow(drinking_cat_mat)){
-    drinking_cat_mat[j, paste0("drinking", (i + 3), "_cat")] = 
+    drinking_cat_mat[j, paste0("r", (i + 3), "drinking_cat")] = 
       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
@@ -718,7 +718,7 @@ for(i in 1:ncol(drinking_cat_mat)){
 
 drinking_impute_mat <- 
   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("drinking", seq(4, 9), "_impute"))
+  set_colnames(paste0("r", seq(4, 9), "drinking_impute"))
 
 drinking_impute_mat[drinking_cat_mat == "No Drinking"] <- 0
 drinking_impute_mat[drinking_cat_mat == "Moderate Drinking"] <- 1
@@ -1033,8 +1033,8 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_impute"),
           paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", seq(4, 9), "_impute"), 
-          paste0("drinking", seq(4, 9), "_cat"), 
+          paste0("r", seq(4, 9), "drinking_impute"), 
+          paste0("r", seq(4, 9), "drinking_cat"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),
           paste0("r", seq(4, 9), "hearte_impute"),

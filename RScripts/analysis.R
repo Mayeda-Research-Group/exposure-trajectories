@@ -54,7 +54,7 @@ table_effect_ests <-
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
-  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
           r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
           r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
           hispanic + black + other + female + r4age_y_int + r4shlt + 
@@ -74,7 +74,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" &
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
-  coxph(Surv(survtime, observed) ~ r9mstat_cat + ed_cat + drinking9_cat + 
+  coxph(Surv(survtime, observed) ~ r9mstat_cat + ed_cat + r9drinking_cat + 
           r9memrye_impute + r9stroke_impute + r9hearte_impute + r9lunge_impute + 
           r9cancre_impute + r9hibpe_impute + r9diabe_impute + smoker + r9BMI + 
           hispanic + black + other + female + r9age_y_int + r9shlt + 
@@ -93,7 +93,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" &
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
           r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
           + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
           hispanic + black + other + female + r4age_y_int + r4shlt + 
@@ -111,7 +111,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" &
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
           r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
           + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
           hispanic + black + other + female + r4age_y_int + r4shlt + 

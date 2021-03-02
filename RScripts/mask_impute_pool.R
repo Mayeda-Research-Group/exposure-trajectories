@@ -1,9 +1,7 @@
 mask_impute_pool <- 
-  function(data_wide, exposures, mechanism, method, mask_percent, num_impute, save = "no"){
+  function(data_wide, exposures, mechanism, method, mask_percent, num_impute, 
+           save = "no"){
     #---- create shell for output ----
-    exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
-                   "Elevated CES-D Count")
-    
     pooled_effect_ests <- 
       data.frame("Exposure" = exposures, "beta" = NA, "LCI" = NA, "UCI" = NA, 
                  "Method" = method, "Missingness" = mask_percent, 
@@ -23,9 +21,13 @@ mask_impute_pool <-
                            size = floor(mask_prop*total_indices), 
                            replace = FALSE)
     }
-    #making wave-specific values
-    #---- EDIT HERE ----
-    mask_wave_specific <- c("cesd", "BMI", "shlt")
+    
+    #masking wave-specific values
+    mask_wave_specific <- c("mstat_impute", "mstat_cat", "drinking_impute", 
+                            "drinking_cat", "memrye_impute", "stroke_impute", 
+                            "hearte_impute", "lunge_impute", "cancre_impute", 
+                            "hibpe_impute", "diabe_impute", "cesd", "BMI", 
+                            "shlt")
     for(var in mask_wave_specific){
       #mask values
       data_long <- data_wide %>% 
@@ -42,6 +44,7 @@ mask_impute_pool <-
                 paste0("r", seq(4, 9), var)] <- data_long[, -1] 
       data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN), 
                 paste0("r", seq(4, 9), var)] <- NA
+      
     }
     
     #masking derived values

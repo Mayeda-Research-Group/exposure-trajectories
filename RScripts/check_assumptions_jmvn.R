@@ -60,5 +60,16 @@ for(i in (4:9)){
   show(hist(model$residuals, main = outcome))
 }
 
+#---- drinking status ----
+for(i in (4:9)){
+  outcome <- paste0("drinking", i, "_impute")
+  predictors <- 
+    colnames(model_subset[-which(colnames(model_subset) == outcome)])
+  model <- 
+    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
+       data = model_subset)
+  show(hist(model$residuals, main = outcome))
+}
+
 
 

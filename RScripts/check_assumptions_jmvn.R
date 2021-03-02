@@ -71,8 +71,56 @@ for(i in (4:9)){
 }
 
 #---- chronic conditions ----
+#Waves 4 and 9 tend to deviate the most from normality, but doesn't seem like 
+# it's worth it to do a transformation
 conditions <- c("memrye", "stroke", "hearte", "lunge", "cancre", "hibpe", 
                 "diabe")
+
+for(condition in conditions){
+  for(i in (4:9)){
+    outcome <- paste0("r", i, condition, "_impute")
+    predictors <- 
+      colnames(model_subset[-which(colnames(model_subset) == outcome)])
+    model <- 
+      lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
+         data = model_subset)
+    show(hist(model$residuals, main = outcome))
+  }
+}
+
+#---- BMI ----
+for(i in (4:9)){
+  outcome <- paste0("r", i, "BMI")
+  predictors <- 
+    colnames(model_subset[-which(colnames(model_subset) == outcome)])
+  model <- 
+    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
+       data = model_subset)
+  show(hist(model$residuals, main = outcome))
+}
+
+#---- CESD ----
+for(i in (4:9)){
+  outcome <- paste0("r", i, "cesd")
+  predictors <- 
+    colnames(model_subset[-which(colnames(model_subset) == outcome)])
+  model <- 
+    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
+       data = model_subset)
+  show(hist(model$residuals, main = outcome))
+}
+
+#---- self-reported health ----
+for(i in (4:9)){
+  outcome <- paste0("r", i, "shlt")
+  predictors <- 
+    colnames(model_subset[-which(colnames(model_subset) == outcome)])
+  model <- 
+    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
+       data = model_subset)
+  show(hist(model$residuals, main = outcome))
+}
+
 
 
 

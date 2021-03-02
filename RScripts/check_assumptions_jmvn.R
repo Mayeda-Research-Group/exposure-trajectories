@@ -41,8 +41,7 @@ vars <- c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
           paste0("r", seq(4, 9), "lunge_impute"),
           paste0("r", seq(4, 9), "cancre_impute"),
           paste0("r", seq(4, 9), "hibpe_impute"),
-          paste0("r", seq(4, 9), "diabe_impute"),
-          paste0("r", seq(3, 9), "conde_impute"), "smoker", 
+          paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
           paste0("r", seq(3, 9), "cesd"), paste0("r", seq(4, 9), "shlt"))
@@ -70,6 +69,10 @@ for(i in (4:9)){
        data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
+
+#---- chronic conditions ----
+conditions <- c("memrye", "stroke", "hearte", "lunge", "cancre", "hibpe", 
+                "diabe")
 
 
 

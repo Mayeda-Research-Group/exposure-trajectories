@@ -12,7 +12,7 @@ options(scipen = 999)
 set.seed(20200819)
 
 #---- source scripts ----
-source(here("RScripts", "mask_impute_pool.R"))
+source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
@@ -30,32 +30,26 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), 
-                            ed_cat = col_factor(), 
-                            r4mstat_cat = col_factor(), 
-                            r9mstat_cat = col_factor(),
-                            drinking4_cat_impute = col_factor(),
-                            drinking9_cat_impute = col_factor(),
-                            female = col_factor(), hispanic = col_factor(), 
-                            black = col_factor(), other = col_factor(), 
-                            smoker = col_integer()))
+           col_types = cols(HHIDPN = col_character())) %>% 
+  mutate_if(is.character, as.factor)
+
+# #Check column types
+# sapply(CESD_data_wide, class)
 
 #---- Table 2 shell: Effect Estimates ----
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-methods <- c("JMVN", "FCS")
-mechanisms <- c("MCAR", "MAR", "NMAR")
+methods <- c("JMVN")
+mechanisms <- c("MCAR")
 mask_props <- c(.10, .25, .50)
 
 table_effect_ests <- 
-  data.frame("Exposure" = rep(rep(exposures, 13), 3),
-             "beta" = NA, "LCI" = NA, "UCI" = NA, 
-             "Method" = rep(c(rep("Truth", 4), rep(methods, each = 12)), 3), 
-             "Missingness" = rep(c(rep("0%", 4), 
-                                   rep(rep(paste0(mask_props*100, "%"), 
-                                           each = 4), 4)), 3), 
-             "Type" = rep(mechanisms, each = 52))
+  data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
+  set_colnames(c("Exposure", "Method", "Type", "Missingness")) %>% 
+  rbind(expand_grid(exposures, methods, mechanisms, 
+                    paste0(mask_props*100, "%")) %>% 
+          set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
+  mutate("beta" = NA, "mean_LCI" = NA, "mean_UCI" = NA, "LCI" = NA, "UCI" = NA)
 
 #---- truth ----
 #---- **CES-D Wave 4 ----

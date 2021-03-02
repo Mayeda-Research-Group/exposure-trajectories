@@ -88,125 +88,44 @@ mask_impute_pool <-
     
     #---- imputation ----
     #---- **predictor matrix ----
-    if(method == "JMVN"){
-      predict <- 
-        matrix(1, nrow = 29, ncol = ncol(data_wide)) %>% 
-        set_rownames(c(paste0("r", seq(4, 9), "cesd"), 
-                       paste0("logr", seq(4, 9), "cesd"), 
-                       apply(expand.grid("r", seq(4, 9), 
-                                         mask_wave_specific[2:3]), 1, 
-                             paste, collapse = ""),
-                       "r4cesd_elevated", "r9cesd_elevated", 
-                       "total_elevated_cesd", "avg_cesd", 
-                       "avg_cesd_elevated")) %>% 
-        set_colnames(colnames(data_wide))
-    } else{
-      predict <- 
-        matrix(1, nrow = 23, ncol = ncol(data_wide)) %>% 
-        set_rownames(c(paste0("r", seq(4, 9), "cesd"), 
-                       apply(expand.grid("r", seq(4, 9), 
-                                         mask_wave_specific[2:3]), 1, 
-                             paste, collapse = ""),
-                       "r4cesd_elevated", "r9cesd_elevated", 
-                       "total_elevated_cesd", "avg_cesd", 
-                       "avg_cesd_elevated")) %>% 
-        set_colnames(colnames(data_wide))
-    }
+    time_updated_vars <- c("mstat_impute", "drinking_impute", "memrye_impute", 
+                           "stroke_impute", "hearte_impute", "lunge_impute", 
+                           "cancre_impute", "hibpe_impute", "diabe_impute", 
+                           "cesd", "BMI", "shlt")
+    blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
+                      paste, collapse = ""),
+                "r4cesd_elevated", "r9cesd_elevated", 
+                "total_elevated_cesd", "avg_cesd", 
+                "avg_cesd_elevated")
+    predict <- matrix(1, length(blocks), ncol = ncol(data_wide)) %>% 
+      set_rownames(blocks) %>% 
+      set_colnames(colnames(data_wide))
     
     #Don't use these as predictors
-    predict[, c("HHIDPN", "conde", "age_death_y", "observed", 
-                "CESD_missing")] <- 0
+    predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "r3cesd",
+                paste0("r", seq(4, 9), "drinking_cat"), 
+                paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
+                "observed", "CESD_missing")] <- 0
     
-    #---- EDIT HERE ----
-    if(method == "JMVN"){
-      #---- ***logCESD models ----
-      predict[paste0("logr", seq(4, 9), "cesd"), 
-              paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("logr", seq(4, 9), "cesd"), 
-              paste0("r", seq(4, 9), "age_y_int")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("logr", seq(4, 9), "cesd"), 
-              paste0("r", seq(4, 9), "cesd")] <- 
-        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-      predict[paste0("logr", seq(4, 9), "cesd"), 
-              paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-      predict[paste0("logr", seq(4, 9), "cesd"), 
-              paste0("logr", seq(4, 9), "cesd")] <- 
-        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-      predict[paste0("logr", seq(4, 9), "cesd"), "r4cesd_elevated"] <- 
-        c(1, rep(0, 5))
-      predict[paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated"] <- 
-        c(rep(0, 5), 1)
-      
-      #additional for other models
-      predict[paste0("r", seq(4, 9), "cesd"), 
-              paste0("logr", seq(4, 9), "cesd")] <- 
+    #---- ***time-updated var models ----
+    for(var in time_updated_vars){
+      #can't predict itself
+      predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
         (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
       
-      predict[paste0("r", seq(4, 9), "BMI"), 
-              paste0("logr", seq(4, 9), "cesd")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
+      #use time-updated predictors
+      predictors <- c(time_updated_vars[which(time_updated_vars != var)], 
+                      "age_y_int")
+      for(predictor in predictors){
+        predict[paste0("r", seq(4, 9), var), 
+                paste0("r", seq(4, 9), predictor)] <- 
+          diag(x = 1, nrow = 6, ncol = 6)
+      }
       
-      predict[paste0("r", seq(4, 9), "shlt"), 
-              paste0("logr", seq(4, 9), "cesd")] <- 
-        diag(x = 1, nrow = 6, ncol = 6)
-      
-      predict["r4cesd_elevated", paste0("logr", seq(5, 9), "cesd")] <- 0
-      predict["r9cesd_elevated", paste0("logr", seq(4, 8), "cesd")] <- 0
+      #use relevant wave-specific exposures
+      predict[paste0("r", seq(4, 9), var), "r4cesd_elevated"] <- c(1, rep(0, 5))
+      predict[paste0("r", seq(4, 9), var), "r9cesd_elevated"] <- c(rep(0, 5), 1)
     }
-    
-    #---- ***CESD models ----
-    predict[paste0("r", seq(4, 9), "cesd"), 
-            paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "cesd"), 
-            paste0("r", seq(4, 9), "age_y_int")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "cesd"), 
-            paste0("r", seq(4, 9), "cesd")] <- 
-      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    predict[paste0("r", seq(4, 9), "cesd"), 
-            paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "cesd"), "r4cesd_elevated"] <- 
-      c(1, rep(0, 5))
-    predict[paste0("r", seq(4, 9), "cesd"), "r9cesd_elevated"] <- 
-      c(rep(0, 5), 1)
-    
-    #---- ****BMI models ----
-    predict[paste0("r", seq(4, 9), "BMI"), 
-            paste0("r", seq(4, 9), "BMI")] <- 
-      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    predict[paste0("r", seq(4, 9), "BMI"), 
-            paste0("r", seq(4, 9), "cesd")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "BMI"), 
-            paste0("r", seq(4, 9), "age_y_int")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "BMI"), 
-            paste0("r", seq(4, 9), "cesd")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "BMI"), 
-            paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "BMI"), "r4cesd_elevated"] <- 
-      c(1, rep(0, 5))
-    predict[paste0("r", seq(4, 9), "BMI"), "r9cesd_elevated"] <- 
-      c(rep(0, 5), 1)
-    
-    #---- ****shlt models ----
-    predict[paste0("r", seq(4, 9), "shlt"), 
-            paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "shlt"), 
-            paste0("r", seq(4, 9), "age_y_int")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "shlt"), 
-            paste0("r", seq(4, 9), "cesd")] <- 
-      diag(x = 1, nrow = 6, ncol = 6)
-    predict[paste0("r", seq(4, 9), "shlt"), 
-            paste0("r", seq(4, 9), "shlt")] <- 
-      (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-    predict[paste0("r", seq(4, 9), "shlt"), "r4cesd_elevated"] <- 
-      c(1, rep(0, 5))
-    predict[paste0("r", seq(4, 9), "shlt"), "r9cesd_elevated"] <- 
-      c(rep(0, 5), 1)
     
     #---- ****Exposure models ----
     predict[c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 

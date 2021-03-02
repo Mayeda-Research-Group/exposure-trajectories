@@ -107,7 +107,7 @@ mask_impute_pool <-
                 paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
                 "observed", "CESD_missing")] <- 0
     
-    #---- ***time-updated var models ----
+    #---- ****time-updated var models ----
     for(var in time_updated_vars){
       #can't predict itself
       predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
@@ -127,26 +127,26 @@ mask_impute_pool <-
       predict[paste0("r", seq(4, 9), var), "r9cesd_elevated"] <- c(rep(0, 5), 1)
     }
     
-    #---- ****Exposure models ----
+    #---- ****exposure models ----
+    #Can't predict 
     predict[c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
               "avg_cesd", "avg_cesd_elevated"),  
             c("r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
               "avg_cesd", "avg_cesd_elevated")] <- 
       diag(x = 0, nrow = 5, ncol = 5)
     
-    #E1a
-    predict["r4cesd_elevated", c(paste0("r", seq(5, 9), "BMI"), 
-                                 paste0("r", seq(5, 9), "age_y_int"), 
-                                 paste0("r", seq(5, 9), "shlt"), 
-                                 paste0("r", seq(5, 9), "cesd"))] <- 0
+    #E1a-- can only use wave 4 data
+    predictors <- c(time_updated_vars, "age_y_int")
+    predict["r4cesd_elevated", 
+            apply(expand.grid("r", seq(5, 9), predictors), 1, 
+                  paste, collapse = "")] <- 0
     
-    #E1a
-    predict["r9cesd_elevated", c(paste0("r", seq(4, 8), "BMI"), 
-                                 paste0("r", seq(4, 8), "age_y_int"), 
-                                 paste0("r", seq(4, 8), "shlt"), 
-                                 paste0("r", seq(4, 8), "cesd"))] <- 0
+    #E1b-- can only use wave 9 data
+    predict["r9cesd_elevated", 
+            apply(expand.grid("r", seq(4, 8), predictors), 1, 
+                  paste, collapse = "")] <- 0
     
-    #---- ***run imputation ----
+    #---- **run imputation ----
     if(method == "JMVN"){
       #Joint multivariate normal
       data_imputed <- mice(data = data_wide, m = num_impute, method = "norm", 
@@ -162,7 +162,7 @@ mask_impute_pool <-
                            seed = 20210126)
     }
     
-    #---- ***save results ----
+    #---- **save results ----
     if(save == "yes"){
       saveRDS(data_imputed, 
               file = here::here("MI datasets", 

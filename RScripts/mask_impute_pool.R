@@ -86,15 +86,6 @@ mask_impute_pool <-
     #                                   "/exposure_trajectories/manuscript/",
     #                                   "tables/missing_counts.csv"))
     
-    if(method == "JMVN"){
-      #---- transformations ----
-      #Taking the log for joint MVN models
-      for(wave in 4:9){
-        data_wide[, paste0("logr", wave, "cesd")] <- 
-          log(1 + data_wide[, paste0("r", wave, "cesd")])
-      }
-    }
-    
     #---- imputation ----
     #---- **predictor matrix ----
     if(method == "JMVN"){

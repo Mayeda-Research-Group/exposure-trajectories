@@ -54,10 +54,10 @@ table_effect_ests <-
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           r4cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD4)
@@ -73,10 +73,10 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" &
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
-  coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
-          other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r9mstat_cat + ed_cat + drinking9_cat + 
+          r9memrye_impute + r9stroke_impute + r9hearte_impute + r9lunge_impute + 
+          r9cancre_impute + r9hibpe_impute + r9diabe_impute + smoker + r9BMI + 
+          hispanic + black + other + female + r9age_y_int + r9shlt + 
           r9cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD9)
@@ -92,10 +92,10 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" &
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           total_elevated_cesd, data = CESD_data_wide)
 
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
@@ -109,10 +109,10 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" &
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + drinking4_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           avg_cesd_elevated, data = CESD_data_wide)
 
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 

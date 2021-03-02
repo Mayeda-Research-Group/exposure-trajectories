@@ -51,22 +51,16 @@ model_subset <- CESD_data_wide %>% dplyr::select(all_of(vars))
 #---- marital status ----
 for(i in (4:9)){
   outcome <- paste0("r", i, "mstat_impute")
-  predictors <- 
-    colnames(model_subset[-which(colnames(model_subset) == outcome)])
   model <- 
-    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-       data = model_subset)
+    lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
 
 #---- drinking status ----
 for(i in (4:9)){
   outcome <- paste0("drinking", i, "_impute")
-  predictors <- 
-    colnames(model_subset[-which(colnames(model_subset) == outcome)])
   model <- 
-    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-       data = model_subset)
+    lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
 
@@ -79,11 +73,8 @@ conditions <- c("memrye", "stroke", "hearte", "lunge", "cancre", "hibpe",
 for(condition in conditions){
   for(i in (4:9)){
     outcome <- paste0("r", i, condition, "_impute")
-    predictors <- 
-      colnames(model_subset[-which(colnames(model_subset) == outcome)])
     model <- 
-      lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-         data = model_subset)
+      lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
     show(hist(model$residuals, main = outcome))
   }
 }
@@ -91,33 +82,24 @@ for(condition in conditions){
 #---- BMI ----
 for(i in (4:9)){
   outcome <- paste0("r", i, "BMI")
-  predictors <- 
-    colnames(model_subset[-which(colnames(model_subset) == outcome)])
   model <- 
-    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-       data = model_subset)
+    lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
 
 #---- CESD ----
 for(i in (4:9)){
   outcome <- paste0("r", i, "cesd")
-  predictors <- 
-    colnames(model_subset[-which(colnames(model_subset) == outcome)])
   model <- 
-    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-       data = model_subset)
+    lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
 
 #---- self-reported health ----
 for(i in (4:9)){
   outcome <- paste0("r", i, "shlt")
-  predictors <- 
-    colnames(model_subset[-which(colnames(model_subset) == outcome)])
   model <- 
-    lm(as.formula(paste0(outcome, "~", paste0(predictors, collapse = "+"))), 
-       data = model_subset)
+    lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))
 }
 

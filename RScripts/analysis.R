@@ -105,7 +105,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" &
 TTEmodel_total_CESD <- 
   coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
           r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
-          + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
           hispanic + black + other + female + r4age_y_int + r4shlt + 
           total_elevated_cesd, data = CESD_data_wide)
 
@@ -123,7 +123,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" &
 TTEmodel_elevated_avg_CESD <- 
   coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
           r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
-          + r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
           hispanic + black + other + female + r4age_y_int + r4shlt + 
           avg_cesd_elevated, data = CESD_data_wide)
 

@@ -225,52 +225,6 @@ mask_impute_pool <-
     return(pooled_effect_ests)
   }
 
-# #---- **FCS ----
-# #---- ***predictor matrix ----
-# predict <- 
-#   matrix(1, nrow = 6, ncol = ncol(get(paste0("mask", 100*mask_props[1])))) %>% 
-#   set_rownames(paste0("r", seq(4, 9), "cesd")) %>% 
-#   set_colnames(colnames(get(paste0("mask", 100*mask_props[1]))))
-# #Don't use these as predictors
-# predict[, c("HHIDPN", "conde", "age_death_y", "r4cesd_elevated", 
-#             paste0("logr", seq(4, 9), "cesd"), "r9cesd_elevated", 
-#             "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-#             "observed")] <- 0
-# 
-# #Use values at the current wave to predict-- not sure about this yet
-# predict[, paste0("r", seq(4, 9), "BMI")] <- diag(x = 1, nrow = 6, ncol = 6)
-# predict[, paste0("r", seq(4, 9), "age_y_int")] <- diag(x = 1, nrow = 6, 
-#                                                        ncol = 6)
-# predict[, paste0("r", seq(4, 9), "shlt")] <- diag(x = 1, nrow = 6, ncol = 6)
-# 
-# #Exclude values that predict themselves
-# predict[, paste0("r", seq(4, 9), "cesd")] <- 
-#   (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
-# 
-# #---- ***run imputation ----
-# for(prop in mask_props){
-#   data <- get(paste0("mask", 100*prop))
-#   data %<>% mutate_at(paste0("r", seq(4, 9), "cesd"), as.factor)
-#   assign(paste0("fcs_impute", 100*prop), 
-#          mice(data = data, m = num_impute, method = "polr", 
-#               predictorMatrix = predict, where = is.na(data), 
-#               blocks = as.list(paste0("r", seq(4, 9), "cesd")), 
-#               seed = 20210126))
-#   
-#   #---- ***save results ----
-#   if(save == "yes"){
-#     saveRDS(get(paste0("fcs_impute", 100*prop)), 
-#             file = here::here("MI datasets", paste0("fcs_", tolower(mechanism), 
-#                                                     100*prop)))
-#   }
-# }
-# 
-# #---- **JMVN long ----
-# #Longitudinal joint multivariate normal model
-# 
-# #---- **FCS long ----
-# #Longitudinal fully conditional specification
-
 # #---- testing ----
 # #Single run
 # test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "FCS",

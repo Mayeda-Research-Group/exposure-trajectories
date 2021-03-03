@@ -164,15 +164,25 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     #Formatting data
     formatted <- do.call(rbind, multi_runs)
     
-    #Summarizing results
-    results <- formatted %>% group_by(Exposure) %>%
-      summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-    
     #Storing results
     table_effect_ests[which(table_effect_ests$Method == method & 
                               table_effect_ests$Missingness == mask_percent & 
                               table_effect_ests$Type == mechanism), 
-                      c("Exposure", "beta", "LCI", "UCI")] <- results
+                      c("Exposure", "beta", "mean_LCI", "mean_UCI")] <- 
+      formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+    
+    table_effect_ests[which(table_effect_ests$Method == method & 
+                              table_effect_ests$Missingness == mask_percent & 
+                              table_effect_ests$Type == mechanism), "LCI"] <- 
+      formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
+    
+    table_effect_ests[which(table_effect_ests$Method == method & 
+                              table_effect_ests$Missingness == mask_percent & 
+                              table_effect_ests$Type == mechanism), "UCI"] <- 
+      formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = "beta", ~ quantile(.x, 0.975))
   }
 }
 

@@ -665,20 +665,24 @@ hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
 
 #Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
-mstat_mat[, paste0("r", seq(4,9), "mstat_cat")] <- NA
 
-for(j in 1:length(seq(4,9))){
-  mstat_mat[, j + length(seq(4,9))] <-
-    case_when(mstat_mat[, j] %in% c(1, 2, 3) ~ "Married/Partnered", 
-              mstat_mat[, j] %in% c(4, 5, 6, 8) ~ "Not Married/Partnered", 
-              mstat_mat[, j] == 7 ~ "Widowed")
-}
+#Consolidate categories
+mstat_mat[mstat_mat == 1 | mstat_mat == 2 | mstat_mat == 3] <- 1
+mstat_mat[mstat_mat == 4 | mstat_mat == 5 | mstat_mat == 6 | 
+            mstat_mat == 8] <- 2
+mstat_mat[mstat_mat == 7] <- 3
+
+mstat_cat <- mstat_mat %>% set_colnames(paste0("r", seq(4, 9), "mstat_cat"))
+mstat_cat[mstat_cat == 1] <- "Married/Partnered"
+mstat_cat[mstat_cat == 2] <- "Not Married/Partnered"
+mstat_cat[mstat_cat == 3] <- "Widowed"
 
 hrs_samp[, colnames(mstat_mat)] <- mstat_mat
+hrs_samp[, colnames(mstat_cat)] <- mstat_cat
 
 # #Sanity check
 # table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
-# table(hrs_samp$r9mstat, hrs_samp$r9mstat_cat, useNA = "ifany")
+# table(hrs_samp$r9mstat_impute, hrs_samp$r9mstat_cat, useNA = "ifany")
 # table(hrs_samp$r4mstat_cat, hrs_samp$r9mstat_cat)
 
 #---- drinking ----
@@ -697,11 +701,11 @@ ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn_impute"))
 
 drinking_cat_mat <- 
   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("drinking", seq(4, 9), "_cat"))
+  set_colnames(paste0("r", seq(4, 9), "drinking_cat"))
 
 for(i in 1:ncol(drinking_cat_mat)){
   for(j in 1:nrow(drinking_cat_mat)){
-    drinking_cat_mat[j, paste0("drinking", (i + 3), "_cat")] = 
+    drinking_cat_mat[j, paste0("r", (i + 3), "drinking_cat")] = 
       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
@@ -718,7 +722,7 @@ for(i in 1:ncol(drinking_cat_mat)){
 
 drinking_impute_mat <- 
   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("drinking", seq(4, 9), "_impute"))
+  set_colnames(paste0("r", seq(4, 9), "drinking_impute"))
 
 drinking_impute_mat[drinking_cat_mat == "No Drinking"] <- 0
 drinking_impute_mat[drinking_cat_mat == "Moderate Drinking"] <- 1
@@ -1033,8 +1037,8 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_impute"),
           paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("drinking", seq(4, 9), "_impute"), 
-          paste0("drinking", seq(4, 9), "_cat"), 
+          paste0("r", seq(4, 9), "drinking_impute"), 
+          paste0("r", seq(4, 9), "drinking_cat"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),
           paste0("r", seq(4, 9), "hearte_impute"),

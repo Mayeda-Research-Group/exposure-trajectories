@@ -12,7 +12,7 @@ options(scipen = 999)
 set.seed(20200819)
 
 #---- source scripts ----
-source(here("RScripts", "mask_impute_pool.R"))
+source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
@@ -30,40 +30,44 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), 
-                            ed_cat = col_factor(), 
-                            r4mstat_cat = col_factor(), 
-                            r9mstat_cat = col_factor(),
-                            drinking4_cat_impute = col_factor(),
-                            drinking9_cat_impute = col_factor(),
-                            female = col_factor(), hispanic = col_factor(), 
-                            black = col_factor(), other = col_factor(), 
-                            smoker = col_integer()))
+           col_types = cols(HHIDPN = col_character())) %>% 
+  mutate_if(is.character, as.factor) 
+#Will see if we want to use ordered factors
+# %>% 
+#   mutate_at(vars(c(paste0("r", seq(4, 9), "drinking_cat"), ed_cat)), 
+#             ~factor(., ordered = TRUE)) %>%
+#   mutate_at(vars(paste0("r", seq(4, 9), "drinking_cat")), 
+#             ~fct_relevel(., c("No Drinking", "Moderate Drinking", 
+#                               "Heavy Drinking"))) %>% 
+#   mutate_at(vars("ed_cat"), 
+#             ~fct_relevel(., c("Less than HS", "HS", "Some College", 
+#                               "Bachelors")))
+
+# #Check column types
+# sapply(CESD_data_wide, class)
 
 #---- Table 2 shell: Effect Estimates ----
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-methods <- c("JMVN", "FCS")
-mechanisms <- c("MCAR", "MAR", "NMAR")
+methods <- c("JMVN")
+mechanisms <- c("MCAR")
 mask_props <- c(.10, .25, .50)
 
 table_effect_ests <- 
-  data.frame("Exposure" = rep(rep(exposures, 13), 3),
-             "beta" = NA, "LCI" = NA, "UCI" = NA, 
-             "Method" = rep(c(rep("Truth", 4), rep(methods, each = 12)), 3), 
-             "Missingness" = rep(c(rep("0%", 4), 
-                                   rep(rep(paste0(mask_props*100, "%"), 
-                                           each = 4), 4)), 3), 
-             "Type" = rep(mechanisms, each = 52))
+  data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
+  set_colnames(c("Exposure", "Method", "Type", "Missingness")) %>% 
+  rbind(expand_grid(exposures, methods, mechanisms, 
+                    paste0(mask_props*100, "%")) %>% 
+          set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
+  mutate("beta" = NA, "mean_LCI" = NA, "mean_UCI" = NA, "LCI" = NA, "UCI" = NA)
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           r4cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD4)
@@ -73,16 +77,17 @@ TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
-                           c("estimate", "conf.low", "conf.high")])
+                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
+
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
-  coxph(Surv(survtime, observed) ~ r9age_y_int + female + hispanic + black + 
-          other + ed_cat + r9mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r9BMI + drinking9_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r9mstat_cat + ed_cat + r9drinking_cat + 
+          r9memrye_impute + r9stroke_impute + r9hearte_impute + r9lunge_impute + 
+          r9cancre_impute + r9hibpe_impute + r9diabe_impute + smoker + r9BMI + 
+          hispanic + black + other + female + r9age_y_int + r9shlt + 
           r9cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD9)
@@ -92,16 +97,16 @@ TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                           c("estimate", "conf.low", "conf.high")])
+                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           total_elevated_cesd, data = CESD_data_wide)
 
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
@@ -109,16 +114,17 @@ TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                                c("estimate", "conf.low", "conf.high")])
+                                c("estimate", 
+                                  rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4age_y_int + female + hispanic + black + 
-          other + ed_cat + r4mstat_cat + ever_mem + ever_arthritis + 
-          ever_stroke + ever_heart + ever_lung + ever_cancer + ever_hibp + 
-          ever_diabetes + r4BMI + drinking4_cat_impute + smoker + 
+  coxph(Surv(survtime, observed) ~ r4mstat_cat + ed_cat + r4drinking_cat + 
+          r4memrye_impute + r4stroke_impute + r4hearte_impute + r4lunge_impute + 
+          r4cancre_impute + r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+          hispanic + black + other + female + r4age_y_int + r4shlt + 
           avg_cesd_elevated, data = CESD_data_wide)
 
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
@@ -126,43 +132,48 @@ TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "LCI", "UCI")] <- 
+                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                                       c("estimate", "conf.low", "conf.high")])
+                                       c("estimate", 
+                                         rep(c("conf.low", "conf.high"), 2))])
 
-#---- create one set of imputations for plot ----
-all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
-  mutate("mask_percent" = paste0(100*mask_props, "%"))
-
-apply(all_combos[1:6, ], 1, function(x)
-  mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2],
-                   mask_percent = x[4],
-                   num_impute = 5, save = "yes"))
+# #---- create one set of imputations for plot ----
+# all_combos <- expand_grid(mechanisms, methods, mask_props) %>% 
+#   mutate("mask_percent" = paste0(100*mask_props, "%"))
+# 
+# apply(all_combos[1:6, ], 1, function(x)
+#   mask_impute_pool(CESD_data_wide, mechanism = x[1], method = x[2],
+#                    mask_percent = x[4],
+#                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
-for(i in 1:6){
-  mechanism = as.character(all_combos[i, "mechanisms"])
-  method = as.character(all_combos[i, "methods"])
-  mask_percent = as.character(all_combos[i, "mask_percent"])
-  
-  multi_runs <- 
-    replicate(2, mask_impute_pool(CESD_data_wide, mechanism = mechanism, 
-                                  method = method, mask_percent = mask_percent,
-                                  num_impute = 5, save = "no"), 
-              simplify = FALSE)
-  
-  #Formatting data
-  formatted <- do.call(rbind, multi_runs)
-  
-  #Summarizing results
-  results <- formatted %>% group_by(Exposure) %>%
-    summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-  
-  #Storing results
-  table_effect_ests[which(table_effect_ests$Method == method & 
-                            table_effect_ests$Missingness == mask_percent & 
-                            table_effect_ests$Type == mechanism), 
-                    c("Exposure", "beta", "LCI", "UCI")] <- results
+for(i in which(!table_effect_ests$Method == "Truth")){
+  #because we fill multiple rows at a time
+  if(is.na(table_effect_ests[i, "beta"])){
+    mechanism = table_effect_ests[i, "Type"]
+    method = table_effect_ests[i, "Method"]
+    mask_percent = table_effect_ests[i, "Missingness"]
+    
+    multi_runs <- replicate(2, mask_impute_pool(CESD_data_wide, exposures, 
+                                                mechanism = mechanism, 
+                                                method = method, 
+                                                mask_percent = mask_percent,
+                                                num_impute = 5, save = "no"), 
+                            simplify = FALSE)
+    
+    #Formatting data
+    formatted <- do.call(rbind, multi_runs)
+    
+    #Summarizing results
+    results <- formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+    
+    #Storing results
+    table_effect_ests[which(table_effect_ests$Method == method & 
+                              table_effect_ests$Missingness == mask_percent & 
+                              table_effect_ests$Type == mechanism), 
+                      c("Exposure", "beta", "LCI", "UCI")] <- results
+  }
 }
 
 #---- save tables ----

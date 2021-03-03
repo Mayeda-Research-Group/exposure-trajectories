@@ -58,7 +58,7 @@ for(i in (4:9)){
 
 #---- drinking status ----
 for(i in (4:9)){
-  outcome <- paste0("drinking", i, "_impute")
+  outcome <- paste0("r", i, "drinking_impute")
   model <- 
     lm(as.formula(paste0(outcome, "~ .")), data = model_subset)
   show(hist(model$residuals, main = outcome))

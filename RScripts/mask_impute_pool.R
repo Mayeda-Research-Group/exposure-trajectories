@@ -358,22 +358,22 @@ mask_impute_pool <-
 # #---- **FCS long ----
 # #Longitudinal fully conditional specification
 
-#---- testing ----
-#Single run
-test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "FCS",
-                         mask_percent = "10%", num_impute = 5, save = "no")
-#Multiple runs
-test_2 <- replicate(2, mask_impute_pool(CESD_data_wide,
-                                               mechanism = "MCAR",
-                                               method = "JMVN",
-                                               mask_percent = "10%",
-                                               num_impute = 5, save = "no"),
-                    simplify = FALSE)
-
-#Formatting data
-formatted <- do.call(rbind, test_2)
-
-#Summarizing results
-results <- formatted %>% group_by(Exposure) %>%
-  summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+# #---- testing ----
+# #Single run
+# test <- mask_impute_pool(CESD_data_wide, mechanism = "MCAR", method = "FCS",
+#                          mask_percent = "10%", num_impute = 5, save = "no")
+# #Multiple runs
+# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide,
+#                                                mechanism = "MCAR",
+#                                                method = "JMVN",
+#                                                mask_percent = "10%",
+#                                                num_impute = 5, save = "no"),
+#                     simplify = FALSE)
+# 
+# #Formatting data
+# formatted <- do.call(rbind, test_2)
+# 
+# #Summarizing results
+# results <- formatted %>% group_by(Exposure) %>%
+#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
 

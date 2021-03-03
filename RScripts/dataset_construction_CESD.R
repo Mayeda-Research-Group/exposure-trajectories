@@ -142,70 +142,70 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
-#---- read in HRS Core files ---- 
-#needed for medication
-
-# '98-'00 medication in section B, 02-later medication in section C
-# memory problem medication starts from wave 2008; we won't do memory meds
-# since it starts on the last wave relevant to our analysis
-
-years <- c("98", "00", 
-           "02", "04", "06", "08") #medication
-dataframes_list <- vector(mode = "list", length = (length(years)))
-
-for(i in 1:length(years)){
-  year <- years[i]
-  if(i == 1 | i == 2){
-    dataframes_list[[i]] <- 
-      read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                         "core/h", year, "da/H", year, "B_R.da"),
-                  paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                         "core/h", year, "sta/H", year, "B_R.dct"),
-                  skip_lines = 1,
-                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
-      #select variables of interest
-      dplyr::select("HHIDPN", 
-                    #1998 vars         2000 vars
-                    contains("F1117"), contains("G1248"),
-                    contains("F1118"), contains("G1249"),
-                    contains("F1110"), contains("G1239"),
-                    contains("F1151"), contains("G1284"),
-                    contains("F1157"), contains("G1290"),
-                    contains("F1184"), contains("G1317")) %>%
-      #contains("F1198"), contains("G1331")) 
-      set_colnames(c("HHIDPN", 
-                     paste0("diabetes_rx_swallowed", (i + 3)),
-                     paste0("diabetes_rx_insulin", (i + 3)), 
-                     paste0("bp_rx", (i + 3)), 
-                     paste0("lung_rx", (i + 3)), 
-                     paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3)) 
-                     #paste0("arthritis_rx", (i + 3))
-      )) 
-  } else{
-    dataframes_list[[i]] <-
-      read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                         "core/h", year, "da/H", year, "C_R.da"),
-                  paste0(path_to_box, "/Box/HRS/core_files/h", year,
-                         "core/h", year, "sta/H", year, "C_R.dct"), 
-                  skip_lines = 2, 
-                  HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
-      #select variables of interest
-      dplyr::select("HHIDPN", 
-                    contains("C011"), contains("C012"), contains("C006"), 
-                    contains("C032"), contains("C037"), contains("C060")) %>% 
-      #contains("C074")) %>%
-      set_colnames(c("HHIDPN", 
-                     paste0("diabetes_rx_swallowed", (i + 3)),
-                     paste0("diabetes_rx_insulin", (i + 3)), 
-                     paste0("bp_rx", (i + 3)), 
-                     paste0("lung_rx", (i + 3)), 
-                     paste0("heart_rx", (i + 3)), 
-                     paste0("stroke_rx", (i + 3))
-                     #paste0("arthritis_rx", (i + 3))
-      ))
-  }
-}
+# #---- read in HRS Core files ---- 
+# #needed for medication
+# 
+# # '98-'00 medication in section B, 02-later medication in section C
+# # memory problem medication starts from wave 2008; we won't do memory meds
+# # since it starts on the last wave relevant to our analysis
+# 
+# years <- c("98", "00", 
+#            "02", "04", "06", "08") #medication
+# dataframes_list <- vector(mode = "list", length = (length(years)))
+# 
+# for(i in 1:length(years)){
+#   year <- years[i]
+#   if(i == 1 | i == 2){
+#     dataframes_list[[i]] <- 
+#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "da/H", year, "B_R.da"),
+#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "sta/H", year, "B_R.dct"),
+#                   skip_lines = 1,
+#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+#       #select variables of interest
+#       dplyr::select("HHIDPN", 
+#                     #1998 vars         2000 vars
+#                     contains("F1117"), contains("G1248"),
+#                     contains("F1118"), contains("G1249"),
+#                     contains("F1110"), contains("G1239"),
+#                     contains("F1151"), contains("G1284"),
+#                     contains("F1157"), contains("G1290"),
+#                     contains("F1184"), contains("G1317")) %>%
+#       #contains("F1198"), contains("G1331")) 
+#       set_colnames(c("HHIDPN", 
+#                      paste0("diabetes_rx_swallowed", (i + 3)),
+#                      paste0("diabetes_rx_insulin", (i + 3)), 
+#                      paste0("bp_rx", (i + 3)), 
+#                      paste0("lung_rx", (i + 3)), 
+#                      paste0("heart_rx", (i + 3)), 
+#                      paste0("stroke_rx", (i + 3)) 
+#                      #paste0("arthritis_rx", (i + 3))
+#       )) 
+#   } else{
+#     dataframes_list[[i]] <-
+#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "da/H", year, "C_R.da"),
+#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "sta/H", year, "C_R.dct"), 
+#                   skip_lines = 2, 
+#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+#       #select variables of interest
+#       dplyr::select("HHIDPN", 
+#                     contains("C011"), contains("C012"), contains("C006"), 
+#                     contains("C032"), contains("C037"), contains("C060")) %>% 
+#       #contains("C074")) %>%
+#       set_colnames(c("HHIDPN", 
+#                      paste0("diabetes_rx_swallowed", (i + 3)),
+#                      paste0("diabetes_rx_insulin", (i + 3)), 
+#                      paste0("bp_rx", (i + 3)), 
+#                      paste0("lung_rx", (i + 3)), 
+#                      paste0("heart_rx", (i + 3)), 
+#                      paste0("stroke_rx", (i + 3))
+#                      #paste0("arthritis_rx", (i + 3))
+#       ))
+#   }
+# }
 
 #---- read in Anusha Vable's CSES index ----
 cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
@@ -216,7 +216,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES), dataframes_list), 
+hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES)), 
+                       #dataframes_list), 
                      by = "HHIDPN", type = "left") 
 
 #---- looking for optimal subset ----
@@ -555,9 +556,7 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 #   print(table(counts, useNA = "ifany"))
 # }
 
-
 #---- sum of conditions ----
-
 # wave-specific r(wave)conde
 cond_mat <- hrs_samp %>%
   dplyr::select(contains("_impute"))
@@ -717,6 +716,14 @@ for(i in 1:ncol(drinking_cat_mat)){
   }
 }
 
+drinking_impute_mat <- 
+  matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+  set_colnames(paste0("drinking", seq(4, 9), "_impute"))
+
+drinking_impute_mat[drinking_cat_mat == "No Drinking"] <- 0
+drinking_impute_mat[drinking_cat_mat == "Moderate Drinking"] <- 1
+drinking_impute_mat[drinking_cat_mat == "Heavy Drinking"] <- 2
+
 # Old code chunk
 # drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
 #   (hrs_samp %>% dplyr::select(contains("drinkn")))
@@ -747,7 +754,7 @@ for(i in 1:ncol(drinking_cat_mat)){
 # #Sanity Check
 # View(drinking_cat_mat)
 
-hrs_samp %<>% cbind(drinking_cat_mat)
+hrs_samp %<>% cbind(drinking_cat_mat) %>% cbind(drinking_impute_mat)
 
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select("r9drinkn", "female",
@@ -886,70 +893,71 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # sum(table(test[, 7]))
 
 #---- self-reported health ----
-#Variable check
-self_reported_health <- hrs_samp %>%
-  dplyr::select(paste0("r", seq(4, 9), "shlt"))
-colSums(is.na(self_reported_health))
+# #Variable check
+# self_reported_health <- hrs_samp %>%
+#   dplyr::select(paste0("r", seq(4, 9), "shlt"))
+# colSums(is.na(self_reported_health))
 
-#---- Preliminary models ----
-# logit(P(missing CESD this wave)) = 
-# \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
-# \beta_3* chronic condition count (at last wave)
-
-summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
-                                   r4age_y_int + r3cesd + r3conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
-                                   r5age_y_int + r4cesd + r4conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
-                                   r6age_y_int + r5cesd + r5conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
-                                   r7age_y_int + r6cesd + r6conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
-                                   r8age_y_int + r7cesd + r7conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
-                                   r9age_y_int + r8cesd + r8conde_impute,
-                                 family = binomial(link = "logit"), 
-                                 data = hrs_samp))
-r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
-
-results_tbl <- tibble(
-  variables = c("Intercept", "age at current wave", "previous CESD value",
-                "Previous chronic condition count"),
-  r4beta = round(r4results$estimate, 4),
-  r5beta = round(r5results$estimate, 4),
-  r6beta = round(r6results$estimate, 4),
-  r7beta = round(r7results$estimate, 4),
-  r8beta = round(r8results$estimate, 4),
-  r9beta = round(r9results$estimate, 4)
-) 
-
-results_tbl %>%
-  kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
-  kable_classic(full_width = F, html_font = "Arial")
-
-write_csv(results_tbl, paste0(path_to_dropbox,
-                              "/exposure_trajectories/data/",
-                              "CESD_missing_model_betas.csv"))
+# #---- Preliminary models ----
+# # DO NOT DELETE DURING CODE CLEAN-UP
+# # logit(P(missing CESD this wave)) = 
+# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
+# # \beta_3* chronic condition count (at last wave)
+# 
+# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
+#                                    r4age_y_int + r3cesd + r3conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
+#                                    r5age_y_int + r4cesd + r4conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
+#                                    r6age_y_int + r5cesd + r5conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
+#                                    r7age_y_int + r6cesd + r6conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
+#                                    r8age_y_int + r7cesd + r7conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
+#                                    r9age_y_int + r8cesd + r8conde_impute,
+#                                  family = binomial(link = "logit"), 
+#                                  data = hrs_samp))
+# r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# results_tbl <- tibble(
+#   variables = c("Intercept", "age at current wave", "previous CESD value",
+#                 "Previous chronic condition count"),
+#   r4beta = round(r4results$estimate, 4),
+#   r5beta = round(r5results$estimate, 4),
+#   r6beta = round(r6results$estimate, 4),
+#   r7beta = round(r7results$estimate, 4),
+#   r8beta = round(r8results$estimate, 4),
+#   r9beta = round(r9results$estimate, 4)
+# ) 
+# 
+# results_tbl %>%
+#   kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
+#   kable_classic(full_width = F, html_font = "Arial")
+# 
+# write_csv(results_tbl, paste0(path_to_dropbox,
+#                               "/exposure_trajectories/data/",
+#                               "CESD_missing_model_betas.csv"))
 
 #---- Dropping people ----
 # 1. full HRSsample (n = 43398)
@@ -1023,7 +1031,9 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # drop <- rowSums(is.na(subset))
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_impute"),
+          paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
+          paste0("drinking", seq(4, 9), "_impute"), 
           paste0("drinking", seq(4, 9), "_cat"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),
@@ -1041,8 +1051,9 @@ vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "ed_cat",
 hrs_samp %<>% dplyr::select(all_of(vars))
 
 #---- check missingness ----
-#Should have no missingness except in age_death_y 
-#(for those who are still living)
+#Should have no missingness except in 
+# r3cesd (not part of optimal wave range)
+# age_death_y (for those who are still living)
 colSums(is.na(hrs_samp))
 
 #---- Exposures ----

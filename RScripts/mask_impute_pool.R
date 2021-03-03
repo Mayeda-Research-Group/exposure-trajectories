@@ -44,7 +44,6 @@ mask_impute_pool <-
                 paste0("r", seq(4, 9), var)] <- data_long[, -1] 
       data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN), 
                 paste0("r", seq(4, 9), var)] <- NA
-      
     }
     
     #masking derived values
@@ -225,25 +224,27 @@ mask_impute_pool <-
     return(pooled_effect_ests)
   }
 
-#---- testing ----
-#Single run
-test <- mask_impute_pool(CESD_data_wide, exposures = exposures, 
-                         mechanism = "MCAR", method = "JMVN",
-                         mask_percent = "10%", num_impute = 5, save = "no")
-#Multiple runs
-test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
-                                               mechanism = "MCAR",
-                                               method = "JMVN",
-                                               mask_percent = "10%",
-                                               num_impute = 5, save = "no"),
-                    simplify = FALSE)
-
-#Formatting data
-formatted <- do.call(rbind, test_2)
-
-#Summarizing results
-results <- formatted %>% group_by(Exposure) %>%
-  summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-results2 <- formatted %>% group_by(Exposure) %>%
-  summarize_at(.vars = c("beta"), .funs = mean)
+# #---- testing ----
+# #Single run
+# test <- mask_impute_pool(CESD_data_wide, exposures = exposures, 
+#                          mechanism = "MCAR", method = "JMVN",
+#                          mask_percent = "10%", num_impute = 5, save = "no")
+# #Multiple runs
+# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
+#                                                mechanism = "MCAR",
+#                                                method = "JMVN",
+#                                                mask_percent = "10%",
+#                                                num_impute = 5, save = "no"),
+#                     simplify = FALSE)
+# 
+# #Formatting data
+# formatted <- do.call(rbind, test_2)
+# 
+# #Summarizing results
+# results <- formatted %>% group_by(Exposure) %>%
+#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+# 
+# results2 <- formatted %>% group_by(Exposure) %>%
+#   summarize_at(.vars = "beta", ~ quantile(.x, 0.025)) 
+                                     
 

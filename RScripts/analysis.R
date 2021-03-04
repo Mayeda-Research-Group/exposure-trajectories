@@ -154,7 +154,7 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     method = table_effect_ests[i, "Method"]
     mask_percent = table_effect_ests[i, "Missingness"]
     
-    multi_runs <- replicate(2, mask_impute_pool(CESD_data_wide, exposures, 
+    multi_runs <- replicate(100, mask_impute_pool(CESD_data_wide, exposures, 
                                                 mechanism = mechanism, 
                                                 method = method, 
                                                 mask_percent = mask_percent,
@@ -176,13 +176,15 @@ for(i in which(!table_effect_ests$Method == "Truth")){
                               table_effect_ests$Missingness == mask_percent & 
                               table_effect_ests$Type == mechanism), "LCI"] <- 
       formatted %>% group_by(Exposure) %>%
-      summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
+      summarize_at(.vars = "beta", ~ quantile(.x, 0.025)) %>% 
+      dplyr::select("beta")
     
     table_effect_ests[which(table_effect_ests$Method == method & 
                               table_effect_ests$Missingness == mask_percent & 
                               table_effect_ests$Type == mechanism), "UCI"] <- 
       formatted %>% group_by(Exposure) %>%
-      summarize_at(.vars = "beta", ~ quantile(.x, 0.975))
+      summarize_at(.vars = "beta", ~ quantile(.x, 0.975)) %>% 
+      dplyr::select("beta")
   }
 }
 
@@ -192,8 +194,8 @@ table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
 
 #Save results
 table_list <- list("Table 2" = table_effect_ests)
-write.xlsx(table_list, file = paste0(path_to_dropbox, 
-                                     "/exposure_trajectories/manuscript/", 
+write.xlsx(table_list, file = paste0(path_to_dropbox,
+                                     "/exposure_trajectories/manuscript/",
                                      "tables/main_text_tables.xlsx"))
 
 

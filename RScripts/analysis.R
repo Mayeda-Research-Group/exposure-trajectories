@@ -47,11 +47,13 @@ CESD_data_wide <-
 # sapply(CESD_data_wide, class)
 
 #---- Table 2 shell: Effect Estimates ----
+#Number of simulation runs
+num_runs <- 5
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 methods <- c("JMVN")
 mechanisms <- c("MCAR")
-mask_props <- c(.10, .25, .50)
+mask_props <- c(.10, .25, .40)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
@@ -154,11 +156,13 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     method = table_effect_ests[i, "Method"]
     mask_percent = table_effect_ests[i, "Missingness"]
     
-    multi_runs <- replicate(100, mask_impute_pool(CESD_data_wide, exposures, 
-                                                mechanism = mechanism, 
-                                                method = method, 
-                                                mask_percent = mask_percent,
-                                                num_impute = 5, save = "no"), 
+    multi_runs <- replicate(num_runs, 
+                            mask_impute_pool(CESD_data_wide, 
+                                             exposures, 
+                                             mechanism = mechanism, 
+                                             method = method, 
+                                             mask_percent = mask_percent,
+                                             num_impute = 5, save = "no"), 
                             simplify = FALSE)
     
     #Formatting data
@@ -196,7 +200,9 @@ table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
 table_list <- list("Table 2" = table_effect_ests)
 write.xlsx(table_list, file = paste0(path_to_dropbox,
                                      "/exposure_trajectories/manuscript/",
-                                     "tables/main_text_tables.xlsx"))
+                                     "tables/main_text_tables", num_runs, "_", 
+                                     format(now(), "%Y%m%d_%H%M%S_"),
+                                     ".xlsx"))
 
 
 

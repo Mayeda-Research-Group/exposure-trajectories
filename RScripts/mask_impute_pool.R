@@ -21,25 +21,19 @@ mask_impute_pool <-
                            size = floor(mask_prop*total_indices), 
                            replace = FALSE)
     }
-
+    
     #masking wave-specific values
     mask_wave_specific <- c("mstat_impute", "mstat_cat", "drinking_impute", 
                             "drinking_cat", "memrye_impute", "stroke_impute", 
                             "hearte_impute", "lunge_impute", "cancre_impute", 
                             "hibpe_impute", "diabe_impute", "cesd", "BMI", 
                             "shlt")
-
+    
     for(var in mask_wave_specific){
       #mask values
-      if (var == "drinking_impute"){
-        data_long <- data_wide %>%
-          dplyr::select("HHIDPN", paste0("drinking", seq(4,9), "_impute")) %>%
-          pivot_longer(-"HHIDPN")
-      } else {
-        data_long <- data_wide %>% 
-          dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
-          pivot_longer(-"HHIDPN")
-      }
+      data_long <- data_wide %>% 
+        dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
+        pivot_longer(-"HHIDPN")
       
       data_long[mask_index, "value"] <- NA
       
@@ -254,5 +248,5 @@ mask_impute_pool <-
 # 
 # results2 <- formatted %>% group_by(Exposure) %>%
 #   summarize_at(.vars = "beta", ~ quantile(.x, 0.025)) 
-                                     
+
 

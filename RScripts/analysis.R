@@ -48,7 +48,7 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 5
+num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 methods <- c("JMVN")
@@ -82,7 +82,6 @@ table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" &
                   c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
                            c("estimate", rep(c("conf.low", "conf.high"), 2))])
-
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -156,14 +155,13 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     method = table_effect_ests[i, "Method"]
     mask_percent = table_effect_ests[i, "Missingness"]
     
-    multi_runs <- replicate(num_runs, 
-                            mask_impute_pool(CESD_data_wide, 
-                                             exposures, 
-                                             mechanism = mechanism, 
-                                             method = method, 
-                                             mask_percent = mask_percent,
-                                             num_impute = 5, save = "no"), 
-                            simplify = FALSE)
+    multi_runs <- 
+      replicate(num_runs, 
+                mask_impute_pool(CESD_data_wide, exposures, 
+                                 mechanism = mechanism, method = method, 
+                                 mask_percent = mask_percent,
+                                 num_impute = 5, save = "no"), 
+                simplify = FALSE)
     
     #Formatting data
     formatted <- do.call(rbind, multi_runs)

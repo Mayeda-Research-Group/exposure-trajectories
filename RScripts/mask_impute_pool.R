@@ -156,8 +156,12 @@ mask_impute_pool <-
                            seed = 20210126)
     } else if(method == "FCS"){
       #Fully conditional specification
+      data_wide %<>% 
+        mutate_all(as.factor) %>% 
+        mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), "avg_cesd")), 
+                  as.numeric)
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           method = "polr", 
+                           defaultMethod = c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)

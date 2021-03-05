@@ -10,7 +10,7 @@ options(scipen = 999)
 
 #---- values ----
 methods <- c("JMVN")
-mask_props <- c(.10, .25, .40)
+mask_props <- c(.10, .20, .30)
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
@@ -24,31 +24,32 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in data ----
-CESD_data_wide <- 
-  read_csv(paste0(path_to_dropbox, 
-                  "/exposure_trajectories/data/", 
-                  "CESD_data_wide.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), 
-                            ed_cat = col_factor(), 
-                            r4mstat_cat = col_factor(), 
-                            r9mstat_cat = col_factor(),
-                            drinking4_cat_impute = col_factor(),
-                            drinking9_cat_impute = col_factor(),
-                            female = col_factor(), hispanic = col_factor(), 
-                            black = col_factor(), other = col_factor(), 
-                            smoker = col_integer()))
+# CESD_data_wide <- 
+#   read_csv(paste0(path_to_dropbox, 
+#                   "/exposure_trajectories/data/", 
+#                   "CESD_data_wide.csv"), 
+#            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+#                             death2018 = col_integer(), 
+#                             ed_cat = col_factor(), 
+#                             r4mstat_cat = col_factor(), 
+#                             r9mstat_cat = col_factor(),
+#                             drinking4_cat_impute = col_factor(),
+#                             drinking9_cat_impute = col_factor(),
+#                             female = col_factor(), hispanic = col_factor(), 
+#                             black = col_factor(), other = col_factor(), 
+#                             smoker = col_integer()))
 
-for(method in tolower(methods)){
-  for(prop in 100*mask_props){
-    assign(paste0(method, "_mcar", prop), 
-           readRDS(here("MI datasets", paste0(method, "_mcar", prop))))
-  }
-}
+# for(method in tolower(methods)){
+#   for(prop in 100*mask_props){
+#     assign(paste0(method, "_mcar", prop), 
+#            readRDS(here("MI datasets", paste0(method, "_mcar", prop))))
+#   }
+# }
 
-table_effect_ests <- read.xlsx(paste0(path_to_dropbox, 
-                                      "/exposure_trajectories/manuscript/", 
-                                      "tables/main_text_tables.xlsx"))
+table_effect_ests <- 
+  read.xlsx(paste0(path_to_dropbox, 
+                   "/exposure_trajectories/manuscript/", 
+                   "tables/main_text_tables2_20210304_220340_.xlsx"))
 
 #---- diagnostics: trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
@@ -62,15 +63,15 @@ dev.off()
 
 #---- visualizations ----
 #---- **effect estimates ----
-table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) %>% 
-  mutate("Missingness Type" = "MCAR")
+table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) 
 table_effect_ests$Method <- 
   factor(table_effect_ests$Method, 
-         levels = c("Truth", "JMVN", "FCS", "JMVN Long", "FCS Long"))
+         levels = c("Truth", "JMVN"))
 
+#---- ****LCI and UCI ----
 ggplot(table_effect_ests, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-  geom_point(size = 3.5, position = position_dodge(0.60)) + 
+  geom_point(size = 2, position = position_dodge(0.60)) + 
   scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .2, 
                 position = position_dodge(0.60)) + theme_minimal() + 
@@ -78,12 +79,31 @@ ggplot(table_effect_ests,
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
   scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
   geom_vline(xintercept = 1, linetype = "dashed", color = "black") + 
-  facet_grid(rows = vars(`Missingness Type`), cols = vars(Exposure)) 
+  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
+  ggtitle("95% CI of beta across runs")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests.jpeg"), device = "jpeg", 
+              "manuscript/figures/effect_ests_LCI_UCI.jpeg"), device = "jpeg", 
        dpi = 300, width = 9, height = 5, units = "in")
-  
+
+#---- ****mean LCI and mean UCI ----
+ggplot(table_effect_ests, 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2, position = position_dodge(0.60)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
+  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .2, 
+                position = position_dodge(0.60)) + theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  geom_vline(xintercept = 1, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
+  ggtitle("mean 95% CI of beta across runs")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_mean_LCI_UCI.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
+
 #---- **individual imputations ----
 #---- ***fcs ----
 fcs_mean_imputation_10 <- vector(mode = "list", length = 6)

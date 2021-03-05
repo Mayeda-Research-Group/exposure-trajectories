@@ -9,13 +9,21 @@ p_load("here", "tidyverse", "ghibli", "openxlsx", "magrittr")
 options(scipen = 999)
 
 #---- values ----
-methods <- c("JMVN", "FCS")
-mask_props <- c(.10, .25, .50)
+methods <- c("JMVN")
+mask_props <- c(.10, .25, .40)
 
-#---- read in data ----
+#---- note ----
+# Since the difference between win and OS, put substituted directory here
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+
 #Changing directories here will change them throughout the script
+path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
+#---- read in data ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 

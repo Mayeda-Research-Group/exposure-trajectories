@@ -148,6 +148,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 #                    num_impute = 5, save = "yes"))
 
 #---- get pooled effect estimates ----
+start <- Sys.time()
 for(i in which(!table_effect_ests$Method == "Truth")){
   #because we fill multiple rows at a time
   if(is.na(table_effect_ests[i, "beta"])){
@@ -189,6 +190,7 @@ for(i in which(!table_effect_ests$Method == "Truth")){
       dplyr::select("beta")
   }
 }
+end <- Sys.time() - start
 
 #---- save tables ----
 #Round numbers in dataframe

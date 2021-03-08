@@ -160,11 +160,23 @@ mask_impute_pool <-
         mutate_all(as.factor) %>% 
         mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), "avg_cesd")), 
                   as.numeric)
-      data_imputed <- mice(data = data_wide, m = num_impute, 
+      data_imputed <- mice(data = data_wide, m = num_impute, nnet.MaxNWts = 5000,
                            defaultMethod = c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
+    } else if(method == "FCS Long"){
+      #level-2 outcomes
+      Y2 <- data_wide %>% dplyr::select(c("r4cesd_elevated", 
+                                          "r9cesd_elevated", 
+                                          "total_elevated_cesd", "avg_cesd", 
+                                          "avg_cesd_elevated")) %>% 
+        mutate_at(c(""))
+      #level-1 outcomes
+      Y <- data_wide %>% 
+        dplyr::select(rownames(predict)[!rownames(predict) %in% colnames(Y2)])
+      
+      #
     }
     
     #---- **save results ----

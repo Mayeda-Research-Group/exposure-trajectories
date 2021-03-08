@@ -23,11 +23,10 @@ mask_impute_pool <-
     }
     
     #masking wave-specific values
-    mask_wave_specific <- c("mstat_impute", "mstat_cat", "drinking_impute", 
-                            "drinking_cat", "memrye_impute", "stroke_impute", 
-                            "hearte_impute", "lunge_impute", "cancre_impute", 
-                            "hibpe_impute", "diabe_impute", "cesd", "BMI", 
-                            "shlt")
+    mask_wave_specific <- c("mstat_impute", "drinking_impute", "memrye_impute", 
+                            "stroke_impute", "hearte_impute", "lunge_impute", 
+                            "cancre_impute", "hibpe_impute", "diabe_impute", 
+                            "cesd", "BMI", "shlt")
     
     for(var in mask_wave_specific){
       #mask values

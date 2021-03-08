@@ -272,3 +272,26 @@ missing_prop_MNAR_summary <- tibble(
 #     map_dfr(1:replicate, ~MAR_MNAR_func(beta_0_MAR_10, CESD_data_wide),
 #             .id = "replication")
 # )
+
+#---- Summary stats ----
+# Summary stats in the complete datasets (% 0/1) 
+# for categorical variables at wave 4 and wave 9
+var_wave_specific <- c("memrye_impute", "stroke_impute", 
+                        "hearte_impute", "lunge_impute", "cancre_impute", 
+                        "hibpe_impute", "diabe_impute")
+stats_tbl <- tibble()
+
+for (var in var_wave_specific){
+  
+  CESD_data_wide %>%
+    select(paste0("r", 4, var)) %>%
+    count() %>%
+    mutate(prop = prop.table(freq))
+    
+  
+  CESD_data_wide %>%
+    select(paste0("r", 9, var)) %>%
+    count() %>%
+    mutate(prop = prop.table(freq))
+}
+

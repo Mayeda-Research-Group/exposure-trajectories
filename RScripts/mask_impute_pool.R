@@ -147,6 +147,7 @@ mask_impute_pool <-
                   paste, collapse = "")] <- 0
     
     #---- **run imputation ----
+    #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
       data_imputed <- mice(data = data_wide, m = num_impute, method = "norm", 
@@ -154,6 +155,7 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
     } else if(method == "FCS"){
+      #---- ****FCS ----
       #Fully conditional specification
       data_wide %<>% 
         mutate_all(as.factor) %>% 
@@ -165,6 +167,7 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
     } else if(method == "FCS Long"){
+      #---- ****FCS Long ----
       #level-1 outcomes
       Y <- data_wide %>% 
         dplyr::select(c("HHIDPN", 
@@ -215,22 +218,35 @@ mask_impute_pool <-
       #get rid of HHIDPN from Y
       Y %<>% dplyr::select(-"HHIDPN")
       
-      data_imputed <- 
-        jomo2(Y = Y, Y2 = Y2, X = X, X2 = X2, Z = Z, clus = data_wide$HHIDPN, 
-              nburn = 10, nbetween = 10, nimp = num_impute)
+      # data_imputed <- 
+      #   jomo2(Y = Y, Y2 = Y2, X = X, X2 = X2, Z = Z, clus = data_wide$HHIDPN, 
+      #         nburn = 10, nbetween = 10, nimp = num_impute)
       
+      start <- Sys.time()
       data_imputed <- 
         jomo2com(Y.con = Y[, c("cesd", "BMI", "shlt")], 
-                 Y.cat = Y[, colnames(Y)[!colnames(Y) %in% colnames(Y.con)]],
-                 Y.numcat = c(rep(3, 2), 
-                              rep(2, (length(colnames(Y.cat)) - 2))),
+                 Y.cat = Y[, c("mstat_impute", "drinking_impute", 
+                               "memrye_impute", "stroke_impute", 
+                               "hearte_impute", "lunge_impute", "cancre_impute", 
+                               "hibpe_impute", "diabe_impute")],
+                 Y.numcat = c(rep(3, 2), rep(2, 7)),
                  Y2.con = Y2[, c("total_elevated_cesd", "avg_cesd")], 
                  Y2.cat = Y2[, c("r4cesd_elevated", "r9cesd_elevated", 
                                  "avg_cesd_elevated")], 
                  Y2.numcat = c(rep(2, 3)), X = X, X2 = X2, Z = Z, 
                  clus = data_wide$HHIDPN, 
                  nburn = 10, nbetween = 10, nimp = num_impute)
+      stop <- Sys.time() - start
       
+    } else if(method == "PMM"){
+      #---- ****PMM ----
+      #Predictive Mean Matching
+      start <- Sys.time()
+      data_imputed <- mice(data = data_wide, m = num_impute, method = "pmm", 
+                           predictorMatrix = predict, where = is.na(data_wide), 
+                           blocks = as.list(rownames(predict)), 
+                           seed = 20210126)
+      stop <- Sys.time() - start
     }
     
     #---- **save results ----

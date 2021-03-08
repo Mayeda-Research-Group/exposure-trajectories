@@ -207,13 +207,20 @@ mask <- function(data_wide, mechanism, mask_percent){
              rowMeans(data_wide %>% 
                         dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
            "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
-  
+  #---- check missings ----
+  #make sure no one is missing every cesd measure
+  data_wide %<>% 
+    mutate("CESD_missing" = 
+             rowSums(data_wide %>% 
+                       dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                       mutate_all(function(x) is.na(x)))) %>% 
+    filter(CESD_missing < 6)
   # Return the dataset
   return(data_wide)
 }
 
-# Test
-# MCAR
+# # Test
+# # MCAR
 # test <- mask(CESD_data_wide, "MCAR", "10%")
 # test %>%
 #   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
@@ -223,7 +230,7 @@ mask <- function(data_wide, mechanism, mask_percent){
 #     count(CESD) %>%
 #     mutate(prop = prop.table(n))
 # view(test[is.na(test$r9cesd), ])
-# MAR
+# # MAR
 # test1 <- mask(CESD_data_wide, "MAR", "50%")
 # test1 %>%
 #   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
@@ -235,8 +242,8 @@ mask <- function(data_wide, mechanism, mask_percent){
 # test1 %>%
 #   select(contains("r5")) %>%
 #   filter(is.na(r5cesd))
-# MNAR
-# test2 <- mask(CESD_data_wide, "MNAR", "50%")
+# # MNAR
+# test2 <- mask(CESD_data_wide, "MNAR", "%")
 # test2 %>%
 #   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
 #   pivot_longer(everything(),

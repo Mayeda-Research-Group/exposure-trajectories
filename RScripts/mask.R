@@ -208,6 +208,44 @@ mask <- function(data_wide, mechanism, mask_percent){
                         dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
            "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
   
-  # Pending
+  # Return the dataset
   return(data_wide)
 }
+
+# Test
+# MCAR
+# test <- mask(CESD_data_wide, "MCAR", "10%")
+# test %>%
+#   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
+#   pivot_longer(everything(),
+#                names_to = "origvar",
+#                values_to = "CESD") %>%
+#     count(CESD) %>%
+#     mutate(prop = prop.table(n))
+# view(test[is.na(test$r9cesd), ])
+# MAR
+# test1 <- mask(CESD_data_wide, "MAR", "50%")
+# test1 %>%
+#   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
+#   pivot_longer(everything(),
+#                names_to = "origvar",
+#                values_to = "CESD") %>%
+#   count(CESD) %>%
+#   mutate(prop = prop.table(n))
+# test1 %>%
+#   select(contains("r5")) %>%
+#   filter(is.na(r5cesd))
+# MNAR
+# test2 <- mask(CESD_data_wide, "MNAR", "50%")
+# test2 %>%
+#   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
+#   pivot_longer(everything(),
+#                names_to = "origvar",
+#                values_to = "CESD") %>%
+#   count(CESD) %>%
+#   mutate(prop = prop.table(n))
+# test2 %>%
+#   select(contains("r5")) %>%
+#   filter(is.na(r5cesd))
+
+  

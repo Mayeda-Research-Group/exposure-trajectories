@@ -249,6 +249,40 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       stop <- Sys.time() - start
+      
+      #post-processing
+      data_imputed$imp$r4cesd_elevated <- 
+        as.list(as.data.frame((data_imputed$imp$r4cesd > 4)*1))
+      
+      data_imputed$imp$r9cesd_elevated <- 
+        as.list(as.data.frame((data_imputed$imp$r9cesd > 4)*1))
+      
+      for(imputation in 1:5){
+        complete_data <- complete(data_imputed, action = imputation)
+        impute_index <- rownames()
+        
+        
+        if(wave == 4){
+          data_indicator_mat <- 
+            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+        }else{
+          data_indicator_mat = data_indicator_mat + 
+            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+        }
+      }
+      data_imputed$imp$total_elevated_cesd <- 
+        as.list((data_imputed$imp$r4cesd > 4)*1 + 
+                  (data_imputed$imp$r5cesd > 4)*1 + 
+                  (data_imputed$imp$r6cesd > 4)*1)
+      
+      
+      
+      
+      data_imputed$imp$avg_cesd <- 
+        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
+      
+      data_imputed$imp$avg_cesd_elevated <- 
+        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
     }
     
     #---- **save results ----

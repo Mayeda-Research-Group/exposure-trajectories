@@ -29,7 +29,7 @@ mask <- function(data_wide, mechanism, mask_percent){
     
     mask_prop <- as.numeric(sub("%","", mask_percent))/100
     
-    #---- expected value for predictors of missingness ----
+    #---- expected value for predictors of MAR & MNAR missingness ----
     # Age
     overall_ages <- data_wide %>% 
       dplyr::select(paste0("r", seq(4, 9, by = 1), "age_y_int")) %>% 
@@ -59,7 +59,7 @@ mask <- function(data_wide, mechanism, mask_percent){
     e_CESD_4_9 <- mean(CESD_4_9_long$cesd)
     e_conde <- mean(conde_3_8_long$conde_impute, na.rm = T)
     
-    #---- betas ----
+    #---- **betas ----
     beta_age <- log(1.05)
     beta_cesdpre <- log(1.10)
     beta_condepre <- log(1.30)
@@ -82,58 +82,94 @@ mask <- function(data_wide, mechanism, mask_percent){
       #                            "beta_condepre * ", "r", i, "conde_impute"))))
       # }
       # 
-        subset <- data_wide %>%
-          mutate(
+      subset <- data_wide %>%
+        mutate(
           r4pcesd = expit(beta_0 + beta_age * r4age_y_int + 
-                                beta_cesdpre * r3cesd
-                              + beta_condepre * r4conde_impute),
+                            beta_cesdpre * r3cesd
+                          + beta_condepre * r4conde_impute),
           r5pcesd = expit(beta_0 + beta_age * r5age_y_int + 
-                                beta_cesdpre * r4cesd
-                              + beta_condepre * r5conde_impute),
+                            beta_cesdpre * r4cesd
+                          + beta_condepre * r5conde_impute),
           r6pcesd = expit(beta_0 + beta_age * r6age_y_int + 
-                                beta_cesdpre * r5cesd
-                              + beta_condepre * r6conde_impute),
+                            beta_cesdpre * r5cesd
+                          + beta_condepre * r6conde_impute),
           r7pcesd = expit(beta_0 + beta_age * r7age_y_int + 
-                                beta_cesdpre * r6cesd
-                              + beta_condepre * r7conde_impute),
+                            beta_cesdpre * r6cesd
+                          + beta_condepre * r7conde_impute),
           r8pcesd = expit(beta_0 + beta_age * r8age_y_int + 
-                                beta_cesdpre * r7cesd
-                              + beta_condepre * r8conde_impute),
+                            beta_cesdpre * r7cesd
+                          + beta_condepre * r8conde_impute),
           r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
-                                beta_cesdpre * r8cesd
-                              + beta_condepre * r9conde_impute)
-          ) %>%
-          select(contains("pcesd"))
+                            beta_cesdpre * r8cesd
+                          + beta_condepre * r9conde_impute)
+        ) %>%
+        select(contains("pcesd"))
+      
+      for (j in 1:ncol(subset)){
+        if (j <= 6){
+          subset[, paste0("r", j + 3, "cesd_missing")] <- 
+            rbinom(nrow(subset), size = 1, prob = subset[[j]])
+        } 
         
-        for (j in 1:ncol(subset)){
-          if (j <= 6){
-            subset[, paste0("r", j + 3, "cesd_missing")] <- 
-              rbinom(nrow(subset), size = 1, prob = subset[[j]])
-          } 
-          
       }
       
-     subset_long <- subset %>%
-       select(contains("cesd_missing")) %>%
+      subset_long <- subset %>%
+        select(contains("cesd_missing")) %>%
         pivot_longer(everything(),
                      names_to = "orig_varname",
                      values_to = "cesd_missing")
-        
+      
       mask_index <- which(subset_long$cesd_missing == 1)
       
     } else if(mechanism == "MNAR"){
-      # Pending!
+      
       #---- MNAR ----
       beta_0 <- logit(mask_prop) - 
         (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde + 
-          beta_cesdcurrent*e_CESD_4_9)
+           beta_cesdcurrent*e_CESD_4_9)
       
+      subset <- data_wide %>%
+        mutate(
+          r4pcesd = expit(beta_0 + beta_age * r4age_y_int + 
+                            beta_cesdpre * r3cesd + beta_cesdcurrent * r4cesd +
+                            + beta_condepre * r4conde_impute),
+          r5pcesd = expit(beta_0 + beta_age * r5age_y_int + 
+                            beta_cesdpre * r4cesd + beta_cesdcurrent * r5cesd +
+                            + beta_condepre * r5conde_impute),
+          r6pcesd = expit(beta_0 + beta_age * r6age_y_int + 
+                            beta_cesdpre * r5cesd + beta_cesdcurrent * r6cesd +
+                            + beta_condepre * r6conde_impute),
+          r7pcesd = expit(beta_0 + beta_age * r7age_y_int + 
+                            beta_cesdpre * r6cesd + beta_cesdcurrent * r7cesd +
+                            + beta_condepre * r7conde_impute),
+          r8pcesd = expit(beta_0 + beta_age * r8age_y_int + 
+                            beta_cesdpre * r7cesd + beta_cesdcurrent * r8cesd +
+                            + beta_condepre * r8conde_impute),
+          r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
+                            beta_cesdpre * r8cesd + beta_cesdcurrent * r9cesd +
+                            + beta_condepre * r9conde_impute)
+        ) %>%
+        select(contains("pcesd"))
       
+      for (j in 1:ncol(subset)){
+        if (j <= 6){
+          subset[, paste0("r", j + 3, "cesd_missing")] <- 
+            rbinom(nrow(subset), size = 1, prob = subset[[j]])
+        } 
+        
+      }
+      
+      subset_long <- subset %>%
+        select(contains("cesd_missing")) %>%
+        pivot_longer(everything(),
+                     names_to = "orig_varname",
+                     values_to = "cesd_missing")
+      
+      mask_index <- which(subset_long$cesd_missing == 1)
     }
   }
   
-  
-  #masking wave-specific values
+  #---- masking wave-specific values ----
   mask_wave_specific <- c("mstat_impute", "mstat_cat", "drinking_impute", 
                           "drinking_cat", "memrye_impute", "stroke_impute", 
                           "hearte_impute", "lunge_impute", "cancre_impute", 
@@ -172,8 +208,6 @@ mask <- function(data_wide, mechanism, mask_percent){
                         dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
            "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
   
-  
-  
   # Pending
-  # return()
+  return(data_wide)
 }

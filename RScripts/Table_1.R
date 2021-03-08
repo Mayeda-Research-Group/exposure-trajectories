@@ -19,16 +19,17 @@ path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 CESD_data <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
-                  "hrs_samp_6CESD_waves4-9.csv"), 
-           col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-                            death2018 = col_integer(), ed_cat = col_factor(), 
-                            r4mstat_cat = col_factor(), 
-                            r9mstat_cat = col_factor(), 
-                            drinking4_cat_impute = col_factor(),
-                            drinking9_cat_impute = col_factor(),
-                            female = col_factor(), hispanic = col_factor(), 
-                            black = col_factor(), other = col_factor(), 
-                            smoker = col_integer()))
+                  "CESD_data_wide.csv"))
+           # , 
+           # col_types = cols(.default = col_double(), HHIDPN = col_character(), 
+           #                  death2018 = col_integer(), ed_cat = col_factor(), 
+           #                  r4mstat_cat = col_factor(), 
+           #                  r9mstat_cat = col_factor(), 
+           #                  drinking4_cat_impute = col_factor(),
+           #                  drinking9_cat_impute = col_factor(),
+           #                  female = col_factor(), hispanic = col_factor(), 
+           #                  black = col_factor(), other = col_factor(), 
+           #                  smoker = col_integer()))
 #---- Label the data ----
 # colnames(CESD_data)
 

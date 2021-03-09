@@ -93,19 +93,18 @@ mask_impute_pool <-
                            "cancre_impute", "hibpe_impute", "diabe_impute", 
                            "cesd", "BMI", "shlt")
     blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
-                      paste, collapse = ""),
-                #"r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated",
-                "total_elevated_cesd", "avg_cesd")
+                      paste, collapse = ""))
     predict <- matrix(1, length(blocks), ncol = ncol(data_wide)) %>% 
       set_rownames(blocks) %>% 
       set_colnames(colnames(data_wide))
     
     #Don't use these as predictors
-    predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), "r3cesd",
-                paste0("r", seq(4, 9), "drinking_cat"), 
+    predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), 
+                paste0("r", seq(4, 9), "drinking_cat"),
                 paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
-                "observed", "CESD_missing", "r4cesd_elevated", 
-                "r9cesd_elevated", "avg_cesd_elevated")] <- 0
+                "observed", "CESD_missing", "r3cesd", "r4cesd_elevated", 
+                "r9cesd_elevated",  "avg_cesd", "avg_cesd_elevated", 
+                "total_elevated_cesd")] <- 0
     
     #---- ****time-updated var models ----
     for(var in time_updated_vars){
@@ -121,32 +120,7 @@ mask_impute_pool <-
                 paste0("r", seq(4, 9), predictor)] <- 
           diag(x = 1, nrow = 6, ncol = 6)
       }
-      
-      # #use relevant wave-specific exposures
-      # predict[paste0("r", seq(4, 9), var), "r4cesd_elevated"] <- c(1, rep(0, 5))
-      # predict[paste0("r", seq(4, 9), var), "r9cesd_elevated"] <- c(rep(0, 5), 1)
     }
-    
-    #---- ****exposure models ----
-    #Can't predict 
-    predict[c(
-      #"r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated", 
-      "total_elevated_cesd", "avg_cesd"),  
-      c(
-        #"r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated",
-        "total_elevated_cesd", "avg_cesd")] <- 
-      diag(x = 0, nrow = 2, ncol = 2)
-    
-    # #E1a-- can only use wave 4 data
-    # predictors <- c(time_updated_vars, "age_y_int")
-    # predict["r4cesd_elevated", 
-    #         apply(expand.grid("r", seq(5, 9), predictors), 1, 
-    #               paste, collapse = "")] <- 0
-    # 
-    # #E1b-- can only use wave 9 data
-    # predict["r9cesd_elevated", 
-    #         apply(expand.grid("r", seq(4, 8), predictors), 1, 
-    #               paste, collapse = "")] <- 0
     
     #---- **run imputation ----
     #---- ****JMVN ----
@@ -249,41 +223,41 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       stop <- Sys.time() - start
-      
-      #post-processing
-      data_imputed$imp$r4cesd_elevated <- 
-        as.list(as.data.frame((data_imputed$imp$r4cesd > 4)*1))
-      
-      data_imputed$imp$r9cesd_elevated <- 
-        as.list(as.data.frame((data_imputed$imp$r9cesd > 4)*1))
-      
-      for(imputation in 1:5){
-        complete_data <- complete(data_imputed, action = imputation)
-        impute_index <- rownames()
-        
-        
-        if(wave == 4){
-          data_indicator_mat <- 
-            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
-        }else{
-          data_indicator_mat = data_indicator_mat + 
-            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
-        }
-      }
-      data_imputed$imp$total_elevated_cesd <- 
-        as.list((data_imputed$imp$r4cesd > 4)*1 + 
-                  (data_imputed$imp$r5cesd > 4)*1 + 
-                  (data_imputed$imp$r6cesd > 4)*1)
-      
-      
-      
-      
-      data_imputed$imp$avg_cesd <- 
-        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
-      
-      data_imputed$imp$avg_cesd_elevated <- 
-        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
     }
+    
+    #---- **post-processing ----
+    data_imputed$imp$r4cesd_elevated <- 
+      as.list(as.data.frame((data_imputed$imp$r4cesd > 4)*1))
+    
+    data_imputed$imp$r9cesd_elevated <- 
+      as.list(as.data.frame((data_imputed$imp$r9cesd > 4)*1))
+    
+    for(imputation in 1:num_impute){
+      complete_data <- complete(data_imputed, action = imputation)
+      impute_index <- rownames()
+      
+      
+      if(wave == 4){
+        data_indicator_mat <- 
+          (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+      }else{
+        data_indicator_mat = data_indicator_mat + 
+          (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+      }
+    }
+    data_imputed$imp$total_elevated_cesd <- 
+      as.list((data_imputed$imp$r4cesd > 4)*1 + 
+                (data_imputed$imp$r5cesd > 4)*1 + 
+                (data_imputed$imp$r6cesd > 4)*1)
+    
+    
+    
+    
+    data_imputed$imp$avg_cesd <- 
+      as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
+    
+    data_imputed$imp$avg_cesd_elevated <- 
+      as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
     
     #---- **save results ----
     if(save == "yes"){

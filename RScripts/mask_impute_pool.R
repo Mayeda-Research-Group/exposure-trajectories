@@ -225,40 +225,6 @@ mask_impute_pool <-
       stop <- Sys.time() - start
     }
     
-    #---- **post-processing ----
-    data_imputed$imp$r4cesd_elevated <- 
-      as.list(as.data.frame((data_imputed$imp$r4cesd > 4)*1))
-    
-    data_imputed$imp$r9cesd_elevated <- 
-      as.list(as.data.frame((data_imputed$imp$r9cesd > 4)*1))
-    
-    for(imputation in 1:num_impute){
-      complete_data <- complete(data_imputed, action = imputation)
-      impute_index <- rownames()
-      
-      
-      if(wave == 4){
-        data_indicator_mat <- 
-          (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
-      }else{
-        data_indicator_mat = data_indicator_mat + 
-          (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
-      }
-    }
-    data_imputed$imp$total_elevated_cesd <- 
-      as.list((data_imputed$imp$r4cesd > 4)*1 + 
-                (data_imputed$imp$r5cesd > 4)*1 + 
-                (data_imputed$imp$r6cesd > 4)*1)
-    
-    
-    
-    
-    data_imputed$imp$avg_cesd <- 
-      as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
-    
-    data_imputed$imp$avg_cesd_elevated <- 
-      as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
-    
     #---- **save results ----
     if(save == "yes"){
       saveRDS(data_imputed, 
@@ -267,8 +233,63 @@ mask_impute_pool <-
                                        as.numeric(sub("%","", mask_percent)))))
     }
     
+    #---- fitted models ----
+    model_list <- vector(mode = "list", length = length(exposures)) %>% 
+      set_names(exposures)
+    
+    for(i in 1:num_impute){
+      complete_data <- complete(data_imputed, action = i)
+      
+      #---- **post-processing ----
+      complete_data %<>% 
+        mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
+               "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+               "total_elevated_cesd" = 
+                 complete_data %>% 
+                 dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                 mutate_all(function(x) ifelse(x > 4, 1, 0)) %>% rowSums(), 
+               "avg_cesd" = complete_data %>% 
+                 dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% rowMeans(), 
+               "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+      
+      # #Sanity check
+      # View(complete_data %>% dplyr::select(contains("cesd")))
+      
+      for(imputation in 1:num_impute){
+        complete_data <- complete(data_imputed, action = imputation)
+        impute_index <- rownames()
+        
+        
+        if(wave == 4){
+          data_indicator_mat <- 
+            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+        }else{
+          data_indicator_mat = data_indicator_mat + 
+            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+        }
+      }
+      data_imputed$imp$total_elevated_cesd <- 
+        as.list((data_imputed$imp$r4cesd > 4)*1 + 
+                  (data_imputed$imp$r5cesd > 4)*1 + 
+                  (data_imputed$imp$r6cesd > 4)*1)
+      
+      
+      
+      
+      data_imputed$imp$avg_cesd <- 
+        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
+      
+      data_imputed$imp$avg_cesd_elevated <- 
+        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
+      
+      
+      
+      
+      
+    }
+    
     for(exposure in exposures){
-      #---- fitted models ----
+      
       if(exposure == "CES-D Wave 4"){
         fitted_models <- 
           with(data_imputed, 
@@ -306,6 +327,30 @@ mask_impute_pool <-
                        hispanic + black + other + female + r4age_y_int + 
                        r4shlt + avg_cesd_elevated))
       }
+      
+      
+      
+      
+      
+      # #---- Rubin's rules ----
+      # ###Consider if we need to use binomial variance calculations here. 
+      # #https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1473796?scroll=top&needAccess=true
+      # #Within imputation variance:
+      # test<-left_join(khandle_weights,age_res,by="imp_h")
+      # test<- test %>% mutate(age_resid = (age_h - weighted.age)^2)
+      # variance<-test %>% group_by(imp_h) %>% summarise(variance=mean(age_resid))
+      # variance$SE_sq<- variance$variance/sum(khandle_weights$imp_h==1)
+      # variance
+      # var_within<-mean(variance$SE_sq)
+      # var_within
+      # #Between imputation variance:
+      # var_between<-sum((age_res$weighted.age-est_age)^2)/(nrow(age_res)-1)
+      # var_between
+      # #Total variance
+      # var_total<-var_within+(1+1/40)*var_between
+      # var_total
+      # #Standard error, after Rubin's Rules:
+      # SE_total<-sqrt(var_total)
       
       #---- pooling models ----
       pooled <- pool(fitted_models)

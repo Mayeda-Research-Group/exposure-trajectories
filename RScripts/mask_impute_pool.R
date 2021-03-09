@@ -254,140 +254,105 @@ mask_impute_pool <-
       
       # #Sanity check
       # View(complete_data %>% dplyr::select(contains("cesd")))
-      
-      for(imputation in 1:num_impute){
-        complete_data <- complete(data_imputed, action = imputation)
-        impute_index <- rownames()
-        
-        
-        if(wave == 4){
-          data_indicator_mat <- 
-            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
-        }else{
-          data_indicator_mat = data_indicator_mat + 
-            (data_imputed[["imp"]][[paste0("r", wave, "cesd")]] > 4)*1
+
+      for(exposure in exposures){
+        if(exposure == "CES-D Wave 4"){
+          model_list[[exposure]][[i]] <- 
+            with(complete_data, 
+                 coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
+                         r4drinking_impute + r4memrye_impute + r4stroke_impute + 
+                         r4hearte_impute + r4lunge_impute + r4cancre_impute + 
+                         r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+                         hispanic + black + other + female + r4age_y_int + 
+                         r4shlt + r4cesd_elevated))
+        } else if(exposure == "CES-D Wave 9"){
+          model_list[[exposure]][[i]] <- 
+            with(complete_data, 
+                 coxph(Surv(survtime, observed) ~ r9mstat_impute + ed_cat + 
+                         r9drinking_impute + r9memrye_impute + r9stroke_impute + 
+                         r9hearte_impute + r9lunge_impute + r9cancre_impute + 
+                         r9hibpe_impute + r9diabe_impute + smoker + r9BMI + 
+                         hispanic + black + other + female + r9age_y_int + 
+                         r9shlt + r9cesd_elevated))
+        } else if(exposure == "Elevated CES-D Count"){
+          model_list[[exposure]][[i]] <- 
+            with(complete_data, 
+                 coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
+                         r4drinking_impute + r4memrye_impute + r4stroke_impute + 
+                         r4hearte_impute + r4lunge_impute + r4cancre_impute + 
+                         r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+                         hispanic + black + other + female + r4age_y_int + 
+                         r4shlt + total_elevated_cesd))
+        } else{
+          model_list[[exposure]][[i]] <- 
+            with(complete_data, 
+                 coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
+                         r4drinking_impute + r4memrye_impute + r4stroke_impute + 
+                         r4hearte_impute + r4lunge_impute + r4cancre_impute + 
+                         r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
+                         hispanic + black + other + female + r4age_y_int + 
+                         r4shlt + avg_cesd_elevated))
         }
-      }
-      data_imputed$imp$total_elevated_cesd <- 
-        as.list((data_imputed$imp$r4cesd > 4)*1 + 
-                  (data_imputed$imp$r5cesd > 4)*1 + 
-                  (data_imputed$imp$r6cesd > 4)*1)
-      
-      
-      
-      
-      data_imputed$imp$avg_cesd <- 
-        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
-      
-      data_imputed$imp$avg_cesd_elevated <- 
-        as.list(as.data.frame((data_imputed$imp$avg_cesd > 4)*1))
-      
-      
-      
-      
-      
-    }
-    
-    for(exposure in exposures){
-      
-      if(exposure == "CES-D Wave 4"){
-        fitted_models <- 
-          with(data_imputed, 
-               coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
-                       r4drinking_impute + r4memrye_impute + r4stroke_impute + 
-                       r4hearte_impute + r4lunge_impute + r4cancre_impute + 
-                       r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
-                       hispanic + black + other + female + r4age_y_int + 
-                       r4shlt + r4cesd_elevated))
-      } else if(exposure == "CES-D Wave 9"){
-        fitted_models <- 
-          with(data_imputed, 
-               coxph(Surv(survtime, observed) ~ r9mstat_impute + ed_cat + 
-                       r9drinking_impute + r9memrye_impute + r9stroke_impute + 
-                       r9hearte_impute + r9lunge_impute + r9cancre_impute + 
-                       r9hibpe_impute + r9diabe_impute + smoker + r9BMI + 
-                       hispanic + black + other + female + r9age_y_int + 
-                       r9shlt + r9cesd_elevated))
-      } else if(exposure == "Elevated CES-D Count"){
-        fitted_models <- 
-          with(data_imputed, 
-               coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
-                       r4drinking_impute + r4memrye_impute + r4stroke_impute + 
-                       r4hearte_impute + r4lunge_impute + r4cancre_impute + 
-                       r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
-                       hispanic + black + other + female + r4age_y_int + 
-                       r4shlt + total_elevated_cesd))
-      } else{
-        fitted_models <- 
-          with(data_imputed, 
-               coxph(Surv(survtime, observed) ~ r4mstat_impute + ed_cat + 
-                       r4drinking_impute + r4memrye_impute + r4stroke_impute + 
-                       r4hearte_impute + r4lunge_impute + r4cancre_impute + 
-                       r4hibpe_impute + r4diabe_impute + smoker + r4BMI + 
-                       hispanic + black + other + female + r4age_y_int + 
-                       r4shlt + avg_cesd_elevated))
+        
+        
+  
+        # #---- Rubin's rules ----
+        # ###Consider if we need to use binomial variance calculations here. 
+        # #https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1473796?scroll=top&needAccess=true
+        # #Within imputation variance:
+        # test<-left_join(khandle_weights,age_res,by="imp_h")
+        # test<- test %>% mutate(age_resid = (age_h - weighted.age)^2)
+        # variance<-test %>% group_by(imp_h) %>% summarise(variance=mean(age_resid))
+        # variance$SE_sq<- variance$variance/sum(khandle_weights$imp_h==1)
+        # variance
+        # var_within<-mean(variance$SE_sq)
+        # var_within
+        # #Between imputation variance:
+        # var_between<-sum((age_res$weighted.age-est_age)^2)/(nrow(age_res)-1)
+        # var_between
+        # #Total variance
+        # var_total<-var_within+(1+1/40)*var_between
+        # var_total
+        # #Standard error, after Rubin's Rules:
+        # SE_total<-sqrt(var_total)
+        
+        #---- pooling models ----
+        pooled <- pool(fitted_models)
+        
+        #---- storing results ----
+        pooled_effect_ests[which(pooled_effect_ests$Exposure == exposure), 
+                           c("beta", "LCI", "UCI")] <- 
+          summary(pooled, conf.int = TRUE, conf.level = 0.95, 
+                  exponentiate = TRUE)[nrow(summary(pooled)), 
+                                       c("estimate", "2.5 %", "97.5 %")]
       }
       
-      
-      
-      
-      
-      # #---- Rubin's rules ----
-      # ###Consider if we need to use binomial variance calculations here. 
-      # #https://www.tandfonline.com/doi/full/10.1080/00031305.2018.1473796?scroll=top&needAccess=true
-      # #Within imputation variance:
-      # test<-left_join(khandle_weights,age_res,by="imp_h")
-      # test<- test %>% mutate(age_resid = (age_h - weighted.age)^2)
-      # variance<-test %>% group_by(imp_h) %>% summarise(variance=mean(age_resid))
-      # variance$SE_sq<- variance$variance/sum(khandle_weights$imp_h==1)
-      # variance
-      # var_within<-mean(variance$SE_sq)
-      # var_within
-      # #Between imputation variance:
-      # var_between<-sum((age_res$weighted.age-est_age)^2)/(nrow(age_res)-1)
-      # var_between
-      # #Total variance
-      # var_total<-var_within+(1+1/40)*var_between
-      # var_total
-      # #Standard error, after Rubin's Rules:
-      # SE_total<-sqrt(var_total)
-      
-      #---- pooling models ----
-      pooled <- pool(fitted_models)
-      
-      #---- storing results ----
-      pooled_effect_ests[which(pooled_effect_ests$Exposure == exposure), 
-                         c("beta", "LCI", "UCI")] <- 
-        summary(pooled, conf.int = TRUE, conf.level = 0.95, 
-                exponentiate = TRUE)[nrow(summary(pooled)), 
-                                     c("estimate", "2.5 %", "97.5 %")]
+      #---- return values ----
+      return(pooled_effect_ests)
     }
     
-    #---- return values ----
-    return(pooled_effect_ests)
-  }
-
-# #---- testing ----
-# #Single run
-# test <- mask_impute_pool(CESD_data_wide, exposures = exposures, 
-#                          mechanism = "MCAR", method = "JMVN",
-#                          mask_percent = "10%", num_impute = 5, save = "no")
-# #Multiple runs
-# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                                                mechanism = "MCAR",
-#                                                method = "JMVN",
-#                                                mask_percent = "10%",
-#                                                num_impute = 5, save = "no"),
-#                     simplify = FALSE)
-# 
-# #Formatting data
-# formatted <- do.call(rbind, test_2)
-# 
-# #Summarizing results
-# results <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-# 
-# results2 <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = "beta", ~ quantile(.x, 0.025)) 
-
-
+    # #---- testing ----
+    # #Single run
+    # test <- mask_impute_pool(CESD_data_wide, exposures = exposures, 
+    #                          mechanism = "MCAR", method = "JMVN",
+    #                          mask_percent = "10%", num_impute = 5, save = "no")
+    # #Multiple runs
+    # test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
+    #                                                mechanism = "MCAR",
+    #                                                method = "JMVN",
+    #                                                mask_percent = "10%",
+    #                                                num_impute = 5, save = "no"),
+    #                     simplify = FALSE)
+    # 
+    # #Formatting data
+    # formatted <- do.call(rbind, test_2)
+    # 
+    # #Summarizing results
+    # results <- formatted %>% group_by(Exposure) %>%
+    #   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+    # 
+    # results2 <- formatted %>% group_by(Exposure) %>%
+    #   summarize_at(.vars = "beta", ~ quantile(.x, 0.025)) 
+    
+    
+    

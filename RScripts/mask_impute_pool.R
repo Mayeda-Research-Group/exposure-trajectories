@@ -124,14 +124,14 @@ mask_impute_pool <-
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 20, 
+      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 30, 
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
       
       #look at convergence
         #10% missing needs maxit = 20
-        #20% missing needs maxit =  
+        #20% missing needs maxit = 30
         #30% missing needs maxit = 
       plot(data_imputed)
       
@@ -225,7 +225,7 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 20, 
+      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 30, 
                            method = "pmm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
@@ -234,7 +234,7 @@ mask_impute_pool <-
       
       #look at convergence
       #10% missing needs maxit = 20
-      #20% missing needs maxit =  
+      #20% missing needs maxit = 30
       #30% missing needs maxit = 
       plot(data_imputed)
     }

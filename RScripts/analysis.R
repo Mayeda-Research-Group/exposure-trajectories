@@ -75,7 +75,7 @@ TTEmodel_CESD4 <-
 #summary(TTEmodel_CESD4)
 
 TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
-                               exponentiate = TRUE, conf.int = TRUE)
+                               exponentiate = FALSE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" & 
                           table_effect_ests$Method == "Truth"), 
@@ -94,7 +94,7 @@ TTEmodel_CESD9 <-
 #summary(TTEmodel_CESD9)
 
 TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
-                               exponentiate = TRUE, conf.int = TRUE)
+                               exponentiate = FALSE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" & 
                           table_effect_ests$Method == "Truth"), 
@@ -111,7 +111,7 @@ TTEmodel_total_CESD <-
           total_elevated_cesd, data = CESD_data_wide)
 
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
-                                    exponentiate = TRUE, conf.int = TRUE)
+                                    exponentiate = FALSE, conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" & 
                           table_effect_ests$Method == "Truth"), 
@@ -129,7 +129,8 @@ TTEmodel_elevated_avg_CESD <-
           avg_cesd_elevated, data = CESD_data_wide)
 
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
-                                           exponentiate = TRUE, conf.int = TRUE)
+                                           exponentiate = FALSE, 
+                                           conf.int = TRUE)
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
                           table_effect_ests$Method == "Truth"), 

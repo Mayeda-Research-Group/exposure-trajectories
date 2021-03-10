@@ -13,8 +13,6 @@ mask_impute_pool <-
       #it's easier to do this with my own code than the ampute function in MICE, 
       # which requires specifying all possible missing patterns you'd like it to 
       # consider
-      #   Need to add the following: wave-updated marital status, wave-updated 
-      #   drinking behavior, wave-updated chronic conditions,
       mask_prop <- as.numeric(sub("%","", mask_percent))/100
       total_indices <- nrow(data_wide)*6 #6 waves of data per person
       mask_index <- sample(seq(1, total_indices), 

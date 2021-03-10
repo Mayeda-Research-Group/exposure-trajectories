@@ -124,10 +124,17 @@ mask_impute_pool <-
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
-      data_imputed <- mice(data = data_wide, m = num_impute, method = "norm", 
+      data_imputed <- mice(data = data_wide, m = 1, maxit = 20, method = "norm", 
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
+      
+      #look at convergence
+        #10% missing needs maxit = 20
+        #20% missing needs maxit =  
+        #30% missing needs maxit = 
+      plot(data_imputed)
+      
     } else if(method == "FCS"){
       #---- ****FCS ----
       #Fully conditional specification
@@ -135,8 +142,10 @@ mask_impute_pool <-
         mutate_all(as.factor) %>% 
         mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), "avg_cesd")), 
                   as.numeric)
-      data_imputed <- mice(data = data_wide, m = num_impute, nnet.MaxNWts = 5000,
-                           defaultMethod = c("norm", "logreg", "polyreg", "polr"),
+      data_imputed <- mice(data = data_wide, m = num_impute, 
+                           nnet.MaxNWts = 5000,
+                           defaultMethod = 
+                             c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
@@ -216,11 +225,17 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, method = "pmm", 
+      data_imputed <- mice(data = data_wide, m = 1, maxit = 20, method = "pmm", 
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       #stop <- Sys.time() - start
+      
+      #look at convergence
+      #10% missing needs maxit = 20
+      #20% missing needs maxit =  
+      #30% missing needs maxit = 
+      plot(data_imputed)
     }
     
     #---- **save results ----

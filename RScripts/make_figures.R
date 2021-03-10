@@ -8,10 +8,6 @@ p_load("here", "tidyverse", "ghibli", "openxlsx", "magrittr")
 #No scientific notation
 options(scipen = 999)
 
-#---- values ----
-methods <- c("JMVN")
-mask_props <- c(.10, .20, .30)
-
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
@@ -49,7 +45,12 @@ path_to_dropbox <- "~/Dropbox/Projects"
 table_effect_ests <- 
   read.xlsx(paste0(path_to_dropbox, 
                    "/exposure_trajectories/manuscript/", 
-                   "tables/main_text_tables2_20210304_220340_.xlsx"))
+                   "tables/main_text_tables2_20210309_184622_.xlsx"))
+
+#---- values ----
+methods <- unique(table_effect_ests$Method)
+mask_props <- unique(table_effect_ests$Missingness)[-1] #Don't want 0%
+num_runs <- 2 #from the filename (number after table)
 
 #---- diagnostics: trace plots ----
 #trace plots-- can plot these in ggplot if we want by accessing chainMean and 
@@ -66,9 +67,9 @@ dev.off()
 table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) 
 table_effect_ests$Method <- 
   factor(table_effect_ests$Method, 
-         levels = c("Truth", "JMVN"))
+         levels = methods)
 
-#---- ****LCI and UCI ----
+#---- ****Distribution of beta ----
 ggplot(table_effect_ests, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2, position = position_dodge(0.60)) + 
@@ -78,30 +79,48 @@ ggplot(table_effect_ests,
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
   scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
-  geom_vline(xintercept = 1, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle("95% CI of beta across runs")
+  ggtitle(paste0("95% CI of beta across ", num_runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_LCI_UCI.jpeg"), device = "jpeg", 
+              "manuscript/figures/effect_ests_dist_beta.jpeg"), device = "jpeg", 
        dpi = 300, width = 9, height = 5, units = "in")
 
 #---- ****mean LCI and mean UCI ----
 ggplot(table_effect_ests, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-  geom_point(size = 2, position = position_dodge(0.60)) + 
+  geom_point(size = 2, position = position_dodge(0.50)) + 
   scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
   geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .2, 
-                position = position_dodge(0.60)) + theme_minimal() + 
+                position = position_dodge(0.50)) + theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
   scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
-  geom_vline(xintercept = 1, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle("mean 95% CI of beta across runs")
+  ggtitle(paste0("Mean 95% CI of beta across ", num_runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_mean_LCI_UCI.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
+
+#---- ****CI with mean SD ----
+ggplot(table_effect_ests, 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2, position = position_dodge(0.50)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
+  geom_errorbar(aes(xmin = beta - SD, xmax = beta + SD), width = .2, 
+                position = position_dodge(0.50)) + theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
+  ggtitle(paste0("95% CI of beta using mean SD across ", num_runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CI_mean_SD.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
 
 #---- **individual imputations ----

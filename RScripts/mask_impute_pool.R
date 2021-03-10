@@ -121,19 +121,24 @@ mask_impute_pool <-
     }
     
     #---- **run imputation ----
+    max_it <- tibble("Method" = c("JMVN", "PMM"), 
+                     "10%" = c(20, 20),
+                     "20%" = c(30, 30),
+                     "30%" = c(40, 30)) %>% column_to_rownames("Method")
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 30, 
+      data_imputed <- mice(data = data_wide, m = num_impute, 
+                           maxit = max_it[method, mask_percent], 
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
       
-      #look at convergence
-        #10% missing needs maxit = 20
-        #20% missing needs maxit = 30
-        #30% missing needs maxit = 
-      plot(data_imputed)
+      # #look at convergence
+      #   #10% missing needs maxit = 20
+      #   #20% missing needs maxit = 30
+      #   #30% missing needs maxit = 40
+      # plot(data_imputed)
       
     } else if(method == "FCS"){
       #---- ****FCS ----
@@ -225,18 +230,19 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 30, 
+      data_imputed <- mice(data = data_wide, m = num_impute, 
+                           maxit = max_it[method, mask_percent], 
                            method = "pmm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       #stop <- Sys.time() - start
       
-      #look at convergence
-      #10% missing needs maxit = 20
-      #20% missing needs maxit = 30
-      #30% missing needs maxit = 
-      plot(data_imputed)
+      # #look at convergence
+      # #10% missing needs maxit = 20
+      # #20% missing needs maxit = 30
+      # #30% missing needs maxit = 30
+      # plot(data_imputed)
     }
     
     #---- **save results ----

@@ -51,7 +51,7 @@ CESD_data_wide <-
 num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-methods <- c("JMVN")
+methods <- c("JMVN", "PMM")
 mechanisms <- c("MCAR")
 mask_props <- c(.10, .20, .30)
 
@@ -61,7 +61,8 @@ table_effect_ests <-
   rbind(expand_grid(exposures, methods, mechanisms, 
                     paste0(mask_props*100, "%")) %>% 
           set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
-  mutate("beta" = NA, "mean_LCI" = NA, "mean_UCI" = NA, "LCI" = NA, "UCI" = NA)
+  mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, "LCI" = NA, 
+         "UCI" = NA)
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
@@ -79,9 +80,10 @@ TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 4" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
+                  c("beta", "SD", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
-                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
+                           c("estimate", "std.error",  
+                             rep(c("conf.low", "conf.high"), 2))])
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -98,9 +100,10 @@ TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9,
 
 table_effect_ests[which(table_effect_ests$Exposure == "CES-D Wave 9" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
+                  c("beta", "SD", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
-                           c("estimate", rep(c("conf.low", "conf.high"), 2))])
+                           c("estimate", "std.error", 
+                             rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Total Count Elevated CES-D ----
 TTEmodel_total_CESD <- 
@@ -115,9 +118,9 @@ TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
+                  c("beta", "SD", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
-                                c("estimate", 
+                                c("estimate", "std.error", 
                                   rep(c("conf.low", "conf.high"), 2))])
 
 #---- **Elevated Average CES-D ----
@@ -134,9 +137,9 @@ TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD,
 
 table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
                           table_effect_ests$Method == "Truth"), 
-                  c("beta", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
+                  c("beta", "SD", "mean_LCI", "mean_UCI", "LCI", "UCI")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                                       c("estimate", 
+                                       c("estimate", "std.error",
                                          rep(c("conf.low", "conf.high"), 2))])
 
 # #---- create one set of imputations for plot ----
@@ -172,9 +175,9 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     table_effect_ests[which(table_effect_ests$Method == method & 
                               table_effect_ests$Missingness == mask_percent & 
                               table_effect_ests$Type == mechanism), 
-                      c("Exposure", "beta", "mean_LCI", "mean_UCI")] <- 
+                      c("Exposure", "beta", "SD", "mean_LCI", "mean_UCI")] <- 
       formatted %>% group_by(Exposure) %>%
-      summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+      summarize_at(.vars = c("beta", "SD", "LCI", "UCI"), .funs = mean)
     
     table_effect_ests[which(table_effect_ests$Method == method & 
                               table_effect_ests$Missingness == mask_percent & 

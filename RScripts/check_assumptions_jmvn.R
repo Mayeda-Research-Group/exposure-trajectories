@@ -21,8 +21,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -34,7 +34,7 @@ CESD_data_wide <-
 
 #---- select variables ----
 vars <- c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat", 
-          paste0("drinking", seq(4, 9), "_impute"), 
+          paste0("r", seq(4, 9), "drinking_impute"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),
           paste0("r", seq(4, 9), "hearte_impute"),
@@ -104,5 +104,26 @@ for(i in (4:9)){
 }
 
 
+#---- Summary stats ----
+# Summary stats in the complete datasets (% 0/1) 
+# for categorical variables at wave 4 and wave 9
 
+var_wave_specific <- c("memrye_impute", "stroke_impute", 
+                       "hearte_impute", "lunge_impute", "cancre_impute", 
+                       "hibpe_impute", "diabe_impute")
+
+for (var in var_wave_specific){
+  
+  print(var)
+  
+  show(CESD_data_wide %>%
+         select(paste0("r", 4, var)) %>%
+         plyr::count() %>%
+         mutate(prop = round(prop.table(freq), 4)))
+  
+  show(CESD_data_wide %>%
+         select(paste0("r", 9, var)) %>%
+         plyr::count() %>%
+         mutate(prop = round(prop.table(freq), 4)))
+}
 

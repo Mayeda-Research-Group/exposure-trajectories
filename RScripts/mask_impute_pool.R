@@ -121,10 +121,10 @@ mask_impute_pool <-
     }
     
     #---- **run imputation ----
-    max_it <- tibble("Method" = c("JMVN", "PMM"), 
-                     "10%" = c(20, 20),
-                     "20%" = c(30, 30),
-                     "30%" = c(40, 30)) %>% column_to_rownames("Method")
+    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM"), 
+                     "10%" = c(20, 20, 20),
+                     "20%" = c(30, 30, 30),
+                     "30%" = c(40, 40, 30)) %>% column_to_rownames("Method")
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
@@ -151,7 +151,7 @@ mask_impute_pool <-
                   as.numeric)
       
       start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 20,
+      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 40,
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
@@ -160,11 +160,11 @@ mask_impute_pool <-
                            seed = 20210126)
       end <- Sys.time() - start
       
-      #look at convergence
-        #10% missing needs maxit = 
-        #20% missing needs maxit = 
-        #30% missing needs maxit = 
-      plot(data_imputed)
+      # #look at convergence
+      #   #10% missing needs maxit = 20
+      #   #20% missing needs maxit = 30
+      #   #30% missing needs maxit = 40
+      # plot(data_imputed)
 
     } else if(method == "FCS Long"){
       #---- ****FCS Long ----

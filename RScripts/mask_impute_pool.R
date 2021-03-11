@@ -151,7 +151,8 @@ mask_impute_pool <-
                   as.numeric)
       
       start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 40,
+      data_imputed <- mice(data = data_wide, m = num_impute, 
+                           maxit = max_it[method, mask_percent],
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),

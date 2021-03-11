@@ -145,15 +145,27 @@ mask_impute_pool <-
       #Fully conditional specification
       data_wide %<>% 
         mutate_all(as.factor) %>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), "avg_cesd")), 
+        mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), 
+                         (paste0("r", seq(4, 9), "cesd")), 
+                         (paste0("r", seq(4, 9), "drinking_impute")))), 
                   as.numeric)
-      data_imputed <- mice(data = data_wide, m = num_impute, 
+      
+      start <- Sys.time()
+      data_imputed <- mice(data = data_wide, m = num_impute, maxit = 20,
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
+      end <- Sys.time() - start
+      
+      #look at convergence
+        #10% missing needs maxit = 
+        #20% missing needs maxit = 
+        #30% missing needs maxit = 
+      plot(data_imputed)
+
     } else if(method == "FCS Long"){
       #---- ****FCS Long ----
       #level-1 outcomes

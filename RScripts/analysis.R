@@ -51,7 +51,7 @@ CESD_data_wide <-
 num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-methods <- c("JMVN", "PMM")
+methods <- c("FCS", "JMVN", "PMM")
 mechanisms <- c("MCAR")
 mask_props <- c(.10, .20, .30)
 

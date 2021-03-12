@@ -167,76 +167,10 @@ mask_impute_pool <-
       #   #30% missing needs maxit = 40
       # plot(data_imputed)
 
-    } else if(method == "FCS Long"){
-      #---- ****FCS Long ----
-      #level-1 outcomes
-      Y <- data_wide %>% 
-        dplyr::select(c("HHIDPN", 
-                        rownames(predict)[!rownames(predict) %in% 
-                                            c("r4cesd_elevated", 
-                                              "r9cesd_elevated", 
-                                              "total_elevated_cesd", "avg_cesd", 
-                                              "avg_cesd_elevated")]))
-      Y %<>% cbind(matrix(rep(Y$HHIDPN, 6), ncol = 6, byrow = FALSE) %>% 
-                     set_colnames(paste0("r", seq(4, 9), "HHIDPN")), .) %>%
-        dplyr::select(-c("HHIDPN")) %>%
-        mutate_all(as.factor) %>%
-        pivot_longer(everything(), names_to = ".value", 
-                     names_prefix = "r\\d") %>%
-        mutate_at(c("cesd", "BMI", "shlt"), as.numeric) 
-      
-      #level-2 outcomes
-      Y2 <- data_wide %>% 
-        dplyr::select("HHIDPN", c("r4cesd_elevated", 
-                                  "r9cesd_elevated", 
-                                  "total_elevated_cesd", "avg_cesd", 
-                                  "avg_cesd_elevated")) %>% 
-        left_join(Y, by = "HHIDPN") %>% 
-        mutate_at(c("r4cesd_elevated", "r9cesd_elevated", "avg_cesd_elevated"), 
-                  as.factor) %>% 
-        dplyr::select(c("r4cesd_elevated", 
-                        "r9cesd_elevated", 
-                        "total_elevated_cesd", "avg_cesd", 
-                        "avg_cesd_elevated"))
-      
-      #level-1 predictors (non-missing)
-      X <- data_wide %>% dplyr::select(paste0("r", seq(4, 9), "age_y_int")) %>% 
-        pivot_longer(everything()) %>% dplyr::select("value") %>% cbind(1, .)
-      
-      #level-2 predictors (non-missing)
-      X2 <- data_wide %>% 
-        dplyr::select("HHIDPN", "ed_cat", "hispanic", "black", "other", 
-                      "female", "death2018", "survtime") %>% 
-        left_join(Y, by = "HHIDPN") %>% 
-        dplyr::select("ed_cat", "hispanic", "black", "other", "female", 
-                      "death2018", "survtime") %>% 
-        mutate_all(as.factor) %>% mutate_at("survtime", as.numeric) %>% 
-        cbind(1, .)
-      
-      #random effects (intercept only)
-      Z <- matrix(1, ncol = 1, nrow = nrow(X))
-      
-      #get rid of HHIDPN from Y
-      Y %<>% dplyr::select(-"HHIDPN")
-      
-      # data_imputed <- 
-      #   jomo2(Y = Y, Y2 = Y2, X = X, X2 = X2, Z = Z, clus = data_wide$HHIDPN, 
-      #         nburn = 10, nbetween = 10, nimp = num_impute)
-      
+    } else if(method == "Multi-level FCS"){
+      #---- ****Multi-level FCS ----
       start <- Sys.time()
-      data_imputed <- 
-        jomo2com(Y.con = Y[, c("cesd", "BMI", "shlt")], 
-                 Y.cat = Y[, c("mstat_impute", "drinking_impute", 
-                               "memrye_impute", "stroke_impute", 
-                               "hearte_impute", "lunge_impute", "cancre_impute", 
-                               "hibpe_impute", "diabe_impute")],
-                 Y.numcat = c(rep(3, 2), rep(2, 7)),
-                 Y2.con = Y2[, c("total_elevated_cesd", "avg_cesd")], 
-                 Y2.cat = Y2[, c("r4cesd_elevated", "r9cesd_elevated", 
-                                 "avg_cesd_elevated")], 
-                 Y2.numcat = c(rep(2, 3)), X = X, X2 = X2, Z = Z, 
-                 clus = data_wide$HHIDPN, 
-                 nburn = 10, nbetween = 10, nimp = num_impute)
+      
       stop <- Sys.time() - start
       
     } else if(method == "PMM"){

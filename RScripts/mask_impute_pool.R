@@ -67,6 +67,29 @@ mask_impute_pool <-
                          mutate_all(function(x) is.na(x)))) %>% 
       filter(CESD_missing < 6)
     
+    time_updated_vars <- c("mstat_impute", "drinking_impute", "memrye_impute", 
+                           "stroke_impute", "hearte_impute", "lunge_impute", 
+                           "cancre_impute", "hibpe_impute", "diabe_impute", 
+                           "cesd", "BMI", "shlt")
+    
+    time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", "female", 
+                             "survtime")
+    
+    #---- convert to long?? ----
+    if(method %in% c("Within-person JMVN")){
+      data_long <- data_wide %>% 
+        dplyr::select("HHIDPN", 
+                      apply(expand.grid("r", seq(4, 9), 
+                                        c(time_updated_vars, "age_y_int")), 1, 
+                            paste, collapse = "")) %>% 
+        pivot_longer(-c("HHIDPN"), names_to = c("wave", ".value"), 
+                     names_pattern = "(^[a-zA-Z][0-9])(.*)")
+      
+      data_long %<>% 
+        left_join(., data_wide %>% 
+                    dplyr::select("HHIDPN", all_of(time_invariant_vars)))
+    }
+    
     #Sanity check-- table of num missings per masking proportion
     # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
     #   set_colnames(c("Mask Prop", seq(0, 6)))
@@ -86,37 +109,49 @@ mask_impute_pool <-
     
     #---- imputation ----
     #---- **predictor matrix ----
-    time_updated_vars <- c("mstat_impute", "drinking_impute", "memrye_impute", 
-                           "stroke_impute", "hearte_impute", "lunge_impute", 
-                           "cancre_impute", "hibpe_impute", "diabe_impute", 
-                           "cesd", "BMI", "shlt")
-    blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
-                      paste, collapse = ""))
-    predict <- matrix(1, length(blocks), ncol = ncol(data_wide)) %>% 
-      set_rownames(blocks) %>% 
-      set_colnames(colnames(data_wide))
-    
-    #Don't use these as predictors
-    predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), 
-                paste0("r", seq(4, 9), "drinking_cat"),
-                paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
-                "observed", "CESD_missing", "r3cesd", "r4cesd_elevated", 
-                "r9cesd_elevated",  "avg_cesd", "avg_cesd_elevated", 
-                "total_elevated_cesd")] <- 0
-    
-    #---- ****time-updated var models ----
-    for(var in time_updated_vars){
-      #can't predict itself
-      predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
-        (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+    if(method %in% c("Within-person JMVN")){
+      blocks <- time_updated_vars
+      predict <- matrix(1, length(blocks), ncol = ncol(data_long)) %>% 
+        set_rownames(blocks) %>% 
+        set_colnames(colnames(data_long))
       
-      #use time-updated predictors
-      predictors <- c(time_updated_vars[which(time_updated_vars != var)], 
-                      "age_y_int")
-      for(predictor in predictors){
-        predict[paste0("r", seq(4, 9), var), 
-                paste0("r", seq(4, 9), predictor)] <- 
-          diag(x = 1, nrow = 6, ncol = 6)
+      #Don't use these as predictors
+      predict[, c("wave")] <- 0
+      
+      #Can't predict themselves
+      predict[time_updated_vars, time_updated_vars] <- 
+        (diag(x = 1, nrow = length(time_updated_vars), 
+              ncol = length(time_updated_vars)) == 0)*1
+  
+    } else{
+      blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
+                        paste, collapse = ""))
+      predict <- matrix(1, length(blocks), ncol = ncol(data_wide)) %>% 
+        set_rownames(blocks) %>% 
+        set_colnames(colnames(data_wide))
+      
+      #Don't use these as predictors
+      predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), 
+                  paste0("r", seq(4, 9), "drinking_cat"),
+                  paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
+                  "observed", "CESD_missing", "r3cesd", "r4cesd_elevated", 
+                  "r9cesd_elevated",  "avg_cesd", "avg_cesd_elevated", 
+                  "total_elevated_cesd")] <- 0
+      
+      #---- ****time-updated var models ----
+      for(var in time_updated_vars){
+        #can't predict itself
+        predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
+          (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+        
+        #use time-updated predictors
+        predictors <- c(time_updated_vars[which(time_updated_vars != var)], 
+                        "age_y_int")
+        for(predictor in predictors){
+          predict[paste0("r", seq(4, 9), var), 
+                  paste0("r", seq(4, 9), predictor)] <- 
+            diag(x = 1, nrow = 6, ncol = 6)
+        }
       }
     }
     
@@ -166,7 +201,7 @@ mask_impute_pool <-
       #   #20% missing needs maxit = 30
       #   #30% missing needs maxit = 40
       # plot(data_imputed)
-
+      
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
@@ -199,9 +234,9 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), seed = 20210126)
       
       #look at convergence
-        #10% missing needs maxit =
-        #20% missing needs maxit =
-        #30% missing needs maxit =
+      #10% missing needs maxit =
+      #20% missing needs maxit =
+      #30% missing needs maxit =
       plot(data_imputed)
       stop <- Sys.time() - start
       

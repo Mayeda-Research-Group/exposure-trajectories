@@ -222,15 +222,11 @@ mask_impute_pool <-
     } else if(method == "Within-person JMVN"){
       #---- ****Within-person JMVN ----
       #Within-person Joint Multivariate Normal
-      
-      #Use ID as a predictor
-      predict[, "HHIDPN"] <- 1
-      
       start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, 
+      data_imputed <- mice(data = data_long, m = num_impute, 
                            maxit = 20, 
                            method = "norm", predictorMatrix = predict, 
-                           where = is.na(data_wide), 
+                           where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
       
       #look at convergence

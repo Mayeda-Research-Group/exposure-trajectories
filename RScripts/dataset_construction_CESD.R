@@ -216,9 +216,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(RAND, cSES)), 
-                       #dataframes_list, hrs_tracker), 
-                     by = "HHIDPN", type = "left") 
+hrs_samp <- 
+  join_all(c(list(RAND, cSES, hrs_tracker)), by = "HHIDPN", type = "left") 
 
 #---- looking for optimal subset ----
 # #Drop those who are not age-eligible for HRS at the start of follow-up

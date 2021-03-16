@@ -46,13 +46,13 @@ source(here::here("Rscripts", "impute_condition.R"))
 
 number_waves <- seq(1, 13, by = 1) 
 
-# #---- read in HRS tracker ----
-# hrs_tracker <-
-#   read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
-#                   "trk2018tr_r.sas7bdat")) %>%
-#   select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
-#   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
-#   mutate_at("HHIDPN", as.numeric)
+#---- read in HRS tracker ----
+hrs_tracker <-
+  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
+                  "trk2018tr_r.sas7bdat")) %>%
+  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
+  unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
+  mutate_at("HHIDPN", as.numeric)
 
 #---- read in RAND file ----
 #reading in STATA file because SAS file wouldn't load

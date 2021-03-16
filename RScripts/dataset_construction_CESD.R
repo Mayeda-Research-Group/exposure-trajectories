@@ -46,13 +46,13 @@ source(here::here("Rscripts", "impute_condition.R"))
 
 number_waves <- seq(1, 13, by = 1) 
 
-#---- read in HRS tracker ----
-hrs_tracker <-
-  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
-                  "trk2018tr_r.sas7bdat")) %>%
-  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
-  unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
-  mutate_at("HHIDPN", as.numeric)
+# #---- read in HRS tracker ----
+# hrs_tracker <-
+#   read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
+#                   "trk2018tr_r.sas7bdat")) %>%
+#   select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
+#   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
+#   mutate_at("HHIDPN", as.numeric)
 
 #---- read in RAND file ----
 #reading in STATA file because SAS file wouldn't load
@@ -216,8 +216,8 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 
 #---- merge datasets ----
 #Use this to subset RAND data
-hrs_samp <- join_all(c(list(hrs_tracker, RAND, cSES)), 
-                       #dataframes_list), 
+hrs_samp <- join_all(c(list(RAND, cSES)), 
+                       #dataframes_list, hrs_tracker), 
                      by = "HHIDPN", type = "left") 
 
 #---- looking for optimal subset ----
@@ -270,16 +270,7 @@ hrs_samp[, colnames(cesd_mat)] <- cesd_mat
 # table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
 
 #---- death ----
-#death indicators: RAND dates of death get us to 2016 use QALIVE for 2018
-hrs_samp %<>% mutate("death2016" = ifelse(is.na(raddate), 0, 1), 
-                     "death2018" = ifelse(QALIVE %in% c(5, 6), 1, 0))
-
-# #Sanity check
-# #1 = alive; 2 = presumed alive; 5 = known deceased this wave; 
-# #6 = known deceased prior wave 
-# table(hrs_samp$QALIVE, useNA = "ifany")
-# table(hrs_samp$death2016, useNA = "ifany")
-# table(hrs_samp$death2018, useNA = "ifany")
+hrs_samp %<>% mutate("death2018" = ifelse(is.na(raddate), 0, 1))
 
 #format RAND dates with lubridate
 hrs_samp %<>% mutate("DOD" = as.Date(hrs_samp$raddate, origin = "1960-01-01"), 
@@ -316,20 +307,6 @@ hrs_samp[, paste0("r", number_waves, "age_y_int")] <- floor(age_m/12)
 # #Sanity check
 # View(hrs_samp[, c(paste0(number_waves, "age_y"), 
 #                   paste0(number_waves, "age_y_int"))])
-
-#Impute date of death for those who are dead in 2018
-hrs_samp %<>% 
-  mutate("age_death_y" = ifelse((is.na(age_death_y) & death2018 == 1), 
-                                r13age_y_int + 2, age_death_y))
-
-# #Sanity check
-# View(hrs_samp[, c("age_death_y", "death2016", "death2018", "13age_y_int")])
-# table(hrs_samp$age_death_y, useNA = "ifany")
-# sum(table(hrs_samp$age_death_y))
-# table(hrs_samp$QALIVE %in% c(5, 6))
-# #I think there's a one person discrepancy between RAND's death data and 
-# # HRS's QALIVE variable-- check this after all the other data cleaning steps
-# table(hrs_samp$death2018, hrs_samp$age_death_y)
 
 #Drop RAND age variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))

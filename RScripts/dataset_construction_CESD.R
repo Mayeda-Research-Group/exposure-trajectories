@@ -134,7 +134,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "shlt"))
 
 RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
-                        "randhrs1992_2016v2.dta"), 
+                        "randhrs1992_2018v1.dta"), 
                  col_select = all_of(rand_variables)) 
 
 colnames(RAND)[1] <- "HHIDPN" #For merging

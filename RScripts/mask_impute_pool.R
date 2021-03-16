@@ -76,7 +76,7 @@ mask_impute_pool <-
                              "survtime")
     
     #---- convert to long?? ----
-    if(method %in% c("Within-person JMVN")){
+    if(method %in% c("2l.norm")){
       data_long <- data_wide %>% 
         dplyr::select("HHIDPN", 
                       apply(expand.grid("r", seq(4, 9), 
@@ -87,7 +87,8 @@ mask_impute_pool <-
       
       data_long %<>% 
         left_join(., data_wide %>% 
-                    dplyr::select("HHIDPN", all_of(time_invariant_vars)))
+                    dplyr::select("HHIDPN", all_of(time_invariant_vars))) %>% 
+        mutate_at("HHIDPN", as.character) %>% mutate_at("HHIDPN", as.integer)
     }
     
     #Sanity check-- table of num missings per masking proportion
@@ -109,7 +110,7 @@ mask_impute_pool <-
     
     #---- imputation ----
     #---- **predictor matrix ----
-    if(method %in% c("Within-person JMVN")){
+    if(method %in% c("2l.norm")){
       blocks <- time_updated_vars
       predict <- matrix(1, length(blocks), ncol = ncol(data_long)) %>% 
         set_rownames(blocks) %>% 
@@ -118,11 +119,14 @@ mask_impute_pool <-
       #Don't use these as predictors
       predict[, c("wave")] <- 0
       
+      #Indicated cluster variable
+      predict[, "HHIDPN"] <- -2
+      
       #Can't predict themselves
       predict[time_updated_vars, time_updated_vars] <- 
         (diag(x = 1, nrow = length(time_updated_vars), 
               ncol = length(time_updated_vars)) == 0)*1
-  
+      
     } else{
       blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
                         paste, collapse = ""))
@@ -219,25 +223,42 @@ mask_impute_pool <-
       # #20% missing needs maxit = 30
       # #30% missing needs maxit = 30
       # plot(data_imputed)
-    # } else if(method == "Within-person JMVN"){
-    #   #---- ****Within-person JMVN ----
-    #   #Within-person Joint Multivariate Normal
-    #   start <- Sys.time()
-    #   data_imputed <- mice(data = data_long, m = num_impute, 
-    #                        maxit = 20, 
-    #                        method = "norm", predictorMatrix = predict, 
-    #                        where = is.na(data_long), 
-    #                        blocks = as.list(rownames(predict)), seed = 20210126)
-    #   
-    #   #look at convergence
-    #   #10% missing needs maxit =
-    #   #20% missing needs maxit =
-    #   #30% missing needs maxit =
-    #   plot(data_imputed)
-    #   stop <- Sys.time() - start
-    #   
-    # } 
-    # 
+      # } else if(method == "Within-person JMVN"){
+      #   #---- ****Within-person JMVN ----
+      #   #Within-person Joint Multivariate Normal
+      #   start <- Sys.time()
+      #   data_imputed <- mice(data = data_long, m = num_impute, 
+      #                        maxit = 20, 
+      #                        method = "norm", predictorMatrix = predict, 
+      #                        where = is.na(data_long), 
+      #                        blocks = as.list(rownames(predict)), seed = 20210126)
+      #   
+      #   #look at convergence
+      #   #10% missing needs maxit =
+      #   #20% missing needs maxit =
+      #   #30% missing needs maxit =
+      #   plot(data_imputed)
+      #   stop <- Sys.time() - start
+      #   
+    } else if(method == "2l.norm"){
+      #---- ****2l.norm ----
+      #2-level heteroskedatic between group variances
+      start <- Sys.time()
+      data_imputed <- mice(data = data_long, m = num_impute, 
+                           maxit = 20, 
+                           method = "2l.norm", predictorMatrix = predict, 
+                           where = is.na(data_long), 
+                           blocks = as.list(rownames(predict)), 
+                           seed = 20210126)
+      stop <- Sys.time() - start
+      
+      # #look at convergence
+      # #10% missing needs maxit = 
+      # #20% missing needs maxit = 
+      # #30% missing needs maxit = 
+       plot(data_imputed)
+    }
+    
     #---- **save results ----
     if(save == "yes"){
       saveRDS(data_imputed, 

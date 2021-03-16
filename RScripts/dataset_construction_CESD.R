@@ -431,11 +431,11 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmwght"),
                                paste0("r", number_waves, "weight")))
 
 #---- derived BMI ----
-#variable check
-weight <- hrs_samp %>% 
-  dplyr::select(paste0(seq(4, 9), "weight")) 
-missing_weight <- rowSums(is.na(weight))
-table(missing_weight, useNA = "ifany")
+# #variable check
+# weight <- hrs_samp %>% 
+#   dplyr::select(paste0(seq(4, 9), "weight")) 
+# missing_weight <- rowSums(is.na(weight))
+# table(missing_weight, useNA = "ifany")
 
 bmi_mat <- hrs_samp %>% 
   dplyr::select(paste0(seq(4, 9), "weight"))

@@ -20,20 +20,12 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in data ----
-# CESD_data_wide <- 
-#   read_csv(paste0(path_to_dropbox, 
-#                   "/exposure_trajectories/data/", 
-#                   "CESD_data_wide.csv"), 
-#            col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-#                             death2018 = col_integer(), 
-#                             ed_cat = col_factor(), 
-#                             r4mstat_cat = col_factor(), 
-#                             r9mstat_cat = col_factor(),
-#                             drinking4_cat_impute = col_factor(),
-#                             drinking9_cat_impute = col_factor(),
-#                             female = col_factor(), hispanic = col_factor(), 
-#                             black = col_factor(), other = col_factor(), 
-#                             smoker = col_integer()))
+CESD_data_wide <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
+                  "CESD_data_wide.csv"), 
+           col_types = cols(HHIDPN = col_character())) %>% 
+  mutate_if(is.character, as.factor) 
 
 # for(method in tolower(methods)){
 #   for(prop in 100*mask_props){
@@ -124,6 +116,10 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
 
 #---- **individual imputations ----
+#Read in data
+methods <- c("jmvn", "pmm")
+type <- c("mcar")
+mask_percent <- c("10", "25", "30", "50")
 #---- ***fcs ----
 fcs_mean_imputation_10 <- vector(mode = "list", length = 6)
 for(i in 1:length(fcs_mean_imputation_10)){

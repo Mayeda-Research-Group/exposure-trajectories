@@ -47,10 +47,10 @@ source(here::here("Rscripts", "impute_condition.R"))
 number_waves <- seq(1, 13, by = 1) 
 
 #---- read in HRS tracker ----
-hrs_tracker <- 
-  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018_3/", 
-                  "trk2018tr_r.sas7bdat")) %>% 
-  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>% 
+hrs_tracker <-
+  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
+                  "trk2018tr_r.sas7bdat")) %>%
+  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
   mutate_at("HHIDPN", as.numeric)
 
@@ -260,7 +260,7 @@ hrs_samp[, paste0("r", seq(2, 13), "cesd_missing")] <- NA
 
 cesd_mat <- hrs_samp %>% select(contains("cesd"))
 for (j in 1:length(seq(2, 13))) {
-  cesd_mat[, j + length(seq(2,13))] <- ifelse(is.na(cesd_mat[, j]), 1, 0)
+  cesd_mat[, j + length(seq(2, 13))] <- ifelse(is.na(cesd_mat[, j]), 1, 0)
 }
 
 hrs_samp[, colnames(cesd_mat)] <- cesd_mat

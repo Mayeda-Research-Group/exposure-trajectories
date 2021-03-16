@@ -219,25 +219,25 @@ mask_impute_pool <-
       # #20% missing needs maxit = 30
       # #30% missing needs maxit = 30
       # plot(data_imputed)
-    } else if(method == "Within-person JMVN"){
-      #---- ****Within-person JMVN ----
-      #Within-person Joint Multivariate Normal
-      start <- Sys.time()
-      data_imputed <- mice(data = data_long, m = num_impute, 
-                           maxit = 20, 
-                           method = "norm", predictorMatrix = predict, 
-                           where = is.na(data_long), 
-                           blocks = as.list(rownames(predict)), seed = 20210126)
-      
-      #look at convergence
-      #10% missing needs maxit =
-      #20% missing needs maxit =
-      #30% missing needs maxit =
-      plot(data_imputed)
-      stop <- Sys.time() - start
-      
-    } 
-    
+    # } else if(method == "Within-person JMVN"){
+    #   #---- ****Within-person JMVN ----
+    #   #Within-person Joint Multivariate Normal
+    #   start <- Sys.time()
+    #   data_imputed <- mice(data = data_long, m = num_impute, 
+    #                        maxit = 20, 
+    #                        method = "norm", predictorMatrix = predict, 
+    #                        where = is.na(data_long), 
+    #                        blocks = as.list(rownames(predict)), seed = 20210126)
+    #   
+    #   #look at convergence
+    #   #10% missing needs maxit =
+    #   #20% missing needs maxit =
+    #   #30% missing needs maxit =
+    #   plot(data_imputed)
+    #   stop <- Sys.time() - start
+    #   
+    # } 
+    # 
     #---- **save results ----
     if(save == "yes"){
       saveRDS(data_imputed, 

@@ -254,7 +254,7 @@ mask_impute_pool <-
       
       # #look at convergence
       # #10% missing needs maxit = 30
-      # #20% missing needs maxit = 
+      # #20% missing needs maxit = 30
       # #30% missing needs maxit = 
        plot(data_imputed)
     }

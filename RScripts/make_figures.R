@@ -44,16 +44,6 @@ methods <- unique(table_effect_ests$Method)
 mask_props <- unique(table_effect_ests$Missingness)[-1] #Don't want 0%
 num_runs <- 2 #from the filename (number after table)
 
-#---- diagnostics: trace plots ----
-#trace plots-- can plot these in ggplot if we want by accessing chainMean and 
-# chainVar in imputation object. Right now not all the variables show in the 
-# saved image
-png(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
-           "manuscript/figures/mcar10_jmvn_traceplot.png"), 
-    width = 7, height = 4.5, units = "in", res = 300)
-plot(jmvn10)
-dev.off()
-
 #---- visualizations ----
 #---- **effect estimates ----
 table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) 
@@ -117,14 +107,50 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 
 #---- **individual imputations ----
 #Read in data
-methods <- c("jmvn", "pmm")
+methods <- c("jmvn_", "pmm_")
 type <- c("mcar")
 mask_percent <- c("20", "30")
 
-#just read in one for now
-pmm_mcar20 <- readRDS(here::here("MI datasets", "pmm_mcar20"))
+filenames <- expand_grid(methods, type, mask_percent) %>% 
+  unite("filenames", sep = "") %>% unlist()
 
-#---- ***pmm ----
+for(name in filenames){
+  assign(noquote(name), readRDS(here::here("MI datasets", name)))
+}
+
+#---- ****diagnostics: trace plots ----
+pmm_mcar20_cesd_chainMean_data_raw <- 
+  pmm_mcar20$chainMean[paste0("r", seq(4, 9), "cesd"), , ] 
+
+for(chain in 1:dim(pmm_mcar20_cesd_chainMean_data_raw)[3]){
+  if(chain == 1){
+    pmm_mcar20_cesd_chainMean_data <- 
+      pmm_mcar20_cesd_chainMean_data_raw[, , paste0("Chain ", chain)]
+  } else{
+    pmm_mcar20_cesd_chainMean_data <-
+      rbind(pmm_mcar20_cesd_chainMean_data, 
+            pmm_mcar20_cesd_chainMean_data_raw[, , paste0("Chain ", chain)])
+  }
+}
+
+pmm_mcar20_cesd_chainMean_data %<>% as.data.frame() %>% 
+  mutate("Measure" = rep(paste0("r", seq(4, 9), "cesd"), 
+                         dim(pmm_mcar20_cesd_chainMean_data_raw)[3])) %>%
+  mutate("Imputation" = rep(seq(1, dim(pmm_mcar20_cesd_chainMean_data_raw)[3]), 
+                            each = 6))
+
+#plot
+gamma_chain_plot <- 
+  ggplot(data = gamma_plot_data, 
+         aes(x = reorder(run, sort(as.numeric(run))), y = gamma, 
+             colour = Predictor)) +       
+  geom_line(aes(group = Predictor)) + 
+  facet_grid(rows = vars(factor(Group, 
+                                levels = c("Unimpaired", "MCI", "Other")))) + 
+  theme_bw() + xlab("Run") + 
+  scale_color_manual(values = rev(extended_pallette14))
+
+
 
 
 #---- ***fcs ----

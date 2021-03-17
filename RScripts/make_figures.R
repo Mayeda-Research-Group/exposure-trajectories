@@ -119,7 +119,14 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #Read in data
 methods <- c("jmvn", "pmm")
 type <- c("mcar")
-mask_percent <- c("10", "25", "30", "50")
+mask_percent <- c("20", "30")
+
+#just read in one for now
+pmm_mcar20 <- readRDS(here::here("MI datasets", "pmm_mcar20"))
+
+#---- ***pmm ----
+
+
 #---- ***fcs ----
 fcs_mean_imputation_10 <- vector(mode = "list", length = 6)
 for(i in 1:length(fcs_mean_imputation_10)){

@@ -161,9 +161,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
-                     "10%" = c(20, 20, 20, 30),
-                     "20%" = c(40, 30, 30, 30),
-                     "30%" = c(30, 40, 40, 30)) %>% 
+                     "10%" = c(20, 20, 40, 30),
+                     "20%" = c(40, 30, 40, 30),
+                     "30%" = c(40, 40, 40, 30)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -198,8 +198,7 @@ mask_impute_pool <-
 
       start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           #maxit = max_it[method, mask_percent],
-                           maxit = 40,
+                           maxit = max_it[method, mask_percent],
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
@@ -211,24 +210,28 @@ mask_impute_pool <-
       # #look at convergence
       #   #10% missing needs maxit = 20
       #   #20% missing needs maxit = 40
-      #   #30% missing needs maxit = 30
+      #   #30% missing needs maxit = 40
        plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
       data_wide %<>% 
-      mutate_all(as.factor) %>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), 
-                         paste0("r", seq(4, 9), "cesd"), 
-                         paste0("r", seq(4, 9), "drinking_impute"),
-                         paste0("r", seq(4, 9), "shlt"),
-                         paste0("r", seq(4, 9), "age_y_int"), 
-                         "survtime")), as.numeric)
+        mutate_at(vars(c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
+                         paste0("r", seq(4, 9), "memrye_impute"), 
+                         paste0("r", seq(4, 9), "stroke_impute"),
+                         paste0("r", seq(4, 9), "hearte_impute"),
+                         paste0("r", seq(4, 9), "lunge_impute"), 
+                         paste0("r", seq(4, 9), "cancre_impute"), 
+                         paste0("r", seq(4, 9), "hibpe_impute"), 
+                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
+                         "hispanic", "black", "other", "female", "death2018")), 
+                  as.factor)
       
       start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = max_it[method, mask_percent], 
+                           #maxit = max_it[method, mask_percent], 
+                           maxit = 40,
                            method = "pmm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
@@ -236,9 +239,9 @@ mask_impute_pool <-
       stop <- Sys.time() - start
       
       #look at convergence
-      #10% missing needs maxit = 20
-      #20% missing needs maxit = 30
-      #30% missing needs maxit = 40
+      #10% missing needs maxit = 40
+      #20% missing needs maxit = 40
+      #30% missing needs maxit = 
        plot(data_imputed)
       
     } else if(method == "2l.norm"){

@@ -112,11 +112,57 @@ type <- c("mcar")
 mask_percent <- c("20", "30")
 
 filenames <- expand_grid(methods, type, mask_percent) %>% 
-  unite("filenames", sep = "") %>% unlist()
+  unite("filenames", sep = "", remove = FALSE) 
 
-for(name in filenames){
+for(name in filenames$filenames){
   assign(noquote(name), readRDS(here::here("MI datasets", name)))
 }
+
+#---- ****obs vs. pred CESD ----
+for(i in 1:nrow(filenames)){
+  for(wave in 4:9){
+    imputed <- get(unlist(filenames[i, "filenames"]))[["imp"]][[
+      paste0("r", wave, "cesd")]] %>% rowMeans()
+    observed <- CESD_data_wide[as.integer(names(imputed)), 
+                               paste0("r", wave, "cesd")]
+    if(i == 1){
+      obs_vs_pred_data <- cbind(observed, imputed) %>% as.data.frame() %>% 
+        set_colnames(c("Observed", "Imputed")) %>% 
+        mutate("Missingness" = paste0(unlist(filenames[i, "mask_percent"]), "%"), 
+               "Type" = toupper(unlist(filenames[i, "type"])), 
+               "Method" = toupper(str_sub(unlist(filenames[i, "methods"]), 
+                                          end = -2)))
+    } else{
+      obs_vs_pred_data %<>% 
+        rbind(., 
+              cbind(observed, imputed) %>% as.data.frame() %>% 
+                set_colnames(c("Observed", "Imputed")) %>% 
+                mutate("Missingness" = 
+                         paste0(unlist(filenames[i, "mask_percent"]), "%"), 
+                       "Type" = toupper(unlist(filenames[i, "type"])), 
+                       "Method" = 
+                         toupper(str_sub(unlist(filenames[i, "methods"]), 
+                                         end = -2))))
+    }
+  }
+}
+
+obs_vs_pred_CESD_plot <- 
+  ggplot(data = obs_vs_pred_data, 
+         aes(x = Observed, y = Imputed, color = Missingness)) + 
+  geom_point(alpha = 0.50) + theme_bw() + geom_smooth(method = lm, se = FALSE) +
+  geom_abline(slope = 1, intercept = 0, color = "black", lty = "dashed", 
+              size = 1) + 
+  facet_grid(rows = vars(Method), cols = vars(Type)) + 
+  scale_color_manual(values = rev(ghibli_palette("LaputaMedium"))) + 
+  ggtitle(paste0("Observed vs. Imputed CES-D scores (wave-aggregated)"))
+
+ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
+              "manuscript/figures/obs_vs_pred_CESD.jpeg"), 
+       obs_vs_pred_CESD_plot, device = "jpeg", width = 7, height = 4.5, 
+       units = "in", dpi = 300)
+
+#---- ****obs vs. pred exposures ----
 
 #---- ****diagnostics: trace plots ----
 pmm_mcar20_cesd_chainMean_data_raw <- 
@@ -272,20 +318,5 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
               "manuscript/figures/mcar10_jmvn_obs_pred.jpeg"), 
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
-
-
-
-
-
-
-#---- ***visualize imputations ----
-
-
-
-# #Sanity check
-# head(CESD_data_wide$r4cesd[as.numeric(names(mean_imputation[[1]]))])
-# head(plot_data)
-# tail(CESD_data_wide$r9cesd[as.numeric(names(mean_imputation[[6]]))])
-# tail(plot_data)
 
 

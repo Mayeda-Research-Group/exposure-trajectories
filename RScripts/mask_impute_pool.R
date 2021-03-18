@@ -162,7 +162,7 @@ mask_impute_pool <-
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
                      "10%" = c(20, 20, 20, 30),
-                     "20%" = c(20, 30, 30, 30),
+                     "20%" = c(40, 30, 30, 30),
                      "30%" = c(30, 40, 40, 30)) %>% 
       column_to_rownames("Method")
     
@@ -199,19 +199,18 @@ mask_impute_pool <-
       start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
                            #maxit = max_it[method, mask_percent],
-                           maxit = 20,
+                           maxit = 40,
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)),
-                           #blots = blots,
                            seed = 20210126)
       end <- Sys.time() - start
       
       # #look at convergence
       #   #10% missing needs maxit = 20
-      #   #20% missing needs maxit = 20
+      #   #20% missing needs maxit = 40
       #   #30% missing needs maxit = 30
        plot(data_imputed)
       

@@ -161,7 +161,7 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
-                     "10%" = c(10, 20, 20, 30),
+                     "10%" = c(20, 20, 20, 30),
                      "20%" = c(20, 30, 30, 30),
                      "30%" = c(30, 40, 40, 30)) %>% 
       column_to_rownames("Method")
@@ -210,7 +210,7 @@ mask_impute_pool <-
       end <- Sys.time() - start
       
       # #look at convergence
-      #   #10% missing can only handle maxit = 10
+      #   #10% missing needs maxit = 20
       #   #20% missing needs maxit = 20
       #   #30% missing needs maxit = 30
        plot(data_imputed)

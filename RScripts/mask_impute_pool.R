@@ -161,9 +161,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
-                     "10%" = c(20, 20, 20, 30),
-                     "20%" = c(30, 30, 30, 30),
-                     "30%" = c(40, 40, 30, 30)) %>% 
+                     "10%" = c(10, 20, 20, 30),
+                     "20%" = c(20, 30, 30, 30),
+                     "30%" = c(30, 40, 30, 30)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -187,26 +187,39 @@ mask_impute_pool <-
       data_wide %<>% 
         mutate_all(as.factor) %>% 
         mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), 
-                         (paste0("r", seq(4, 9), "cesd")), 
-                         (paste0("r", seq(4, 9), "drinking_impute")))), 
-                  as.numeric)
+                         paste0("r", seq(4, 9), "cesd"), 
+                         paste0("r", seq(4, 9), "drinking_impute"),
+                         paste0("r", seq(4, 9), "shlt"),
+                         paste0("r", seq(4, 9), "age_y_int"), 
+                         "survtime")), as.numeric)
       
+      # #specify parameters for logistic regression
+      # blots <- make.blots(data_wide, 
+      #                     blocks = name.blocks(rownames(predict)))
+      # for(name in names(blots)){
+      #   if(class(unlist(data_wide[, name])) == "factor"){
+      #     blots[[name]] <- "control = list(\"maxit\" = 100)"
+      #   }
+      # }
+      # 
       start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = max_it[method, mask_percent],
+                           #maxit = max_it[method, mask_percent],
+                           maxit = 30,
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), 
+                           blocks = as.list(rownames(predict)),
+                           #blots = blots,
                            seed = 20210126)
       end <- Sys.time() - start
       
-      # #look at convergence
-      #   #10% missing needs maxit = 20
-      #   #20% missing needs maxit = 30
-      #   #30% missing needs maxit = 40
-      # plot(data_imputed)
+      #look at convergence
+        #10% missing can only handle maxit = 10
+        #20% missing needs maxit = 20
+        #30% missing needs maxit = 30
+      plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----
@@ -246,6 +259,9 @@ mask_impute_pool <-
     } else if(method == "2l.fcs"){
       #---- ****2l.fcs ----
       #Longitudinal fully conditional specification
+      data_long %<>% 
+      mutate_at(-vars(c("HHIDPN")), as.factor) %>% 
+        mutate_at(vars(c("drinking_impute", "cesd", "BMI")), as.numeric)
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
                            maxit = 30, 

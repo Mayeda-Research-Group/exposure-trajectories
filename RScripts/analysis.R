@@ -30,8 +30,8 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) %>% 
-  mutate_if(is.character, as.factor) 
+           col_types = cols(HHIDPN = col_character())) 
+
 #Will see if we want to use ordered factors
 # %>% 
 #   mutate_at(vars(c(paste0("r", seq(4, 9), "drinking_cat"), ed_cat)), 
@@ -73,7 +73,7 @@ TTEmodel_CESD4 <-
           hispanic + black + other + female + r4age_y_int + r4shlt + 
           r4cesd_elevated, data = CESD_data_wide)
 
-#summary(TTEmodel_CESD4)
+summary(TTEmodel_CESD4)
 
 TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
                                exponentiate = FALSE, conf.int = TRUE)

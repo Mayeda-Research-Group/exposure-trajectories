@@ -76,7 +76,7 @@ mask_impute_pool <-
                              "survtime")
     
     #---- convert to long?? ----
-    if(method %in% c("2l.norm")){
+    if(method %in% c("2l.norm", "2l.fcs")){
       data_long <- data_wide %>% 
         dplyr::select("HHIDPN", 
                       apply(expand.grid("r", seq(4, 9), 
@@ -110,7 +110,7 @@ mask_impute_pool <-
     
     #---- imputation ----
     #---- **predictor matrix ----
-    if(method %in% c("2l.norm")){
+    if(method %in% c("2l.norm", "2l.fcs")){
       blocks <- time_updated_vars
       predict <- matrix(1, length(blocks), ncol = ncol(data_long)) %>% 
         set_rownames(blocks) %>% 
@@ -160,10 +160,12 @@ mask_impute_pool <-
     }
     
     #---- **run imputation ----
-    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM"), 
-                     "10%" = c(20, 20, 20),
-                     "20%" = c(30, 30, 30),
-                     "30%" = c(40, 40, 30)) %>% column_to_rownames("Method")
+    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
+                     "10%" = c(20, 20, 20, 30),
+                     "20%" = c(30, 30, 30, 30),
+                     "30%" = c(40, 40, 30, 30)) %>% 
+      column_to_rownames("Method")
+    
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
@@ -239,10 +241,10 @@ mask_impute_pool <-
       # #look at convergence
       # #10% missing needs maxit = 30
       # #20% missing needs maxit = 30
-      # #30% missing needs maxit = 
+      # #30% missing needs maxit = 30
        plot(data_imputed)
     } else if(method == "2l.fcs"){
-      #---- 2l.fcs ----
+      #---- ****2l.fcs ----
       #Longitudinal fully conditional specification
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
@@ -256,15 +258,11 @@ mask_impute_pool <-
       stop <- Sys.time() - start
       
       # #look at convergence
-      # #10% missing needs maxit = 30
-      # #20% missing needs maxit = 30
+      # #10% missing needs maxit = 
+      # #20% missing needs maxit = 
       # #30% missing needs maxit = 
       plot(data_imputed) 
-    } else if(method == "2l.pmm"){
-      #---- 2l.pmm ----
-      #Longitudinal predictive mean matching
-      
-    }
+    } 
     
     #---- **save results ----
     if(save == "yes"){

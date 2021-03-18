@@ -73,7 +73,7 @@ TTEmodel_CESD4 <-
           hispanic + black + other + female + r4age_y_int + r4shlt + 
           r4cesd_elevated, data = CESD_data_wide)
 
-summary(TTEmodel_CESD4)
+#summary(TTEmodel_CESD4)
 
 TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
                                exponentiate = FALSE, conf.int = TRUE)

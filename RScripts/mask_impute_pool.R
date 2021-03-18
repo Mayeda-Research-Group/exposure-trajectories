@@ -88,7 +88,7 @@ mask_impute_pool <-
       data_long %<>% 
         left_join(., data_wide %>% 
                     dplyr::select("HHIDPN", all_of(time_invariant_vars))) %>% 
-        mutate_at("HHIDPN", as.character) %>% mutate_at("HHIDPN", as.integer)
+        mutate_at("HHIDPN", as.integer)
     }
     
     #Sanity check-- table of num missings per masking proportion
@@ -185,26 +185,21 @@ mask_impute_pool <-
       #---- ****FCS ----
       #Fully conditional specification
       data_wide %<>% 
-        mutate_all(as.factor) %>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "BMI"), 
-                         paste0("r", seq(4, 9), "cesd"), 
-                         paste0("r", seq(4, 9), "drinking_impute"),
-                         paste0("r", seq(4, 9), "shlt"),
-                         paste0("r", seq(4, 9), "age_y_int"), 
-                         "survtime")), as.numeric)
-      
-      # #specify parameters for logistic regression
-      # blots <- make.blots(data_wide, 
-      #                     blocks = name.blocks(rownames(predict)))
-      # for(name in names(blots)){
-      #   if(class(unlist(data_wide[, name])) == "factor"){
-      #     blots[[name]] <- "control = list(\"maxit\" = 100)"
-      #   }
-      # }
-      # 
-      #start <- Sys.time()
+        mutate_at(vars(c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
+                         paste0("r", seq(4, 9), "memrye_impute"), 
+                         paste0("r", seq(4, 9), "stroke_impute"),
+                         paste0("r", seq(4, 9), "hearte_impute"),
+                         paste0("r", seq(4, 9), "lunge_impute"), 
+                         paste0("r", seq(4, 9), "cancre_impute"), 
+                         paste0("r", seq(4, 9), "hibpe_impute"), 
+                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
+                         "hispanic", "black", "other", "female", "death2018")), 
+                  as.factor)
+
+      start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = max_it[method, mask_percent],
+                           #maxit = max_it[method, mask_percent],
+                           maxit = 20,
                            nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
@@ -212,13 +207,13 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)),
                            #blots = blots,
                            seed = 20210126)
-      #end <- Sys.time() - start
+      end <- Sys.time() - start
       
       # #look at convergence
       #   #10% missing can only handle maxit = 10
       #   #20% missing needs maxit = 20
       #   #30% missing needs maxit = 30
-      # plot(data_imputed)
+       plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----

@@ -73,7 +73,7 @@ mask_impute_pool <-
                            "cesd", "BMI", "shlt")
     
     time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", "female", 
-                             "survtime")
+                             "survtime", "death2018", "smoker")
     
     #---- convert to long?? ----
     if(method %in% c("2l.norm", "2l.fcs")){
@@ -160,10 +160,10 @@ mask_impute_pool <-
     }
     
     #---- **run imputation ----
-    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2lnorm"), 
-                     "10%" = c(20, 20, 40, 30),
-                     "20%" = c(40, 30, 40, 30),
-                     "30%" = c(40, 40, 40, 30)) %>% 
+    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
+                     "10%" = c(20, 20, 40, 25, 25),
+                     "20%" = c(40, 30, 40, 25, 25),
+                     "30%" = c(40, 40, 40, 25, 25)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -246,27 +246,33 @@ mask_impute_pool <-
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
       #2-level heteroskedatic between group variances
-      #start <- Sys.time()
+      start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
-                           maxit = 30, 
+                           #maxit = max_it[method, mask_percent],
+                           maxit = 30,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      #stop <- Sys.time() - start
+      stop <- Sys.time() - start
       
-      # #look at convergence
-      # #10% missing needs maxit = 30
-      # #20% missing needs maxit = 30
-      # #30% missing needs maxit = 30
-      #  plot(data_imputed)
+      #look at convergence
+      #10% missing needs maxit = 
+      #20% missing needs maxit = 
+      #30% missing needs maxit = 
+       plot(data_imputed)
+       
     } else if(method == "2l.fcs"){
       #---- ****2l.fcs ----
       #Longitudinal fully conditional specification
+      #Fully conditional specification
       data_long %<>% 
-      mutate_at(vars(-c("HHIDPN")), as.factor) %>% 
-        mutate_at(vars(c("drinking_impute", "cesd", "BMI", "shlt", "age_y_int", 
-                         "survtime", "mstat_impute")), as.numeric)
+        mutate_at(vars(c("mstat_impute", "memrye_impute", "stroke_impute", 
+                         "hearte_impute", "lunge_impute", "cancre_impute", 
+                         "hibpe_impute", "diabe_impute", "ed_cat", "black", 
+                         "hispanic", "other", "female", "death2018", "smoker")), 
+                  as.factor)
+      
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
                            maxit = 20, 
@@ -283,6 +289,7 @@ mask_impute_pool <-
       # #20% missing needs maxit = 
       # #30% missing needs maxit = 
       plot(data_imputed) 
+      
     } 
     
     #---- **save results ----

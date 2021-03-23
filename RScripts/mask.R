@@ -80,16 +80,19 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_age <- beta_age_10
         beta_cesdpre <- beta_cesdpre_10
         beta_condepre <- beta_condepre_10
-      } else {
+      } else if (mask_prop == 0.5){
+        beta_age <- beta_age_10
+        beta_cesdpre <- beta_cesdpre_10
+        beta_condepre <- beta_condepre_10
+        beta_0 <- logit(mask_prop) -
+          (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
+        } else{
         scaling_coef <- logit(mask_prop)/logit(0.1)
         beta_0 <- scaling_coef * beta_0_10
         beta_age <- scaling_coef * beta_age_10
         beta_cesdpre <- scaling_coef * beta_cesdpre_10
         beta_condepre <- scaling_coef * beta_condepre_10
       }
-
-      # beta_0 <- logit(mask_prop) -
-      #   (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
       
       subset <- data_wide %>%
         mutate(
@@ -140,6 +143,14 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_cesdpre <- beta_cesdpre_10
         beta_condepre <- beta_condepre_10
         beta_cesdcurrent <- beta_cesdcurrent_10
+      } else if (mask_prop == 0.5){
+        beta_age <- beta_age_10
+        beta_cesdpre <- beta_cesdpre_10
+        beta_condepre <- beta_condepre_10
+        beta_cesdcurrent <- beta_cesdcurrent_10
+        beta_0 <- logit(mask_prop) -
+          (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
+             beta_cesdcurrent*e_CESD_4_9)
       } else {
         scaling_coef <- logit(mask_prop)/logit(0.1)
         beta_0 <- scaling_coef * beta_0_10
@@ -148,10 +159,6 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_condepre <- scaling_coef * beta_condepre_10
         beta_cesdcurrent <- scaling_coef * beta_cesdcurrent_10
       }
-      
-      # beta_0 <- logit(mask_prop) -
-      #   (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
-      #      beta_cesdcurrent*e_CESD_4_9)
 
       subset <- data_wide %>%
         mutate(
@@ -271,8 +278,7 @@ mask <- function(data_wide, mechanism, mask_percent){
 # 
 # view(test[is.na(test$r9cesd), ])
 # # MAR
-# test1 <- mask(CESD_data_wide, "MAR", "30%")
-# 
+# test1 <- mask(CESD_data_wide, "MAR", "10%")
 # test1 %>%
 #   select(contains("cesd"),
 #          -contains(c("elevated", "avg", "r3"))) %>%
@@ -285,7 +291,7 @@ mask <- function(data_wide, mechanism, mask_percent){
 #   select(contains("r5")) %>%
 #   filter(is.na(r5cesd))
 # # MNAR
-# test2 <- mask(CESD_data_wide, "MNAR", "30%")
+# test2 <- mask(CESD_data_wide, "MNAR", "10%")
 # test2 %>%
 #   select(contains("cesd"),
 #          -contains(c("elevated", "avg", "r3"))) %>%

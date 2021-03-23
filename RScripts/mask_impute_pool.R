@@ -249,7 +249,7 @@ mask_impute_pool <-
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
                            #maxit = max_it[method, mask_percent],
-                           maxit = 30,
+                           maxit = 20,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
@@ -257,7 +257,7 @@ mask_impute_pool <-
       stop <- Sys.time() - start
       
       #look at convergence
-      #10% missing needs maxit = 
+      #10% missing needs maxit = 20
       #20% missing needs maxit = 
       #30% missing needs maxit = 
        plot(data_imputed)

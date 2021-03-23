@@ -32,17 +32,6 @@ CESD_data_wide <-
                   "CESD_data_wide.csv"), 
            col_types = cols(HHIDPN = col_character())) 
 
-#Will see if we want to use ordered factors
-# %>% 
-#   mutate_at(vars(c(paste0("r", seq(4, 9), "drinking_cat"), ed_cat)), 
-#             ~factor(., ordered = TRUE)) %>%
-#   mutate_at(vars(paste0("r", seq(4, 9), "drinking_cat")), 
-#             ~fct_relevel(., c("No Drinking", "Moderate Drinking", 
-#                               "Heavy Drinking"))) %>% 
-#   mutate_at(vars("ed_cat"), 
-#             ~fct_relevel(., c("Less than HS", "HS", "Some College", 
-#                               "Bachelors")))
-
 # #Check column types
 # sapply(CESD_data_wide, class)
 

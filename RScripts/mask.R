@@ -60,6 +60,10 @@ mask <- function(data_wide, mechanism, mask_percent){
     e_conde <- mean(conde_3_8_long$conde_impute, na.rm = T)
     
     #---- **betas ----
+    # beta_age <- log(1.05)
+    # beta_cesdpre <- log(1.10)
+    # beta_condepre <- log(1.30)
+    # beta_cesdcurrent <- log(1.15)
     beta_age_10 <- log(1.05)
     beta_cesdpre_10 <- log(1.10)
     beta_condepre_10 <- log(1.30)
@@ -67,24 +71,25 @@ mask <- function(data_wide, mechanism, mask_percent){
     
     if (mechanism == "MAR"){
       #---- MAR ----
-      # beta_0_10 <- logit(0.1) - 
+      beta_0_10 <- logit(0.1) -
+        (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
+           beta_condepre_10*e_conde)
+
+      if (mask_prop == 0.1){
+        beta_0 <- beta_0_10
+        beta_age <- beta_age_10
+        beta_cesdpre <- beta_cesdpre_10
+        beta_condepre <- beta_condepre_10
+      } else {
+        scaling_coef <- logit(mask_prop)/logit(0.1)
+        beta_0 <- scaling_coef * beta_0_10
+        beta_age <- scaling_coef * beta_age_10
+        beta_cesdpre <- scaling_coef * beta_cesdpre_10
+        beta_condepre <- scaling_coef * beta_condepre_10
+      }
+
+      # beta_0 <- logit(mask_prop) -
       #   (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
-      # 
-      # if (mask_prop == 0.1){
-      #   beta_0 <- beta_0_10
-      #   beta_age <- beta_age_10
-      #   beta_cesdpre <- beta_cesdpre_10
-      #   beta_condepre <- beta_condepre_10
-      # } else {
-      #   scaling_coef <- logit(mask_prop)/logit(0.1)
-      #   beta_0 <- scaling_coef * beta_0_10
-      #   beta_age <- scaling_coef * beta_age_10
-      #   beta_cesdpre <- scaling_coef * beta_cesdpre_10
-      #   beta_condepre <- scaling_coef * beta_condepre_10
-      # }
-      # 
-      beta_0 <- logit(mask_prop) -
-        (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde)
       
       subset <- data_wide %>%
         mutate(
@@ -125,28 +130,28 @@ mask <- function(data_wide, mechanism, mask_percent){
     } else if(mechanism == "MNAR"){
       
       #---- MNAR ----
-      # beta_0_10 <- logit(0.1) -
+      beta_0_10 <- logit(0.1) -
+        (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
+           beta_condepre_10*e_conde + beta_cesdcurrent_10*e_CESD_4_9)
+
+      if (mask_prop == 0.1){
+        beta_0 <- beta_0_10
+        beta_age <- beta_age_10
+        beta_cesdpre <- beta_cesdpre_10
+        beta_condepre <- beta_condepre_10
+        beta_cesdcurrent <- beta_cesdcurrent_10
+      } else {
+        scaling_coef <- logit(mask_prop)/logit(0.1)
+        beta_0 <- scaling_coef * beta_0_10
+        beta_age <- scaling_coef * beta_age_10
+        beta_cesdpre <- scaling_coef * beta_cesdpre_10
+        beta_condepre <- scaling_coef * beta_condepre_10
+        beta_cesdcurrent <- scaling_coef * beta_cesdcurrent_10
+      }
+      
+      # beta_0 <- logit(mask_prop) -
       #   (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
       #      beta_cesdcurrent*e_CESD_4_9)
-      # 
-      # if (mask_prop == 0.1){
-      #   beta_0 <- beta_0_10
-      #   beta_age <- beta_age_10
-      #   beta_cesdpre <- beta_cesdpre_10
-      #   beta_condepre <- beta_condepre_10
-      #   beta_cesdcurrent <- beta_cesdcurrent_10
-      # } else {
-      #   scaling_coef <- logit(mask_prop)/logit(0.1)
-      #   beta_0 <- scaling_coef * beta_0_10
-      #   beta_age <- scaling_coef * beta_age_10
-      #   beta_cesdpre <- scaling_coef * beta_cesdpre_10
-      #   beta_condepre <- scaling_coef * beta_condepre_10
-      #   beta_cesdcurrent <- scaling_coef * beta_cesdcurrent_10
-      # }
-      
-      beta_0 <- logit(mask_prop) -
-        (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
-           beta_cesdcurrent*e_CESD_4_9)
 
       subset <- data_wide %>%
         mutate(
@@ -211,11 +216,7 @@ mask <- function(data_wide, mechanism, mask_percent){
               paste0("r", seq(4, 9), var)] <- data_long[, -1]
     data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN),
               paste0("r", seq(4, 9), var)] <- NA
-    
-    # # Another attempt
-    # data_long %<>% 
-    #   pivot_wider(names_from = "name", values_from = "value")
-    # data_wide[, colnames(data_long)] <- data_long
+
   }
   
   #masking derived values
@@ -237,8 +238,11 @@ mask <- function(data_wide, mechanism, mask_percent){
              rowSums(data_wide %>%
                        dplyr::select(paste0("r", seq(4, 9), "cesd")) %>%
                        mutate_all(function(x) is.na(x)))) %>%
-    filter(CESD_missing < 6)
+    filter(CESD_missing < 6) %>%
+    select(-CESD_missing)
+  
   # Return the dataset
+  # return(mask_index)
   return(data_wide)
 }
 
@@ -252,36 +256,44 @@ mask <- function(data_wide, mechanism, mask_percent){
 #                   "/exposure_trajectories/data/",
 #                   "CESD_data_wide.csv"))
 # # MCAR
-# test <- mask(CESD_data_wide, "MCAR", "10%")
+# test <- mask(CESD_data_wide, "MCAR", "20%")
+# # {index <- mask(CESD_data_wide, "MCAR", "20%")
+# #   length(index)/(9445*6)
+# # }
 # test %>%
-#   select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
+#   select(contains("cesd"),
+#          -contains(c("elevated", "avg", "r3"))) %>%
 #   pivot_longer(everything(),
 #                names_to = "origvar",
 #                values_to = "CESD") %>%
 #     count(CESD) %>%
 #     mutate(prop = prop.table(n))
+# 
 # view(test[is.na(test$r9cesd), ])
-# MAR
-test1 <- mask(CESD_data_wide, "MAR", "30%")
-test1 %>%
-  select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
-  pivot_longer(everything(),
-               names_to = "origvar",
-               values_to = "CESD") %>%
-  count(CESD) %>%
-  mutate(prop = prop.table(n))
-test1 %>%
-  select(contains("r5")) %>%
-  filter(is.na(r5cesd))
+# # MAR
+# test1 <- mask(CESD_data_wide, "MAR", "30%")
+# 
+# test1 %>%
+#   select(contains("cesd"),
+#          -contains(c("elevated", "avg", "r3"))) %>%
+#   pivot_longer(everything(),
+#                names_to = "origvar",
+#                values_to = "CESD") %>%
+#   count(CESD) %>%
+#   mutate(prop = prop.table(n))
+# test1 %>%
+#   select(contains("r5")) %>%
+#   filter(is.na(r5cesd))
 # # MNAR
-test2 <- mask(CESD_data_wide, "MNAR", "30%")
-test2 %>%
-  select(contains("cesd"), -contains(c("elevated", "avg", "r3"))) %>%
-  pivot_longer(everything(),
-               names_to = "origvar",
-               values_to = "CESD") %>%
-  count(CESD) %>%
-  mutate(prop = prop.table(n))
+# test2 <- mask(CESD_data_wide, "MNAR", "30%")
+# test2 %>%
+#   select(contains("cesd"),
+#          -contains(c("elevated", "avg", "r3"))) %>%
+#   pivot_longer(everything(),
+#                names_to = "origvar",
+#                values_to = "CESD") %>%
+#   count(CESD) %>%
+#   mutate(prop = prop.table(n))
 # test2 %>%
 #   select(contains("r5")) %>%
 #   filter(is.na(r5cesd))

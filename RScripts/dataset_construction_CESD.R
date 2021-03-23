@@ -295,6 +295,7 @@ hrs_samp %<>% dplyr::select(-c("rabmonth", "rabyear", "rabdate",
                                "age_death_d"))
 
 #---- age ----
+#The warning you'll see is from those who have no missing ages
 age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
   apply(., 1, impute_ages) %>% t() 
 
@@ -348,16 +349,20 @@ hrs_samp %<>%
 #---- education ----
 #Create education categories
 hrs_samp %<>% 
-  mutate("ed_cat" = case_when(raedyrs < 12 ~ "Less than HS", 
-                              raedyrs == 12 ~ "HS", 
-                              raedyrs > 12 & raedyrs < 16 ~ "Some College", 
-                              raedyrs == 16 ~ "Bachelors", 
-                              raedyrs > 16 ~ "Grad Studies"))
-
+  mutate("less_than_HS" = ifelse(raedyrs < 12, 1, 0), 
+         "HS" = ifelse(raedyrs == 12, 1, 0), 
+         "some_college" = ifelse(raedyrs > 12 & raedyrs < 16, 1, 0), 
+         "bachelors" = ifelse(raedyrs == 16, 1, 0), 
+         "grad_studies" = ifelse(raedyrs > 16, 1, 0))
+           
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
-# table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$less_than_HS, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$HS, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$some_college, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$bachelors, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$grad_studies, useNA = "ifany")
 
 #---- cSES index ----
 # #Sanity check

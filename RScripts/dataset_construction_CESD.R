@@ -373,6 +373,8 @@ hrs_samp %<>%
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights 
 # (waves 8+) if available or first self-reported height
+# 
+# the warning you'll see is from those who are not missing height
 hrs_samp %<>% 
   mutate("med_height" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(8, 13, by = 1), "pmhght")) %>%
@@ -460,6 +462,7 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"),
                                paste0("r", seq(8, 13, by = 1), "pmbmi")))
 
 #---- smoking ----
+#the warning you'll see is for those not missing smoking
 hrs_samp %<>% 
   mutate("smoker" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "smoken")) %>%
@@ -492,7 +495,7 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # }
 
 # Imputing chronic conditions
-
+# the warnings you'll see are for those not missing any chronic conditions
 #---- ** diabetes ----
 hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
                                      seq(1, 9), hrs_samp)
@@ -523,11 +526,11 @@ hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(1, 9), "stroke"),
 #                               seq(4, 9), hrs_samp)
 
 #---- **memory ----
+#For memory problems, data starts from wave 4.
 hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
                                      seq(4, 9), hrs_samp)
-# For memory problems, data starts from wave 4.
 
-#sanity check
+#Sanity check
 # 
 # for(condition in conditions){
 #   print(condition)
@@ -653,12 +656,34 @@ mstat_mat[mstat_mat == 4 | mstat_mat == 5 | mstat_mat == 6 |
             mstat_mat == 8] <- 2
 mstat_mat[mstat_mat == 7] <- 3
 
+hrs_samp[, colnames(mstat_mat)] <- mstat_mat
+
+for(wave in seq(4, 9)){
+  level = 1
+  for(cat in c("married_partnered", "not_married_partnered", "widowed")){
+    mstat_mat %<>%
+      mutate(!!paste0("r", wave, cat) := 
+               case_when(!!sym(paste0("r", wave, "mstat_impute")) == level ~ 1, 
+                         TRUE ~ 0))
+    level = level + 1
+  }
+}
+
+#Sanity check
+View(hrs_samp %>% 
+       dplyr::select("r4mstat_impute", "r4married_partnered", 
+                     "r4not_married_partnered", "r4widowed"))
+
+!!paste0(wave, "AMARRD_label") := 
+  case_when(!!sym(paste0(wave, "AMARRD")) %in% c(1, 3, 4) ~ 
+              "Not married/partnered"
+
 mstat_cat <- mstat_mat %>% set_colnames(paste0("r", seq(4, 9), "mstat_cat"))
 mstat_cat[mstat_cat == 1] <- "Married/Partnered"
 mstat_cat[mstat_cat == 2] <- "Not Married/Partnered"
 mstat_cat[mstat_cat == 3] <- "Widowed"
 
-hrs_samp[, colnames(mstat_mat)] <- mstat_mat
+
 hrs_samp[, colnames(mstat_cat)] <- mstat_cat
 
 # #Sanity check

@@ -695,27 +695,19 @@ drinking_cat_mat <-
 for(i in 1:ncol(drinking_cat_mat)){
   for(j in 1:nrow(drinking_cat_mat)){
     drinking_cat_mat[j, paste0("r", (i + 3), "drinking_cat")] = 
-      case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
+      case_when(drinks_per_week_mat[j, i] == 0 ~ 0, 
                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
-                  hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
+                  hrs_samp[j, "female"] == 1 ~ 2, 
                 (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
-                  hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
+                  hrs_samp[j, "female"] == 0 ~ 2, 
                 (drinks_per_week_mat[j, i] >= 1 & 
                    drinks_per_week_mat[j, i] < 7) & 
-                  hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
+                  hrs_samp[j, "female"] == 1 ~ 1, 
                 (drinks_per_week_mat[j, i] >= 1 & 
                    drinks_per_week_mat[j, i] < 14) & 
-                  hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
+                  hrs_samp[j, "female"] == 0 ~ 1)
   }
 }
-
-drinking_impute_mat <- 
-  matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-  set_colnames(paste0("r", seq(4, 9), "drinking_impute"))
-
-drinking_impute_mat[drinking_cat_mat == "No Drinking"] <- 0
-drinking_impute_mat[drinking_cat_mat == "Moderate Drinking"] <- 1
-drinking_impute_mat[drinking_cat_mat == "Heavy Drinking"] <- 2
 
 # Old code chunk
 # drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
@@ -747,7 +739,7 @@ drinking_impute_mat[drinking_cat_mat == "Heavy Drinking"] <- 2
 # #Sanity Check
 # View(drinking_cat_mat)
 
-hrs_samp %<>% cbind(drinking_cat_mat) %>% cbind(drinking_impute_mat)
+hrs_samp %<>% cbind(drinking_cat_mat)
 
 # #Sanity Check
 # View(hrs_samp %>% dplyr::select("r9drinkn", "female",

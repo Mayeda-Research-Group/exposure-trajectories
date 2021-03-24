@@ -202,11 +202,11 @@ mask <- function(data_wide, mechanism, mask_percent){
   }
   
   #---- masking wave-specific values ----
-  mask_wave_specific <- c("mstat_impute", "mstat_cat", "drinking_impute", 
-                          "drinking_cat", "memrye_impute", "stroke_impute", 
-                          "hearte_impute", "lunge_impute", "cancre_impute", 
-                          "hibpe_impute", "diabe_impute", "cesd", "BMI", 
-                          "shlt")
+  mask_wave_specific <- c("married_partnered", "not_married_partnered", 
+                          "widowed", "drinking_cat", "memrye_impute", 
+                          "stroke_impute", "hearte_impute", "lunge_impute", 
+                          "cancre_impute", "hibpe_impute", "diabe_impute", 
+                          "cesd", "BMI", "shlt")
   
   for(var in mask_wave_specific){
     #mask values

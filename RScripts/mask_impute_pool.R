@@ -321,14 +321,20 @@ mask_impute_pool <-
       }
       
       #---- **post process: binary vars ----
-      for(vars in c("memrye_impute", "stroke_impute", "hearte_impute", 
-                    "lunge_impute", "cancre_impute", "hibpe_impute", 
-                    "diabe_impute")){
-        for(wave in seq(4, 9)){
-          
-        }
-      }
+      waves <- seq(4, 9)
+      vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
+                "lunge_impute", "cancre_impute", "hibpe_impute", "diabe_impute")
+      cols <- apply(expand.grid("r", waves, vars), 1, paste, collapse = "")
       
+      #fix impossible probs
+      subset <- complete_data[, cols]
+      subset[subset < 0] <- 0
+      subset[subset > 1] <- 1
+      
+      for(col in cols){
+        complete_data[, col] <- 
+          rbinom(n = nrow(complete_data), size = 1, prob = subset[, col])
+      }
       
       #---- **post-process: exposures ----
       complete_data %<>% 

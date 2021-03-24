@@ -354,7 +354,7 @@ hrs_samp %<>%
          "some_college" = ifelse(raedyrs > 12 & raedyrs < 16, 1, 0), 
          "bachelors" = ifelse(raedyrs == 16, 1, 0), 
          "grad_studies" = ifelse(raedyrs > 16, 1, 0))
-           
+
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
@@ -661,35 +661,19 @@ hrs_samp[, colnames(mstat_mat)] <- mstat_mat
 for(wave in seq(4, 9)){
   level = 1
   for(cat in c("married_partnered", "not_married_partnered", "widowed")){
-    mstat_mat %<>%
-      mutate(!!paste0("r", wave, cat) := 
-               case_when(!!sym(paste0("r", wave, "mstat_impute")) == level ~ 1, 
-                         TRUE ~ 0))
+    hrs_samp[, paste0("r", wave, cat)] <- 
+      (hrs_samp[, paste0("r", wave, "mstat_impute")] == level)*1
     level = level + 1
   }
 }
 
-#Sanity check
-View(hrs_samp %>% 
-       dplyr::select("r4mstat_impute", "r4married_partnered", 
-                     "r4not_married_partnered", "r4widowed"))
-
-!!paste0(wave, "AMARRD_label") := 
-  case_when(!!sym(paste0(wave, "AMARRD")) %in% c(1, 3, 4) ~ 
-              "Not married/partnered"
-
-mstat_cat <- mstat_mat %>% set_colnames(paste0("r", seq(4, 9), "mstat_cat"))
-mstat_cat[mstat_cat == 1] <- "Married/Partnered"
-mstat_cat[mstat_cat == 2] <- "Not Married/Partnered"
-mstat_cat[mstat_cat == 3] <- "Widowed"
-
-
-hrs_samp[, colnames(mstat_cat)] <- mstat_cat
-
 # #Sanity check
-# table(hrs_samp$r4mstat_impute, hrs_samp$r4mstat_cat, useNA = "ifany")
-# table(hrs_samp$r9mstat_impute, hrs_samp$r9mstat_cat, useNA = "ifany")
-# table(hrs_samp$r4mstat_cat, hrs_samp$r9mstat_cat)
+# View(hrs_samp %>% 
+#        dplyr::select("r4mstat_impute", "r4married_partnered", 
+#                      "r4not_married_partnered", "r4widowed"))
+# View(hrs_samp %>% 
+#        dplyr::select("r9mstat_impute", "r9married_partnered", 
+#                      "r9not_married_partnered", "r9widowed"))
 
 #---- drinking ----
 # Imputing drinking per day and drinking per week

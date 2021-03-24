@@ -1016,9 +1016,9 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # drop <- rowSums(is.na(subset))
 
 #---- select variables ----
-vars <- c("HHIDPN", paste0("r", seq(4, 9), "mstat_impute"),
-          paste0("r", seq(4, 9), "mstat_cat"), "ed_cat", 
-          paste0("r", seq(4, 9), "drinking_impute"), 
+vars <- c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"),
+          paste0("r", seq(4, 9), "not_married_partnered"),
+          paste0("r", seq(4, 9), "widowed"), "ed_cat", 
           paste0("r", seq(4, 9), "drinking_cat"), 
           paste0("r", seq(4, 9), "memrye_impute"),
           paste0("r", seq(4, 9), "stroke_impute"),

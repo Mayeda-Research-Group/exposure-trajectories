@@ -8,65 +8,7 @@ mask_impute_pool <-
                  "Type" = mechanism)
     
     #---- create incomplete data ----
-    if(mechanism == "MCAR"){
-      #---- **MCAR ----
-      #it's easier to do this with my own code than the ampute function in MICE, 
-      # which requires specifying all possible missing patterns you'd like it to 
-      # consider
-      mask_prop <- as.numeric(sub("%","", mask_percent))/100
-      total_indices <- nrow(data_wide)*6 #6 waves of data per person
-      mask_index <- sample(seq(1, total_indices), 
-                           size = floor(mask_prop*total_indices), 
-                           replace = FALSE)
-    }
-    
-    #masking wave-specific values
-    mask_wave_specific <- c("married_partnered", "not_married_partnered", 
-                            "widowed", "drinking_cat", "memrye_impute", 
-                            "stroke_impute", "hearte_impute", "lunge_impute", 
-                            "cancre_impute", "hibpe_impute", "diabe_impute", 
-                            "cesd", "BMI", "shlt")
-    
-    for(var in mask_wave_specific){
-      #mask values
-      data_long <- data_wide %>% 
-        dplyr::select("HHIDPN", paste0("r", seq(4, 9), var)) %>% 
-        pivot_longer(-"HHIDPN")
-      
-      data_long[mask_index, "value"] <- NA
-      
-      #need to get rid of rows with NA values to pivot back to wide
-      data_long %<>% na.omit() %>% 
-        pivot_wider(names_from = "name", values_from = "value")
-      
-      #mask in wide dataset with masked values
-      data_wide[which(data_wide$HHIDPN %in% data_long$HHIDPN), 
-                paste0("r", seq(4, 9), var)] <- data_long[, -1] 
-      data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN), 
-                paste0("r", seq(4, 9), var)] <- NA
-    }
-    
-    #masking derived values
-    data_wide %<>% 
-      mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-             "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
-             "total_elevated_cesd" = 
-               rowSums(data_wide %>% 
-                         dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                         mutate_all(function(x) x > 4)), 
-             "avg_cesd" = 
-               rowMeans(data_wide %>% 
-                          dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
-             "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
-    
-    #---- check missings ----
-    #make sure no one is missing every cesd measure
-    data_wide %<>% 
-      mutate("CESD_missing" = 
-               rowSums(data_wide %>% 
-                         dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                         mutate_all(function(x) is.na(x)))) %>% 
-      filter(CESD_missing < 6)
+    data_wide <- mask(data_wide, mechanism, mask_percent)
     
     time_updated_vars <- c("married_partnered", "not_married_partnered", 
                            "widowed", "drinking_cat", "memrye_impute", 

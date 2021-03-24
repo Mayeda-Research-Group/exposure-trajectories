@@ -21,7 +21,8 @@ mask_impute_pool <-
     }
     
     #masking wave-specific values
-    mask_wave_specific <- c("mstat_impute", "drinking_impute", "memrye_impute", 
+    mask_wave_specific <- c("married_partnered", "not_married_partnered", 
+                            "widowed", "drinking_cat", "memrye_impute", 
                             "stroke_impute", "hearte_impute", "lunge_impute", 
                             "cancre_impute", "hibpe_impute", "diabe_impute", 
                             "cesd", "BMI", "shlt")
@@ -67,13 +68,14 @@ mask_impute_pool <-
                          mutate_all(function(x) is.na(x)))) %>% 
       filter(CESD_missing < 6)
     
-    time_updated_vars <- c("mstat_impute", "drinking_impute", "memrye_impute", 
+    time_updated_vars <- c("married_partnered", "not_married_partnered", 
+                           "widowed", "drinking_cat", "memrye_impute", 
                            "stroke_impute", "hearte_impute", "lunge_impute", 
                            "cancre_impute", "hibpe_impute", "diabe_impute", 
                            "cesd", "BMI", "shlt")
     
-    time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", "female", 
-                             "survtime", "death2018", "smoker")
+    time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
+                             "female", "survtime", "death2018", "smoker")
     
     #---- convert to long?? ----
     if(method %in% c("2l.norm", "2l.fcs")){
@@ -135,12 +137,10 @@ mask_impute_pool <-
         set_colnames(colnames(data_wide))
       
       #Don't use these as predictors
-      predict[, c("HHIDPN", paste0("r", seq(4, 9), "mstat_cat"), 
-                  paste0("r", seq(4, 9), "drinking_cat"),
-                  paste0("r", seq(3, 9), "conde_impute"), "white", "age_death_y", 
-                  "observed", "CESD_missing", "r3cesd", "r4cesd_elevated", 
-                  "r9cesd_elevated",  "avg_cesd", "avg_cesd_elevated", 
-                  "total_elevated_cesd")] <- 0
+      predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"), 
+                  "age_death_y", "observed", "CESD_missing", "r3cesd", 
+                  "r4cesd_elevated", "r9cesd_elevated",  "avg_cesd", 
+                  "avg_cesd_elevated", "total_elevated_cesd")] <- 0
       
       #---- ****time-updated var models ----
       for(var in time_updated_vars){
@@ -161,9 +161,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(20, 20, 40, 25, 25),
-                     "20%" = c(40, 30, 40, 25, 25),
-                     "30%" = c(40, 40, 40, 25, 25)) %>% 
+                     "10%" = c(5, 5, 5, 5, 5),
+                     "20%" = c(5, 5, 5, 5, 5),
+                     "30%" = c(5, 5, 5, 5, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -195,7 +195,7 @@ mask_impute_pool <-
                          paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
                          "hispanic", "black", "other", "female", "death2018")), 
                   as.factor)
-
+      
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
                            maxit = max_it[method, mask_percent],
@@ -211,7 +211,7 @@ mask_impute_pool <-
       #   #10% missing needs maxit = 20
       #   #20% missing needs maxit = 40
       #   #30% missing needs maxit = 40
-       #plot(data_imputed)
+      #plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----
@@ -260,8 +260,8 @@ mask_impute_pool <-
       #10% missing needs maxit = 20
       #20% missing needs maxit = 
       #30% missing needs maxit = 
-       plot(data_imputed)
-       
+      plot(data_imputed)
+      
     } else if(method == "2l.fcs"){
       #---- ****2l.fcs ----
       #Longitudinal fully conditional specification
@@ -307,7 +307,30 @@ mask_impute_pool <-
     for(i in 1:num_impute){
       complete_data <- complete(data_imputed, action = i)
       
-      #---- **post-processing ----
+      #---- **post process: dummy vars ----
+      for(wave in seq(4, 9)){
+        vars <- c("married_partnered", "not_married_partnered", "widowed")
+        cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+        subset <- complete_data[, cols]
+        rowmax <- apply(subset, 1, function(x) max(x))
+        subset <- subset/rowmax
+        subset[subset < 1] <- 0
+        subset[subset > 1] <- 1
+        
+        complete_data[, colnames(subset)] <- subset
+      }
+      
+      #---- **post process: binary vars ----
+      for(vars in c("memrye_impute", "stroke_impute", "hearte_impute", 
+                    "lunge_impute", "cancre_impute", "hibpe_impute", 
+                    "diabe_impute")){
+        for(wave in seq(4, 9)){
+          
+        }
+      }
+      
+      
+      #---- **post-process: exposures ----
       complete_data %<>% 
         mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
                "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 

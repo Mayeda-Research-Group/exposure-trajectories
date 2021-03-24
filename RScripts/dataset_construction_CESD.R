@@ -349,20 +349,17 @@ hrs_samp %<>%
 #---- education ----
 #Create education categories
 hrs_samp %<>% 
-  mutate("less_than_HS" = ifelse(raedyrs < 12, 1, 0), 
-         "HS" = ifelse(raedyrs == 12, 1, 0), 
-         "some_college" = ifelse(raedyrs > 12 & raedyrs < 16, 1, 0), 
-         "bachelors" = ifelse(raedyrs == 16, 1, 0), 
-         "grad_studies" = ifelse(raedyrs > 16, 1, 0))
+  mutate("ed_cat" = 
+           case_when(raedyrs < 12 ~ 1, 
+                     raedyrs == 12 ~ 2, 
+                     raedyrs > 12 & raedyrs < 16 ~ 3, 
+                     raedyrs == 16 ~ 4, 
+                     raedyrs > 16 ~ 5)) 
 
 # #Sanity check
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
-# table(hrs_samp$raedyrs, hrs_samp$less_than_HS, useNA = "ifany")
-# table(hrs_samp$raedyrs, hrs_samp$HS, useNA = "ifany")
-# table(hrs_samp$raedyrs, hrs_samp$some_college, useNA = "ifany")
-# table(hrs_samp$raedyrs, hrs_samp$bachelors, useNA = "ifany")
-# table(hrs_samp$raedyrs, hrs_samp$grad_studies, useNA = "ifany")
+# table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
 
 #---- cSES index ----
 # #Sanity check
@@ -677,6 +674,8 @@ for(wave in seq(4, 9)){
 
 #---- drinking ----
 # Imputing drinking per day and drinking per week
+# The warnings you'll see are for people who are not missing any drinking 
+#   variables
 hrs_samp <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
                           seq(3, 13), seq(4, 9),  hrs_samp)
 hrs_samp <- impute_status("drinkn", paste0("r", seq(3, 13), "drinkn"),

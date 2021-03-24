@@ -1085,48 +1085,6 @@ hrs_samp %<>%
 #                      "avg_cesd_elevated"))
 # plot(hrs_samp$avg_cesd, hrs_samp$avg_cesd_elevated)
 
-# #---- **E4 Def: Latent Classes ----
-# #Model is based off of example in Proust-Lima et al. JSS 2017 
-# CESD_data_long <- hrs_samp %>% 
-#   dplyr::select("HHIDPN", "female", paste0(seq(4, 9, by = 1), "age_y_int")) %>% 
-#   pivot_longer(cols = contains("age"), 
-#                names_to = "age_waves", values_to = "age") %>% 
-#   cbind(hrs_samp %>% 
-#           dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
-#           pivot_longer(cols = everything(), 
-#                        names_to = "waves", values_to = "cesd")) %>% 
-#   dplyr::select(-c("age_waves")) %>%
-#   mutate("age_c65_decades" = (age - 65)/10)
-# 
-# #Subject IDs have to be numeric
-# CESD_data_long %<>% mutate_at("HHIDPN", as.numeric)
-# 
-# msplines1 <- lcmm(fixed = cesd ~ age_c65_decades*female,
-#                  mixture = ~ 1,
-#                  random = ~ age_c65_decades, 
-#                  subject = "HHIDPN", data = CESD_data_long, link = "splines", 
-#                  ng = 4, maxiter = 500)
-# 
-# #summary(msplines1)
-# saveRDS(msplines1, file = paste0(path_to_dropbox, 
-#                                  "/exposure_trajectories/data/models", 
-#                                  "msplines1.rds"))
-# 
-# msplines2 <- lcmm(fixed = cesd ~ age_c65_decades*female,
-#                   mixture = ~ age_c65_decades,
-#                   random = ~ age_c65_decades, 
-#                   subject = "HHIDPN", data = CESD_data_long, link = "splines", 
-#                   ng = 4, maxiter = 1000)
-# 
-# #summary(msplines2)
-# saveRDS(msplines2, file = paste0(path_to_dropbox, 
-#                                  "/exposure_trajectories/data/models", 
-#                                  "msplines2.rds"))
-# 
-# # #Sanity check-- 65 is close to the mean age
-# # hist(CESD_data_long$age)
-# # class(CESD_data_long$HHIDPN)
-
 #---- Outcome ----
 #---- ** survival times from HRS wave 9 (2008) to HRS wave 14 (2018) ----
 hrs_samp %<>% mutate(survtime = age_death_y - r9age_y_int) %>% 

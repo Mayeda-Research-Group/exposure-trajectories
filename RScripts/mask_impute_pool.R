@@ -80,9 +80,9 @@ mask_impute_pool <-
       
       #Don't use these as predictors
       predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"), 
-                  "age_death_y", "observed", "CESD_missing", "r3cesd", 
-                  "r4cesd_elevated", "r9cesd_elevated",  "avg_cesd", 
-                  "avg_cesd_elevated", "total_elevated_cesd")] <- 0
+                  "age_death_y", "observed", "r3cesd", "r4cesd_elevated", 
+                  "r9cesd_elevated", "avg_cesd", "avg_cesd_elevated", 
+                  "total_elevated_cesd")] <- 0
       
       #---- ****time-updated var models ----
       for(var in time_updated_vars){

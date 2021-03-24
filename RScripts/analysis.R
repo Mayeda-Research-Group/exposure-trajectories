@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "parallel")
+       "survival", "openxlsx", "lubridate", "future.apply")
 
 #No scientific notation
 options(scipen = 999)
@@ -37,7 +37,7 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 1
+num_runs <- 4
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #to add later: "FCS", "PMM", "JMVN Long", "FCS Long"
@@ -151,16 +151,9 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 #                    save = "yes"))
 
 #---- create cluster ----
-cl <- detectCores() - 1
+plan(multisession, gc = TRUE)
 
 #---- get pooled effect estimates ----
-# test <- apply(all_combos[8:9, ], 1, function(x) 
-#   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
-#                    mechanism = x["mechanisms"],
-#                    method = x["methods"],
-#                    mask_percent = x["mask_percent"], num_impute = 2,
-#                    save = "no"))
-
 for(i in which(!table_effect_ests$Method == "Truth")){
   #because we fill multiple rows at a time
   if(is.na(table_effect_ests[i, "beta"])){
@@ -169,12 +162,12 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     mask_percent = table_effect_ests[i, "Missingness"]
     start <- Sys.time()
     multi_runs <- 
-      replicate(num_runs, 
-                mask_impute_pool(CESD_data_wide, exposures, 
-                                 mechanism = mechanism, method = method, 
-                                 mask_percent = mask_percent,
-                                 num_impute = 2, save = "no"), 
-                simplify = FALSE)
+      future_replicate(num_runs, 
+                       mask_impute_pool(CESD_data_wide, exposures, 
+                                        mechanism = mechanism, method = method, 
+                                        mask_percent = mask_percent,
+                                        num_impute = 2, save = "no"), 
+                       simplify = FALSE)
     stop <- Sys.time() - start
     #Formatting data
     formatted <- do.call(rbind, multi_runs)
@@ -205,6 +198,9 @@ for(i in which(!table_effect_ests$Method == "Truth")){
   }
 }
 end <- Sys.time() - start
+
+#---- shut down cluster ----
+future::plan("sequential")
 
 #---- save tables ----
 #Round numbers in dataframe

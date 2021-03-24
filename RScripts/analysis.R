@@ -12,6 +12,7 @@ options(scipen = 999)
 set.seed(20200819)
 
 #---- source scripts ----
+source(here::here("RScripts", "mask.R"))
 source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- note ----
@@ -44,8 +45,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
 methods <- c("JMVN")
 #to add later: "MAR", "MNAR"
 mechanisms <- c("MCAR")
-#to add later: 0.20, 0.30
-mask_props <- c(.10)
+mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
@@ -154,13 +154,14 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 plan(multisession, gc = TRUE)
 
 #---- get pooled effect estimates ----
+start <- Sys.time()
 for(i in which(!table_effect_ests$Method == "Truth")){
   #because we fill multiple rows at a time
   if(is.na(table_effect_ests[i, "beta"])){
     mechanism = table_effect_ests[i, "Type"]
     method = table_effect_ests[i, "Method"]
     mask_percent = table_effect_ests[i, "Missingness"]
-    start <- Sys.time()
+    
     multi_runs <- 
       future_replicate(num_runs, 
                        mask_impute_pool(CESD_data_wide, exposures, 
@@ -168,7 +169,6 @@ for(i in which(!table_effect_ests$Method == "Truth")){
                                         mask_percent = mask_percent,
                                         num_impute = 2, save = "no"), 
                        simplify = FALSE)
-    stop <- Sys.time() - start
     #Formatting data
     formatted <- do.call(rbind, multi_runs)
     

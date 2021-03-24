@@ -2,7 +2,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("table1", "tidyverse", "plyr", "labelled")
+p_load("table1", "tidyverse", "plyr", "labelled", "gt", "rvest")
 
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
@@ -16,28 +16,24 @@ path_to_box <- "C:/Users/yingyan_wu"
 path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- read in analytical sample ----
-CESD_data <- 
+CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
-                  "CESD_data_wide.csv"))
-           # , 
-           # col_types = cols(.default = col_double(), HHIDPN = col_character(), 
-           #                  death2018 = col_integer(), ed_cat = col_factor(), 
-           #                  r4mstat_cat = col_factor(), 
-           #                  r9mstat_cat = col_factor(), 
-           #                  drinking4_cat_impute = col_factor(),
-           #                  drinking9_cat_impute = col_factor(),
-           #                  female = col_factor(), hispanic = col_factor(), 
-           #                  black = col_factor(), other = col_factor(), 
-           #                  smoker = col_integer()))
+                  "CESD_data_wide.csv"), 
+           col_types = cols(.default = col_double()))
+           
 #---- Label the data ----
-# colnames(CESD_data)
+colnames(CESD_data_wide)
 
-CESD_data %<>% 
+table1_data <- CESD_data_wide %>% 
   mutate("raceeth" = case_when(hispanic == 0 & white == 1 ~ "Non-hispanic White",
                                hispanic == 0 & black == 1 ~ "Non-hispanic Black",
                                hispanic == 1 ~ "Hispanic",
-                               other == 1 ~ "Other")) %>%
+                               other == 1 ~ "Other"),
+         "r4mstat_cat" = case_when(
+           r4married_partnered == 1 ~ "Married/Partnered",
+           r4not_married_partnered == 1 ~ "Not Married/Partnered",
+           r4widowed == 1 ~ "Widowed")) %>%
   set_variable_labels(
     r4age_y_int = "Baseline age in years",
     female = "Sex/Gender",
@@ -53,13 +49,16 @@ CESD_data %<>%
     r4memrye_impute = "Memory problems",
     r4conde_impute = "Count of self-report chronic diseases",
     r4BMI = "BMI",
-    drinking4_cat_impute = "Alcohol intake",
+    r4drinking_cat = "Alcohol intake",
     smoker = "Smoking status",
     r4shlt = "Self-reported health",
     r4cesd = "CESD score"
   ) %>%
   drop_unused_value_labels() %>%
   set_value_labels(female = c("Female" = 1, "Male" = 0),
+                   ed_cat = c("Less than High School" = 1, "High School" = 2, 
+                              "Some college" = 3, "Bachelors" = 4, 
+                              "Grad studies" = 5),
                    r4hibpe_impute = c("Yes" = 1, "No" = 0),
                    r4diabe_impute = c("Yes" = 1, "No" = 0),
                    r4hearte_impute = c("Yes" = 1, "No" = 0),
@@ -67,18 +66,59 @@ CESD_data %<>%
                    r4cancre_impute = c("Yes" = 1, "No" = 0),
                    r4lunge_impute = c("Yes" = 1, "No" = 0),
                    r4memrye_impute = c("Yes" = 1, "No" = 0),
-                   drinking4_cat_impute = c("Heavy Drinking" = 3,
-                                            "Moderate Drinking" = 2,
-                                            "No Drinking" = 1),
+                   r4drinking_cat = c("Heavy Drinking" = 2,
+                                            "Moderate Drinking" = 1,
+                                            "No Drinking" = 0),
                    smoker = c("Ever smoke" = 1, "No smoking" = 0),
                    r4shlt = c("Excellent" = 1, "Very Good" = 2, "Good" = 3,
                               "Fair" = 4, "Poor" = 5)) %>%
   modify_if(is.labelled, to_factor)
 
-table1(~ r4age_y_int + female + raceeth + 
-         ed_cat + r4mstat_cat + 
-         r4hibpe_impute + r4diabe_impute + r4hearte_impute + r4stroke_impute + 
-         r4cancre_impute + r4lunge_impute + r4memrye_impute +
-         r4conde_impute + 
-         r4BMI + drinking4_cat_impute + smoker + r4shlt|r4cesd, data=CESD_data)
+# For showing +/- SD in the table (save it here in case future needed)
+# render_cont <- function(x){
+#   with(stats.apply.rounding(stats.default(x), digits = 2), 
+#        c("", "Mean (SD)" = sprintf("%s (&plusmn; %s)", MEAN, SD)))
+# }
 
+render_cont <- function(x){
+  with(stats.apply.rounding(stats.default(x), digits = 2),
+       c("", "Mean (SD)" = sprintf("%s (%s)", MEAN, SD)))
+}
+
+(table_1 <- table1(~ r4age_y_int + female + raceeth + 
+                     ed_cat + r4mstat_cat + 
+                     r4hibpe_impute + r4diabe_impute + r4hearte_impute + 
+                     r4stroke_impute + r4cancre_impute + r4lunge_impute + 
+                     r4memrye_impute +
+                     r4conde_impute + 
+                     r4BMI + r4drinking_cat + smoker + r4shlt|r4cesd, 
+                   render.continuous = render_cont,
+                   data = table1_data))
+
+
+table_1_df <- as.data.frame(read_html(table_1) %>% html_table(fill=TRUE))
+
+write_csv(table_1_df, path = paste0(path_to_dropbox, 
+                                    "/exposure_trajectories/manuscript/tables", 
+                                    "/table_1_df.csv"))
+
+# Attempt to save the html using gtsave
+
+# table_1_gt_tbl <- as_tibble(read_html(table_1) %>% html_table(fill=TRUE), 
+#                             .name_repair = c())
+# 
+# gt(table_1_gt_tbl)
+# 
+# gt(
+#   data,
+#   rowname_col = "rowname",
+#   groupname_col = dplyr::group_vars(data),
+#   rownames_to_stub = FALSE,
+#   auto_align = TRUE,
+#   id = NULL,
+#   row_group.sep = getOption("gt.row_group.sep", " - ")
+# )
+# 
+# gtsave(, "tab_1.html", inline_css = TRUE,
+#        path = paste0(path_to_dropbox, "/manuscript/tables")
+# )

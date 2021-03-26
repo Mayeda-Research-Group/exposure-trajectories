@@ -164,14 +164,12 @@ mask <- function(data_wide, mechanism, mask_percent){
                             + beta_condepre * r8conde_impute),
           r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
                             beta_cesdpre * r8cesd + beta_cesdcurrent * r9cesd +
-                            + beta_condepre * r9conde_impute)
-        ) %>%
+                            + beta_condepre * r9conde_impute)) %>%
         select(contains("pcesd"))
       
       for (j in 1:ncol(subset)){
         subset[, paste0("r", j + 3, "cesd_missing")] <- 
           rbinom(nrow(subset), size = 1, prob = subset[[j]])
-        
       }
       
       subset_long <- subset %>%
@@ -208,7 +206,6 @@ mask <- function(data_wide, mechanism, mask_percent){
               paste0("r", seq(4, 9), var)] <- data_long[, -1]
     data_wide[which(!data_wide$HHIDPN %in% data_long$HHIDPN),
               paste0("r", seq(4, 9), var)] <- NA
-    
   }
   
   #masking derived values

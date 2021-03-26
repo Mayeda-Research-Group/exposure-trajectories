@@ -43,8 +43,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
                "Elevated CES-D Count")
 #to add later: "FCS", "PMM", "JMVN Long", "FCS Long"
 methods <- c("JMVN")
-#to add later: "MAR", "MNAR"
-mechanisms <- c("MCAR")
+mechanisms <- c("MCAR", "MAR", "MNAR")
 mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
@@ -204,7 +203,7 @@ future::plan("sequential")
 
 #---- save tables ----
 #Round numbers in dataframe
-table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 2)))
+table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
 
 #Save results
 table_list <- list("Table 2" = table_effect_ests)

@@ -28,29 +28,6 @@ mask <- function(data_wide, mechanism, mask_percent){
                          replace = FALSE)
   } else{
     #---- expected value for predictors of MAR & MNAR missingness ----
-    # # Age
-    # overall_ages <- data_wide %>% 
-    #   dplyr::select(paste0("r", seq(4, 9, by = 1), "age_y_int")) %>% 
-    #   pivot_longer(everything(), names_to = "orig_varname", 
-    #                values_to = "age_int")
-    
-    # # CESD previous wave (wave 3-8)
-    # CESD_3_8_long <- data_wide %>%
-    #   dplyr::select(paste0("r", seq(3, 8, by = 1), "cesd")) %>%
-    #   pivot_longer(everything(), names_to = "orig_varname", 
-    #                values_to = "cesd")
-    # 
-    # #conde at previous wave
-    # conde_3_8_long <- data_wide %>%
-    #   dplyr::select(paste0("r", seq(3, 8, by = 1), "conde_impute")) %>%
-    #   pivot_longer(everything(), names_to = "orig_varname", 
-    #                values_to = "conde_impute")
-    # 
-    # #CESD this wave (wave 4-9)
-    # CESD_4_9_long <- data_wide %>%
-    #   dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>%
-    #   pivot_longer(everything(), names_to = "orig_varname", 
-    #                values_to = "cesd")
     #---- **E(X)s ----
     e_age <- 
       mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "age_y_int")]))

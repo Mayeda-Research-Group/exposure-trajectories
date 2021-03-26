@@ -1,11 +1,12 @@
 mask_impute_pool <- 
-  function(data_wide, exposures, mechanism, method, mask_percent, num_impute, 
-           save = "no"){
+  function(data_wide, exposures, mechanism, method, mask_percent, num_impute,
+           truth, save = "no"){
+    
     #---- create shell for output ----
     pooled_effect_ests <- 
       data.frame("Exposure" = exposures, "beta" = NA, "SD" = NA, "LCI" = NA, 
                  "UCI" = NA, "Method" = method, "Missingness" = mask_percent, 
-                 "Type" = mechanism)
+                 "Type" = mechanism, "capture_truth" = NA)
     
     #---- create incomplete data ----
     data_wide <- mask(data_wide, mechanism, mask_percent)
@@ -347,6 +348,11 @@ mask_impute_pool <-
     
     pooled_effect_ests[, "UCI"] <- 
       pooled_effect_ests$beta + 1.96*pooled_effect_ests$SD
+    
+    #---- truth coverage ----
+    pooled_effect_ests$capture_truth <- 
+      (truth$beta > pooled_effect_ests$LCI)*
+      (truth$beta < pooled_effect_ests$UCI)
     
     #---- return values ----
     return(pooled_effect_ests)

@@ -104,24 +104,27 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(5, 5, 5, 5, 5),
-                     "20%" = c(5, 5, 5, 5, 5),
-                     "30%" = c(5, 5, 5, 5, 5)) %>% 
+                     "10%" = c(5, 25, 5, 5, 5),
+                     "20%" = c(5, 25, 5, 5, 5),
+                     "30%" = c(5, 25, 5, 5, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
+      #start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = max_it[method, mask_percent], 
+                           #maxit = max_it[method, mask_percent], 
+                           maxit = 30,
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
+      #stop <- Sys.time() - start
       
       # #look at convergence
-      #   #10% missing needs maxit = 20
-      #   #20% missing needs maxit = 30
-      #   #30% missing needs maxit = 40
+      #   #10% missing needs maxit = 25
+      #   #20% missing needs maxit = 25
+      #   #30% missing needs maxit = 25
       # plot(data_imputed)
       
     } else if(method == "FCS"){

@@ -1,6 +1,6 @@
 mask_impute_pool <- 
-  function(data_wide, exposures, mechanism, method, mask_percent, num_impute,
-           truth, save = "no"){
+  function(data_wide, exposures, mechanism, method, mask_percent, truth, 
+           save = "no"){
     
     #---- create shell for output ----
     pooled_effect_ests <- 
@@ -113,9 +113,9 @@ mask_impute_pool <-
     if(method == "JMVN"){
       #Joint multivariate normal
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, 
-                           #maxit = max_it[method, mask_percent], 
-                           maxit = 30,
+      data_imputed <- mice(data = data_wide, 
+                           m = as.numeric(sub("%","", mask_percent)), 
+                           maxit = max_it[method, mask_percent], 
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)

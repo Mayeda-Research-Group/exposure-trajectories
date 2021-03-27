@@ -250,7 +250,7 @@ mask_impute_pool <-
     model_list <- vector(mode = "list", length = length(exposures)) %>% 
       set_names(exposures)
     
-    for(i in 1:num_impute){
+    for(i in 1:(as.numeric(sub("%","", mask_percent)))){
       complete_data <- complete(data_imputed, action = i)
       
       #---- **post process: dummy vars ----

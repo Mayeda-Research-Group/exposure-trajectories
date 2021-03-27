@@ -168,7 +168,7 @@ for(i in which(!table_effect_ests$Method == "Truth")){
                        mask_impute_pool(CESD_data_wide, exposures, 
                                         mechanism = mechanism, method = method, 
                                         mask_percent = mask_percent,
-                                        num_impute = 2, save = "no"), 
+                                        truth = truth, save = "no"), 
                        simplify = FALSE)
     #Formatting data
     formatted <- do.call(rbind, multi_runs)

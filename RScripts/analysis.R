@@ -53,7 +53,7 @@ table_effect_ests <-
                     paste0(mask_props*100, "%")) %>% 
           set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
   mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, 
-         "LCI_beta" = NA, "UCI_beta" = NA)
+         "LCI_beta" = NA, "UCI_beta" = NA, "truth_capture" = NA)
 
 #---- truth ----
 #---- **CES-D Wave 4 ----
@@ -153,6 +153,8 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 plan(multisession, gc = TRUE)
 
 #---- get pooled effect estimates ----
+truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
+
 start <- Sys.time()
 for(i in which(!table_effect_ests$Method == "Truth")){
   #because we fill multiple rows at a time
@@ -194,6 +196,14 @@ for(i in which(!table_effect_ests$Method == "Truth")){
       formatted %>% group_by(Exposure) %>%
       summarize_at(.vars = "beta", ~ quantile(.x, 0.975)) %>% 
       dplyr::select("beta")
+    
+    table_effect_ests[which(table_effect_ests$Method == method & 
+                              table_effect_ests$Missingness == mask_percent & 
+                              table_effect_ests$Type == mechanism), 
+                      "truth_capture"] <- 
+      formatted %>% group_by(Exposure) %>%
+      summarize_at(.vars = c("capture_truth"), .funs = mean) %>% 
+      dplyr::select("capture_truth")
   }
 }
 end <- Sys.time() - start
@@ -205,13 +215,15 @@ future::plan("sequential")
 #Round numbers in dataframe
 table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
 
-#Save results
-table_list <- list("Table 2" = table_effect_ests)
-write.xlsx(table_list, file = paste0(path_to_dropbox,
+#Save results 
+write_csv(table_effect_ests, file = paste0(path_to_dropbox,
                                      "/exposure_trajectories/manuscript/",
-                                     "tables/main_text_tables", num_runs, "_", 
-                                     format(now(), "%Y%m%d_%H%M%S_"),
-                                     ".xlsx"))
+                                     "tables/results_", method, "_", num_runs, 
+                                     "_", format(now(), "%Y%m%d"),
+                                     ".csv"))
+
+
+
 
 
 

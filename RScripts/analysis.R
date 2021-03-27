@@ -24,7 +24,7 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 # MRG desktop directory: C:/Users/cshaw/Dropbox
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox"
+path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -38,15 +38,15 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 2
+num_runs <- 1000
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #to add later: "FCS", "PMM", "JMVN Long", "FCS Long"
 methods <- c("JMVN")
-mechanisms <- c("MCAR")
-mask_props <- c(0.10)
-#mechanisms <- c("MCAR", "MAR", "MNAR")
-#mask_props <- c(.10, 0.20, 0.30)
+#mechanisms <- c("MCAR")
+#mask_props <- c(0.10)
+mechanisms <- c("MCAR", "MAR", "MNAR")
+mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 

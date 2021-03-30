@@ -177,22 +177,21 @@ mask_impute_pool <-
                          "hispanic", "black", "other", "female", "death2018")), 
                   as.factor)
       
-      start <- Sys.time()
+      #start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = 20,
-                           #maxit = max_it[method, mask_percent], 
+                           maxit = max_it[method, mask_percent], 
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      stop <- Sys.time() - start
+      #stop <- Sys.time() - start
       
-      #look at convergence
-      #10% missing needs maxit = 10
-      #20% missing needs maxit = 20
-      #30% missing needs maxit = 20
-      plot(data_imputed)
+      # #look at convergence
+      # #10% missing needs maxit = 10
+      # #20% missing needs maxit = 20
+      # #30% missing needs maxit = 20
+      # plot(data_imputed)
       
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----

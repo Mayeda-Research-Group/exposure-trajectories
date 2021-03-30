@@ -77,6 +77,9 @@ table1_data <- CESD_data_wide %>%
   modify_if(is.labelled, to_factor)
 
 #---- Use table1 pacakge ----
+# Really annoying that "table1" and "furniture" fight with each other to "death"
+remove.packages("furniture") 
+
 # For showing +/- SD in the table (save it here in case future needed)
 # render_cont <- function(x){
 #   with(stats.apply.rounding(stats.default(x), digits = 2), 
@@ -135,23 +138,50 @@ readr::write_csv(table_1_df, path = paste0(path_to_dropbox,
 # )
 
 #---- Use furniture package ----
-# pacman::p_load("haven", "tidyverse", "magrittr", "foreign", "ggplot2", "dplyr", 
-#        "survey", "tidyr", "lme4", "lmerTest", "leaps", "DescTools", "locfit", 
-#        "jtools", "LMERConvenienceFunctions", "sjPlot", "sjmisc", "sjlabelled", 
+# Package loading code chunk from Joey
+# pacman::p_load("haven", "tidyverse", "magrittr", "foreign", "ggplot2", "dplyr",
+#        "survey", "tidyr", "lme4", "lmerTest", "leaps", "DescTools", "locfit",
+#        "jtools", "LMERConvenienceFunctions", "sjPlot", "sjmisc", "sjlabelled",
 #        "ggplot2", "furniture")
-# library(dplyr)
-# library(furniture)
-# # p_load("furniture")
-# # detach("package:plyr", unload = TRUE)
-# # detach("package:table1", unload = TRUE)
-# table_1 <- table1_data %>% 
-#   furniture::table1(r4age_y_int, female, 
-#                             #  raceeth, ed_cat, r4mstat_cat, 
-#                             # r4hibpe_impute, r4diabe_impute, r4hearte_impute, 
-#                             # r4stroke_impute, r4cancre_impute, r4lunge_impute, 
-#                             # r4memrye_impute, r4conde_impute, r4BMI, 
-#                             # r4drinking_cat, smoker, r4shlt,
-#                             # splitby = ~r4cesd_elevated, 
+
+# They just fight with each other T^T
+# remove.packages("table1")
+# p_load("furniture")
+# 
+# table1_data %<>%
+#   labelled::drop_unused_value_labels() %>%
+#   labelled::set_value_labels(female = c("Male" = 0, "Female" = 1),
+#                              ed_cat = c("Less than High School" = 1, "High School" = 2, 
+#                                         "Some college" = 3, "Bachelors" = 4, 
+#                                         "Grad studies" = 5),
+#                              r4hibpe_impute = c("No" = 0, "Yes" = 1),
+#                              r4diabe_impute = c("No" = 0, "Yes" = 1),
+#                              r4hearte_impute = c("No" = 0, "Yes" = 1),
+#                              r4stroke_impute = c("No" = 0, "Yes" = 1),
+#                              r4cancre_impute = c("No" = 0, "Yes" = 1),
+#                              r4lunge_impute = c("No" = 0, "Yes" = 1),
+#                              r4memrye_impute = c("No" = 0, "Yes" = 1),
+#                              r4drinking_cat = c("Heavy Drinking" = 2,
+#                                                 "Moderate Drinking" = 1,
+#                                                 "No Drinking" = 0),
+#                              smoker = c("No smoking" = 0, "Ever smoke" = 1),
+#                              r4shlt = c("Excellent" = 1, "Very Good" = 2, "Good" = 3,
+#                                         "Fair" = 4, "Poor" = 5),
+#                              r4cesd_elevated = c("Elevated CES-D" = 1, 
+#                                                  "Not Elevated CES-D" = 0)) %>%
+#   modify_if(is.labelled, to_factor)
+# 
+# 
+# table1(table1_data, r4age_y_int, female,
+#                              raceeth, ed_cat, r4mstat_cat,
+#                             r4hibpe_impute, r4diabe_impute, r4hearte_impute,
+#                             r4stroke_impute, r4cancre_impute, r4lunge_impute,
+#                             r4memrye_impute, r4conde_impute, r4BMI,
+#                             r4drinking_cat, smoker, r4shlt,
+#                             splitby = ~r4cesd_elevated,
 #                             # na.rm = FALSE,
-#                             # formate_number = TRUE,
-#                             type = c("condensed"))
+#                             format_number = TRUE,
+#                             output = "html",
+#                             type = c("condensed")
+#                             )
+

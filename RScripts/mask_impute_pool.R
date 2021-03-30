@@ -131,7 +131,9 @@ mask_impute_pool <-
       #---- ****FCS ----
       #Fully conditional specification
       data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
+        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+                         paste0("r", seq(4, 9), "not_married_partnered"),
+                         paste0("r", seq(4, 9), "widowed"),
                          paste0("r", seq(4, 9), "memrye_impute"), 
                          paste0("r", seq(4, 9), "stroke_impute"),
                          paste0("r", seq(4, 9), "hearte_impute"),
@@ -142,22 +144,23 @@ mask_impute_pool <-
                          "hispanic", "black", "other", "female", "death2018")), 
                   as.factor)
       
-      #start <- Sys.time()
+      start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
-                           maxit = max_it[method, mask_percent],
-                           nnet.MaxNWts = 5000,
+                           maxit = 10,
+                           #maxit = max_it[method, mask_percent],
+                           #nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)),
                            seed = 20210126)
-      #end <- Sys.time() - start
+      end <- Sys.time() - start
       
-      # #look at convergence
-      #   #10% missing needs maxit = 20
-      #   #20% missing needs maxit = 40
-      #   #30% missing needs maxit = 40
-      #plot(data_imputed)
+      #look at convergence
+        #10% missing needs maxit = 20
+        #20% missing needs maxit = 40
+        #30% missing needs maxit = 40
+      plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----

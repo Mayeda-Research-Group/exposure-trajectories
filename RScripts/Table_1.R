@@ -135,23 +135,23 @@ readr::write_csv(table_1_df, path = paste0(path_to_dropbox,
 # )
 
 #---- Use furniture package ----
-pacman::p_load("haven", "tidyverse", "magrittr", "foreign", "ggplot2", "dplyr", 
-       "survey", "tidyr", "lme4", "lmerTest", "leaps", "DescTools", "locfit", 
-       "jtools", "LMERConvenienceFunctions", "sjPlot", "sjmisc", "sjlabelled", 
-       "ggplot2", "furniture")
-library(dplyr)
-library(furniture)
-# p_load("furniture")
-# detach("package:plyr", unload = TRUE)
-# detach("package:table1", unload = TRUE)
-table_1 <- table1_data %>% 
-  furniture::table1(r4age_y_int, female, 
-                            #  raceeth, ed_cat, r4mstat_cat, 
-                            # r4hibpe_impute, r4diabe_impute, r4hearte_impute, 
-                            # r4stroke_impute, r4cancre_impute, r4lunge_impute, 
-                            # r4memrye_impute, r4conde_impute, r4BMI, 
-                            # r4drinking_cat, smoker, r4shlt,
-                            # splitby = ~r4cesd_elevated, 
-                            # na.rm = FALSE,
-                            # formate_number = TRUE,
-                            type = c("condensed"))
+# pacman::p_load("haven", "tidyverse", "magrittr", "foreign", "ggplot2", "dplyr", 
+#        "survey", "tidyr", "lme4", "lmerTest", "leaps", "DescTools", "locfit", 
+#        "jtools", "LMERConvenienceFunctions", "sjPlot", "sjmisc", "sjlabelled", 
+#        "ggplot2", "furniture")
+# library(dplyr)
+# library(furniture)
+# # p_load("furniture")
+# # detach("package:plyr", unload = TRUE)
+# # detach("package:table1", unload = TRUE)
+# table_1 <- table1_data %>% 
+#   furniture::table1(r4age_y_int, female, 
+#                             #  raceeth, ed_cat, r4mstat_cat, 
+#                             # r4hibpe_impute, r4diabe_impute, r4hearte_impute, 
+#                             # r4stroke_impute, r4cancre_impute, r4lunge_impute, 
+#                             # r4memrye_impute, r4conde_impute, r4BMI, 
+#                             # r4drinking_cat, smoker, r4shlt,
+#                             # splitby = ~r4cesd_elevated, 
+#                             # na.rm = FALSE,
+#                             # formate_number = TRUE,
+#                             type = c("condensed"))

@@ -24,7 +24,7 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 # MRG desktop directory: C:/Users/cshaw/Dropbox
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -38,15 +38,15 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 1000
+num_runs <- 4
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-#to add later: "FCS", "PMM", "JMVN Long", "FCS Long"
-methods <- c("JMVN")
-#mechanisms <- c("MCAR")
-#mask_props <- c(0.10)
-mechanisms <- c("MCAR", "MAR", "MNAR")
-mask_props <- c(.10, 0.20, 0.30)
+#all methods: "JMVN", "FCS", "PMM", "JMVN Long", "FCS Long"
+methods <- c("FCS")
+mechanisms <- c("MCAR")
+mask_props <- c(0.10)
+#mechanisms <- c("MCAR", "MAR", "MNAR")
+#mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
@@ -219,8 +219,8 @@ table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
 
 #Save results 
 write_csv(table_effect_ests, file = paste0(path_to_dropbox,
-                                     "/exposure_trajectories/manuscript/",
-                                     "tables/results_", method, "_", num_runs, 
-                                     "_", format(now(), "%Y%m%d"),
-                                     ".csv"))
+                                           "/exposure_trajectories/manuscript/",
+                                           "tables/results_", method, "_", num_runs, 
+                                           "_", format(now(), "%Y%m%d"),
+                                           ".csv"))
 

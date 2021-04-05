@@ -146,7 +146,7 @@ mask_impute_pool <-
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
-                           m = as.numeric(sub("%","", mask_percent)),, 
+                           m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent],
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),

@@ -104,7 +104,7 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(20, 25, 10, 5, 5),
+                     "10%" = c(20, 25, 10, 10, 5),
                      "20%" = c(25, 25, 20, 5, 5),
                      "30%" = c(25, 25, 20, 5, 5)) %>% 
       column_to_rownames("Method")
@@ -199,7 +199,7 @@ mask_impute_pool <-
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
                            #maxit = max_it[method, mask_percent],
-                           maxit = 20,
+                           maxit = 10,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
@@ -207,7 +207,7 @@ mask_impute_pool <-
       stop <- Sys.time() - start
       
       #look at convergence
-      #10% missing needs maxit = 20
+      #10% missing needs maxit = 10
       #20% missing needs maxit = 
       #30% missing needs maxit = 
       plot(data_imputed)
@@ -217,7 +217,8 @@ mask_impute_pool <-
       #Longitudinal fully conditional specification
       #Fully conditional specification
       data_long %<>% 
-        mutate_at(vars(c("mstat_impute", "memrye_impute", "stroke_impute", 
+        mutate_at(vars(c("married_partnered", "not_married_partnered", 
+                         "widowed", "memrye_impute", "stroke_impute", 
                          "hearte_impute", "lunge_impute", "cancre_impute", 
                          "hibpe_impute", "diabe_impute", "ed_cat", "black", 
                          "hispanic", "other", "female", "death2018", "smoker")), 

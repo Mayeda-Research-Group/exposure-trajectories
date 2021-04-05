@@ -2,7 +2,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("table1", "tidyverse", "plyr", "labelled", "gt", "rvest")
+p_load("table1", "tidyverse", "dplyr", "plyr", "labelled", "gt", "rvest")
 
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
@@ -34,28 +34,28 @@ table1_data <- CESD_data_wide %>%
            r4married_partnered == 1 ~ "Married/Partnered",
            r4not_married_partnered == 1 ~ "Not Married/Partnered",
            r4widowed == 1 ~ "Widowed")) %>%
-  set_variable_labels(
+  labelled::set_variable_labels(
     r4age_y_int = "Baseline age in years",
-    female = "Sex/Gender",
-    raceeth = "Race/Ethnicity",
-    ed_cat = "Education level",
-    r4mstat_cat = "Married status",
-    r4hibpe_impute = "Hypertension(Diagnosed)",
-    r4diabe_impute = "Diabetes",
-    r4hearte_impute = "Heart diseases",
-    r4stroke_impute = "Stroke",
-    r4cancre_impute = "Cancer",
-    r4lunge_impute = "Lung diseases",
-    r4memrye_impute = "Memory problems",
+    female = "Sex/Gender (%)",
+    raceeth = "Race/Ethnicity (%)",
+    ed_cat = "Education level (%)",
+    r4mstat_cat = "Married status (%)",
+    r4hibpe_impute = "Hypertension(Diagnosed) (%)",
+    r4diabe_impute = "Diabetes (%)",
+    r4hearte_impute = "Heart diseases (%)",
+    r4stroke_impute = "Stroke (%)",
+    r4cancre_impute = "Cancer (%)",
+    r4lunge_impute = "Lung diseases (%)",
+    r4memrye_impute = "Memory problems (%)",
     r4conde_impute = "Count of self-report chronic diseases",
     r4BMI = "BMI",
-    r4drinking_cat = "Alcohol intake",
-    smoker = "Smoking status",
-    r4shlt = "Self-reported health",
-    r4cesd = "CESD score"
+    r4drinking_cat = "Alcohol intake (%)",
+    smoker = "Smoking status (%)",
+    r4shlt = "Self-reported health (%)",
+    r4cesd_elevated = "Baseline Elevated CES-D"
   ) %>%
-  drop_unused_value_labels() %>%
-  set_value_labels(female = c("Female" = 1, "Male" = 0),
+  labelled::drop_unused_value_labels() %>%
+  labelled::set_value_labels(female = c("Female" = 1, "Male" = 0),
                    ed_cat = c("Less than High School" = 1, "High School" = 2, 
                               "Some college" = 3, "Bachelors" = 4, 
                               "Grad studies" = 5),
@@ -71,8 +71,14 @@ table1_data <- CESD_data_wide %>%
                                             "No Drinking" = 0),
                    smoker = c("Ever smoke" = 1, "No smoking" = 0),
                    r4shlt = c("Excellent" = 1, "Very Good" = 2, "Good" = 3,
-                              "Fair" = 4, "Poor" = 5)) %>%
+                              "Fair" = 4, "Poor" = 5),
+                   r4cesd_elevated = c("Elevated CES-D" = 1, 
+                                       "Not Elevated CES-D" = 0)) %>%
   modify_if(is.labelled, to_factor)
+
+#---- Use table1 pacakge ----
+# Really annoying that "table1" and "furniture" fight with each other to "death"
+remove.packages("furniture") 
 
 # For showing +/- SD in the table (save it here in case future needed)
 # render_cont <- function(x){
@@ -80,25 +86,33 @@ table1_data <- CESD_data_wide %>%
 #        c("", "Mean (SD)" = sprintf("%s (&plusmn; %s)", MEAN, SD)))
 # }
 
+# Just showing mean(sd) for continuous variables
 render_cont <- function(x){
   with(stats.apply.rounding(stats.default(x), digits = 2),
        c("", "Mean (SD)" = sprintf("%s (%s)", MEAN, SD)))
 }
+# just showing numbers(percentage) without "%" for categorical variables
+render_cat <- function(x){
+  c("", sapply(stats.default(x), 
+               function(y) with(y, sprintf("%d (%.1f)", FREQ, PCT))))
+}
 
-(table_1 <- table1(~ r4age_y_int + female + raceeth + 
+(table_1 <- table1::table1(~ r4age_y_int + female + raceeth + 
                      ed_cat + r4mstat_cat + 
                      r4hibpe_impute + r4diabe_impute + r4hearte_impute + 
                      r4stroke_impute + r4cancre_impute + r4lunge_impute + 
                      r4memrye_impute +
                      r4conde_impute + 
-                     r4BMI + r4drinking_cat + smoker + r4shlt|r4cesd, 
+                     r4BMI + r4drinking_cat + smoker + r4shlt|r4cesd_elevated, 
                    render.continuous = render_cont,
+                   render.categorical = render_cat,
+                   footnote = 
+                     "Stratified by Elevated baseline CES-D (CES-D > 4)",
                    data = table1_data))
-
 
 table_1_df <- as.data.frame(read_html(table_1) %>% html_table(fill=TRUE))
 
-write_csv(table_1_df, path = paste0(path_to_dropbox, 
+readr::write_csv(table_1_df, path = paste0(path_to_dropbox, 
                                     "/exposure_trajectories/manuscript/tables", 
                                     "/table_1_df.csv"))
 
@@ -122,3 +136,52 @@ write_csv(table_1_df, path = paste0(path_to_dropbox,
 # gtsave(, "tab_1.html", inline_css = TRUE,
 #        path = paste0(path_to_dropbox, "/manuscript/tables")
 # )
+
+#---- Use furniture package ----
+# Package loading code chunk from Joey
+# pacman::p_load("haven", "tidyverse", "magrittr", "foreign", "ggplot2", "dplyr",
+#        "survey", "tidyr", "lme4", "lmerTest", "leaps", "DescTools", "locfit",
+#        "jtools", "LMERConvenienceFunctions", "sjPlot", "sjmisc", "sjlabelled",
+#        "ggplot2", "furniture")
+
+# They just fight with each other T^T
+# remove.packages("table1")
+# p_load("furniture")
+# 
+# table1_data %<>%
+#   labelled::drop_unused_value_labels() %>%
+#   labelled::set_value_labels(female = c("Male" = 0, "Female" = 1),
+#                              ed_cat = c("Less than High School" = 1, "High School" = 2, 
+#                                         "Some college" = 3, "Bachelors" = 4, 
+#                                         "Grad studies" = 5),
+#                              r4hibpe_impute = c("No" = 0, "Yes" = 1),
+#                              r4diabe_impute = c("No" = 0, "Yes" = 1),
+#                              r4hearte_impute = c("No" = 0, "Yes" = 1),
+#                              r4stroke_impute = c("No" = 0, "Yes" = 1),
+#                              r4cancre_impute = c("No" = 0, "Yes" = 1),
+#                              r4lunge_impute = c("No" = 0, "Yes" = 1),
+#                              r4memrye_impute = c("No" = 0, "Yes" = 1),
+#                              r4drinking_cat = c("Heavy Drinking" = 2,
+#                                                 "Moderate Drinking" = 1,
+#                                                 "No Drinking" = 0),
+#                              smoker = c("No smoking" = 0, "Ever smoke" = 1),
+#                              r4shlt = c("Excellent" = 1, "Very Good" = 2, "Good" = 3,
+#                                         "Fair" = 4, "Poor" = 5),
+#                              r4cesd_elevated = c("Elevated CES-D" = 1, 
+#                                                  "Not Elevated CES-D" = 0)) %>%
+#   modify_if(is.labelled, to_factor)
+# 
+# 
+# table1(table1_data, r4age_y_int, female,
+#                              raceeth, ed_cat, r4mstat_cat,
+#                             r4hibpe_impute, r4diabe_impute, r4hearte_impute,
+#                             r4stroke_impute, r4cancre_impute, r4lunge_impute,
+#                             r4memrye_impute, r4conde_impute, r4BMI,
+#                             r4drinking_cat, smoker, r4shlt,
+#                             splitby = ~r4cesd_elevated,
+#                             # na.rm = FALSE,
+#                             format_number = TRUE,
+#                             output = "html",
+#                             type = c("condensed")
+#                             )
+

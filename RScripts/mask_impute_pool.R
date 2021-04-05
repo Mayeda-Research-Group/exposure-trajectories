@@ -104,9 +104,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(5, 25, 5, 5, 5),
-                     "20%" = c(5, 25, 5, 5, 5),
-                     "30%" = c(5, 25, 5, 5, 5)) %>% 
+                     "10%" = c(20, 25, 10, 10, 5),
+                     "20%" = c(25, 25, 20, 5, 5),
+                     "30%" = c(25, 25, 20, 5, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -131,7 +131,9 @@ mask_impute_pool <-
       #---- ****FCS ----
       #Fully conditional specification
       data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
+        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+                         paste0("r", seq(4, 9), "not_married_partnered"),
+                         paste0("r", seq(4, 9), "widowed"),
                          paste0("r", seq(4, 9), "memrye_impute"), 
                          paste0("r", seq(4, 9), "stroke_impute"),
                          paste0("r", seq(4, 9), "hearte_impute"),
@@ -145,7 +147,6 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
                            maxit = max_it[method, mask_percent],
-                           nnet.MaxNWts = 5000,
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
                            predictorMatrix = predict, where = is.na(data_wide), 
@@ -155,15 +156,17 @@ mask_impute_pool <-
       
       # #look at convergence
       #   #10% missing needs maxit = 20
-      #   #20% missing needs maxit = 40
-      #   #30% missing needs maxit = 40
-      #plot(data_imputed)
+      #   #20% missing needs maxit = 25
+      #   #30% missing needs maxit = 25
+      # plot(data_imputed)
       
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
       data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "mstat_impute"), "ed_cat",
+        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+                         paste0("r", seq(4, 9), "not_married_partnered"),
+                         paste0("r", seq(4, 9), "widowed"),
                          paste0("r", seq(4, 9), "memrye_impute"), 
                          paste0("r", seq(4, 9), "stroke_impute"),
                          paste0("r", seq(4, 9), "hearte_impute"),
@@ -177,17 +180,18 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, m = num_impute, 
                            maxit = max_it[method, mask_percent], 
-                           method = "pmm", predictorMatrix = predict, 
+                           method = "pmm", donors = 5, 
+                           predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       #stop <- Sys.time() - start
       
       # #look at convergence
-      # #10% missing needs maxit = 40
-      # #20% missing needs maxit = 40
-      # #30% missing needs maxit = 40
-      #  plot(data_imputed)
+      # #10% missing needs maxit = 10
+      # #20% missing needs maxit = 20
+      # #30% missing needs maxit = 20
+      # plot(data_imputed)
       
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
@@ -195,7 +199,7 @@ mask_impute_pool <-
       start <- Sys.time()
       data_imputed <- mice(data = data_long, m = num_impute, 
                            #maxit = max_it[method, mask_percent],
-                           maxit = 20,
+                           maxit = 10,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
@@ -203,7 +207,7 @@ mask_impute_pool <-
       stop <- Sys.time() - start
       
       #look at convergence
-      #10% missing needs maxit = 20
+      #10% missing needs maxit = 10
       #20% missing needs maxit = 
       #30% missing needs maxit = 
       plot(data_imputed)
@@ -213,7 +217,8 @@ mask_impute_pool <-
       #Longitudinal fully conditional specification
       #Fully conditional specification
       data_long %<>% 
-        mutate_at(vars(c("mstat_impute", "memrye_impute", "stroke_impute", 
+        mutate_at(vars(c("married_partnered", "not_married_partnered", 
+                         "widowed", "memrye_impute", "stroke_impute", 
                          "hearte_impute", "lunge_impute", "cancre_impute", 
                          "hibpe_impute", "diabe_impute", "ed_cat", "black", 
                          "hispanic", "other", "female", "death2018", "smoker")), 
@@ -253,33 +258,36 @@ mask_impute_pool <-
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
       complete_data <- complete(data_imputed, action = i)
       
-      #---- **post process: dummy vars ----
-      for(wave in seq(4, 9)){
-        vars <- c("married_partnered", "not_married_partnered", "widowed")
-        cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+      if(method == "JMVN"){
+        #---- **post process: dummy vars ----
+        for(wave in seq(4, 9)){
+          vars <- c("married_partnered", "not_married_partnered", "widowed")
+          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+          subset <- complete_data[, cols]
+          rowmax <- apply(subset, 1, function(x) max(x))
+          subset <- subset/rowmax
+          subset[subset < 1] <- 0
+          subset[subset > 1] <- 1
+          
+          complete_data[, colnames(subset)] <- subset
+        }
+        
+        #---- **post process: binary vars ----
+        waves <- seq(4, 9)
+        vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
+                  "lunge_impute", "cancre_impute", "hibpe_impute", 
+                  "diabe_impute")
+        cols <- apply(expand.grid("r", waves, vars), 1, paste, collapse = "")
+        
+        #fix impossible probs
         subset <- complete_data[, cols]
-        rowmax <- apply(subset, 1, function(x) max(x))
-        subset <- subset/rowmax
-        subset[subset < 1] <- 0
+        subset[subset < 0] <- 0
         subset[subset > 1] <- 1
         
-        complete_data[, colnames(subset)] <- subset
-      }
-      
-      #---- **post process: binary vars ----
-      waves <- seq(4, 9)
-      vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
-                "lunge_impute", "cancre_impute", "hibpe_impute", "diabe_impute")
-      cols <- apply(expand.grid("r", waves, vars), 1, paste, collapse = "")
-      
-      #fix impossible probs
-      subset <- complete_data[, cols]
-      subset[subset < 0] <- 0
-      subset[subset > 1] <- 1
-      
-      for(col in cols){
-        complete_data[, col] <- 
-          rbinom(n = nrow(complete_data), size = 1, prob = subset[, col])
+        for(col in cols){
+          complete_data[, col] <- 
+            rbinom(n = nrow(complete_data), size = 1, prob = subset[, col])
+        }
       }
       
       #---- **post-process: exposures ----

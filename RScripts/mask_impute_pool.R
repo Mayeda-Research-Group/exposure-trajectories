@@ -145,7 +145,8 @@ mask_impute_pool <-
                   as.factor)
       
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, 
+      data_imputed <- mice(data = data_wide, 
+                           m = as.numeric(sub("%","", mask_percent)),, 
                            maxit = max_it[method, mask_percent],
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
@@ -178,7 +179,8 @@ mask_impute_pool <-
                   as.factor)
       
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, m = num_impute, 
+      data_imputed <- mice(data = data_wide, 
+                           m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent], 
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 

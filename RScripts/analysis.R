@@ -38,7 +38,7 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 1000
+num_runs <- 10
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #to add later: "FCS", "PMM", "JMVN Long", "FCS Long"
@@ -152,7 +152,7 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 #                    save = "yes"))
 
 #---- create cluster ----
-plan(multisession, gc = TRUE)
+plan(multisession, gc = FALSE)
 
 #---- get pooled effect estimates ----
 truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")

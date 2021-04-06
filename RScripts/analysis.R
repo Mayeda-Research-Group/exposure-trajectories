@@ -21,7 +21,7 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 #                      C:/Users/yingyan_wu/Dropbox
 # Crystal's directory: /Users/CrystalShaw
 #                     ~/Dropbox/Projects
-# MRG desktop directory: C:/Users/cshaw/Dropbox
+# MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
 path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"

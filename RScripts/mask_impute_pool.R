@@ -15,7 +15,7 @@ mask_impute_pool <-
                            "widowed", "drinking_cat", "memrye_impute", 
                            "stroke_impute", "hearte_impute", "lunge_impute", 
                            "cancre_impute", "hibpe_impute", "diabe_impute", 
-                           "cesd", "BMI", "shlt")
+                           "cesd", "BMI")#, "shlt")
     
     time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker")
@@ -80,7 +80,7 @@ mask_impute_pool <-
         set_colnames(colnames(data_wide))
       
       #Don't use these as predictors
-      predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"), 
+      predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
                   "age_death_y", "observed", "r3cesd", "r4cesd_elevated", 
                   "r9cesd_elevated", "avg_cesd", "avg_cesd_elevated", 
                   "total_elevated_cesd")] <- 0

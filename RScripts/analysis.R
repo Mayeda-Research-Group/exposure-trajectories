@@ -24,7 +24,7 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 

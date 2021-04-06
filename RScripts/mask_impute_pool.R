@@ -199,15 +199,16 @@ mask_impute_pool <-
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
       #2-level heteroskedatic between group variances
-      #start <- Sys.time()
+      start <- Sys.time()
       data_imputed <- mice(data = data_long, 
-                           m = as.numeric(sub("%","", mask_percent)), 
-                           maxit = max_it[method, mask_percent],
+                           #m = as.numeric(sub("%","", mask_percent)), 
+                           #maxit = max_it[method, mask_percent],
+                           m = 2, maxit = 2,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      #stop <- Sys.time() - start
+      stop <- Sys.time() - start
       
       # #look at convergence-- this is really more about time constraints
       # #10% missing needs maxit = 10
@@ -309,6 +310,46 @@ mask_impute_pool <-
             subset[row, this_one] <- 1
           }
           complete_data[, colnames(subset)] <- subset
+        }
+      }
+      
+      if(method == "2l.norm"){
+        #---- **long --> wide ----
+        complete_data %<>% 
+          pivot_wider(id_cols = c("HHIDPN", all_of(time_invariant_vars)), 
+                      names_from = wave, 
+                      values_from = all_of(time_updated_vars), 
+                      names_glue = "{wave}{.value}")
+        
+        #---- **post process: dummy vars ----
+        for(wave in seq(4, 9)){
+          vars <- c("married_partnered", "not_married_partnered", "widowed")
+          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+          subset <- complete_data[, cols]
+          rowmax <- apply(subset, 1, function(x) max(x))
+          subset <- subset/rowmax
+          subset[subset < 1] <- 0
+          subset[subset > 1] <- 1
+          
+          complete_data[, colnames(subset)] <- subset
+        }
+        
+        #---- **post process: binary vars ----
+        waves <- seq(4, 9)
+        vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
+                  "lunge_impute", "cancre_impute", "hibpe_impute", 
+                  "diabe_impute")
+        cols <- apply(expand.grid("r", waves, vars), 1, paste, collapse = "")
+        
+        #fix impossible probs
+        subset <- complete_data[, cols]
+        subset[subset < 0] <- 0
+        subset[subset > 1] <- 1
+        
+        for(col in cols){
+          complete_data[, col] <- 
+            rbinom(n = nrow(complete_data), size = 1, 
+                   prob = as.matrix(subset[, col]))
         }
       }
       

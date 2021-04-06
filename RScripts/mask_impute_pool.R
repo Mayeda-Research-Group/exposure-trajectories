@@ -105,8 +105,8 @@ mask_impute_pool <-
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
                      "10%" = c(20, 25, 10, 10, 5),
-                     "20%" = c(25, 25, 20, 5, 5),
-                     "30%" = c(25, 25, 20, 5, 5)) %>% 
+                     "20%" = c(25, 25, 20, 10, 5),
+                     "30%" = c(25, 25, 20, 10, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -198,51 +198,50 @@ mask_impute_pool <-
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
       #2-level heteroskedatic between group variances
-      start <- Sys.time()
-      data_imputed <- mice(data = data_long, m = num_impute, 
-                           #maxit = max_it[method, mask_percent],
-                           maxit = 10,
+      #start <- Sys.time()
+      data_imputed <- mice(data = data_long, 
+                           m = as.numeric(sub("%","", mask_percent)), 
+                           maxit = max_it[method, mask_percent],
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      stop <- Sys.time() - start
+      #stop <- Sys.time() - start
       
-      #look at convergence
-      #10% missing needs maxit = 10
-      #20% missing needs maxit = 
-      #30% missing needs maxit = 
-      plot(data_imputed)
+      # #look at convergence-- this is really more about time constraints
+      # #10% missing needs maxit = 10
+      # #20% missing needs maxit = 10
+      # #30% missing needs maxit = 10
+      # plot(data_imputed)
       
-    } else if(method == "2l.fcs"){
-      #---- ****2l.fcs ----
-      #Longitudinal fully conditional specification
-      #Fully conditional specification
-      data_long %<>% 
-        mutate_at(vars(c("married_partnered", "not_married_partnered", 
-                         "widowed", "memrye_impute", "stroke_impute", 
-                         "hearte_impute", "lunge_impute", "cancre_impute", 
-                         "hibpe_impute", "diabe_impute", "ed_cat", "black", 
-                         "hispanic", "other", "female", "death2018", "smoker")), 
-                  as.factor)
-      
-      start <- Sys.time()
-      data_imputed <- mice(data = data_long, m = num_impute, 
-                           maxit = 20, 
-                           defaultMethod = 
-                             c("2l.norm", "2l.bin", "2l.norm", "2l.norm"), 
-                           predictorMatrix = predict, 
-                           where = is.na(data_long), 
-                           blocks = as.list(rownames(predict)), 
-                           seed = 20210126)
-      stop <- Sys.time() - start
-      
-      # #look at convergence
-      # #10% missing needs maxit = 
-      # #20% missing needs maxit = 
-      # #30% missing needs maxit = 
-      plot(data_imputed) 
-      
+      # } else if(method == "2l.fcs"){
+      #   #---- ****2l.fcs ----
+      #   #Longitudinal fully conditional specification
+      #   #Fully conditional specification
+      #   data_long %<>% 
+      #     mutate_at(vars(c("married_partnered", "not_married_partnered", 
+      #                      "widowed", "memrye_impute", "stroke_impute", 
+      #                      "hearte_impute", "lunge_impute", "cancre_impute", 
+      #                      "hibpe_impute", "diabe_impute", "black", "hispanic", 
+      #                      "other", "female", "death2018", "smoker")), 
+      #               as.factor)
+      #   
+      #   start <- Sys.time()
+      #   data_imputed <- mice(data = data_long, m = num_impute, 
+      #                        maxit = 10, 
+      #                        defaultMethod = 
+      #                          c("2l.norm", "2l.bin", "2l.norm", "2l.norm"), 
+      #                        predictorMatrix = predict, 
+      #                        where = is.na(data_long), 
+      #                        blocks = as.list(rownames(predict)), 
+      #                        seed = 20210126)
+      #   stop <- Sys.time() - start
+      #   
+      #   # #look at convergence
+      #   # #10% missing needs maxit = 
+      #   # #20% missing needs maxit = 
+      #   # #30% missing needs maxit = 
+      #   plot(data_imputed) 
     } 
     
     #---- **save results ----

@@ -18,7 +18,8 @@ mask_impute_pool <-
                            "cesd", "BMI", "shlt")
     
     time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
-                             "female", "survtime", "death2018", "smoker")
+                             "female", "survtime", "death2018", "smoker", 
+                             "observed")
     
     #---- convert to long?? ----
     if(method %in% c("2l.norm", "2l.fcs")){

@@ -104,9 +104,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(20, 25, 10, 10, 5),
-                     "20%" = c(25, 25, 20, 10, 5),
-                     "30%" = c(25, 25, 20, 10, 5)) %>% 
+                     "10%" = c(20, 25, 10, 10, 10),
+                     "20%" = c(25, 25, 20, 10, 10),
+                     "30%" = c(25, 25, 20, 10, 10)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -147,6 +147,7 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
+                           #m = 2, maxit = 5,
                            maxit = max_it[method, mask_percent],
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),
@@ -288,6 +289,26 @@ mask_impute_pool <-
         for(col in cols){
           complete_data[, col] <- 
             rbinom(n = nrow(complete_data), size = 1, prob = subset[, col])
+        }
+      }
+      
+      if(method == "FCS"){
+        #---- **post process: dummy vars ----
+        for(wave in seq(4, 9)){
+          vars <- c("married_partnered", "not_married_partnered", "widowed")
+          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+          subset <- complete_data[, cols] %>% as.matrix() %>% 
+            apply(2, as.numeric)
+          probs <- 1/rowSums(subset)
+          
+          for(row in which(probs != 1)){
+            cats <- as.numeric(which(subset[row, ] == 1))
+            this_one <- sample(cats, size = 1, 
+                               prob = rep(probs[row], floor(1/probs[row])))
+            subset[row, ] <- 0
+            subset[row, this_one] <- 1
+          }
+          complete_data[, colnames(subset)] <- subset
         }
       }
       

@@ -292,7 +292,7 @@ mask_impute_pool <-
         }
       }
       
-      if(method == "FCS"){
+      if(method %in% c("FCS", "PMM")){
         #---- **post process: dummy vars ----
         for(wave in seq(4, 9)){
           vars <- c("married_partnered", "not_married_partnered", "widowed")

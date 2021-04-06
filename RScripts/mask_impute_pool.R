@@ -63,7 +63,7 @@ mask_impute_pool <-
         set_colnames(colnames(data_long))
       
       #Don't use these as predictors
-      predict[, c("wave")] <- 0
+      predict[, c("wave", "observed")] <- 0
       
       #Indicated cluster variable
       predict[, "HHIDPN"] <- -2
@@ -204,7 +204,7 @@ mask_impute_pool <-
       data_imputed <- mice(data = data_long, 
                            #m = as.numeric(sub("%","", mask_percent)), 
                            #maxit = max_it[method, mask_percent],
-                           m = 2, maxit = 2,
+                           m = 2, maxit = 1,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 

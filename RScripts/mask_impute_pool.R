@@ -455,5 +455,12 @@ mask_impute_pool <-
 # 
 # results2 <- formatted %>% group_by(Exposure) %>%
 #   summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
+#   
+# #---- code optimization ----
+# library("profvis")
+# profvis::profvis(
+#   mask_impute_pool(CESD_data_wide, exposures = exposures,
+#                    mechanism = "MNAR", method = "PMM",
+#                    mask_percent = "10%", truth = truth, save = "no"))
 
 

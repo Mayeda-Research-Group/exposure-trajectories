@@ -2,7 +2,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("table1", "tidyverse", "dplyr", "plyr", "labelled", "gt", "rvest")
+p_load("table1", "tidyverse", "dplyr", "plyr", "labelled", "gt", "rvest",
+       "gtsummary", "writexl")
 
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
@@ -36,7 +37,7 @@ table1_data <- CESD_data_wide %>%
            r4widowed == 1 ~ "Widowed")) %>%
   labelled::set_variable_labels(
     r4age_y_int = "Baseline age in years",
-    female = "Sex/Gender (%)",
+    female = "Female (%)",
     raceeth = "Race/Ethnicity (%)",
     ed_cat = "Education level (%)",
     r4mstat_cat = "Married status (%)",
@@ -55,7 +56,7 @@ table1_data <- CESD_data_wide %>%
     r4cesd_elevated = "Baseline Elevated CES-D"
   ) %>%
   labelled::drop_unused_value_labels() %>%
-  labelled::set_value_labels(female = c("Female" = 1, "Male" = 0),
+  labelled::set_value_labels(female = c("Yes" = 1, "No" = 0),
                    ed_cat = c("Less than High School" = 1, "High School" = 2, 
                               "Some college" = 3, "Bachelors" = 4, 
                               "Grad studies" = 5),
@@ -76,45 +77,74 @@ table1_data <- CESD_data_wide %>%
                                        "Not Elevated CES-D" = 0)) %>%
   modify_if(is.labelled, to_factor)
 
-#---- Use table1 pacakge ----
-# Really annoying that "table1" and "furniture" fight with each other to "death"
-remove.packages("furniture") 
+# #---- Use gtsummary package ----
+table_1 <- table1_data %>%
+  select("r4age_y_int","female", "raceeth", "ed_cat", "r4mstat_cat",
+           "r4hibpe_impute", "r4diabe_impute", "r4hearte_impute",
+           "r4stroke_impute", "r4cancre_impute", "r4lunge_impute",
+           "r4memrye_impute", "r4conde_impute", "r4BMI", "r4drinking_cat",
+           "smoker", "r4shlt", "r4cesd_elevated") %>%
+  tbl_summary(statistic = list(
+    all_categorical() ~ "{n} ({p}%)",
+    all_continuous() ~ "{mean} ({sd})"),
+    type = list(c("r4conde_impute") ~ "continuous"),
+    by = r4cesd_elevated,
+    missing = "no"
+  ) %>%
+  # add_p %>%
+  add_overall %>%
+  modify_header(label = "") %>%
+  modify_spanning_header(starts_with("stat_") ~ "**Baseline CES-D**") %>%
+  bold_labels()
 
-# For showing +/- SD in the table (save it here in case future needed)
+table_1 %>% as_flex_table()
+
+table1_xlsx <- table_1 %>% as_tibble()
+library("writexl")
+write_xlsx(table1_xlsx, paste0(path_to_dropbox, 
+                               "/exposure_trajectories/manuscript/tables/OLD/", 
+                               "table_1_temp.xlsx"))
+
+
+# #---- Use table1 pacakge ----
+# # Really annoying that "table1" and "furniture" fight with each other to "death"
+# remove.packages("furniture") 
+# 
+# # For showing +/- SD in the table (save it here in case future needed)
+# # render_cont <- function(x){
+# #   with(stats.apply.rounding(stats.default(x), digits = 2), 
+# #        c("", "Mean (SD)" = sprintf("%s (&plusmn; %s)", MEAN, SD)))
+# # }
+# 
+# # Just showing mean(sd) for continuous variables
 # render_cont <- function(x){
-#   with(stats.apply.rounding(stats.default(x), digits = 2), 
-#        c("", "Mean (SD)" = sprintf("%s (&plusmn; %s)", MEAN, SD)))
+#   with(stats.apply.rounding(stats.default(x), digits = 2),
+#        c("", "Mean (SD)" = sprintf("%s (%s)", MEAN, SD)))
 # }
-
-# Just showing mean(sd) for continuous variables
-render_cont <- function(x){
-  with(stats.apply.rounding(stats.default(x), digits = 2),
-       c("", "Mean (SD)" = sprintf("%s (%s)", MEAN, SD)))
-}
-# just showing numbers(percentage) without "%" for categorical variables
-render_cat <- function(x){
-  c("", sapply(stats.default(x), 
-               function(y) with(y, sprintf("%d (%.1f)", FREQ, PCT))))
-}
-
-(table_1 <- table1::table1(~ r4age_y_int + female + raceeth + 
-                     ed_cat + r4mstat_cat + 
-                     r4hibpe_impute + r4diabe_impute + r4hearte_impute + 
-                     r4stroke_impute + r4cancre_impute + r4lunge_impute + 
-                     r4memrye_impute +
-                     r4conde_impute + 
-                     r4BMI + r4drinking_cat + smoker + r4shlt|r4cesd_elevated, 
-                   render.continuous = render_cont,
-                   render.categorical = render_cat,
-                   footnote = 
-                     "Stratified by Elevated baseline CES-D (CES-D > 4)",
-                   data = table1_data))
-
-table_1_df <- as.data.frame(read_html(table_1) %>% html_table(fill=TRUE))
-
-readr::write_csv(table_1_df, path = paste0(path_to_dropbox, 
-                                    "/exposure_trajectories/manuscript/tables", 
-                                    "/table_1_df.csv"))
+# # just showing numbers(percentage) without "%" for categorical variables
+# render_cat <- function(x){
+#   c("", sapply(stats.default(x), 
+#                function(y) with(y, sprintf("%d (%.1f)", FREQ, PCT))))
+# }
+# 
+# (table_1 <- table1::table1(~ r4age_y_int + female + raceeth + 
+#                      ed_cat + r4mstat_cat + 
+#                      r4hibpe_impute + r4diabe_impute + r4hearte_impute + 
+#                      r4stroke_impute + r4cancre_impute + r4lunge_impute + 
+#                      r4memrye_impute +
+#                      r4conde_impute + 
+#                      r4BMI + r4drinking_cat + smoker + r4shlt|r4cesd_elevated, 
+#                    render.continuous = render_cont,
+#                    render.categorical = render_cat,
+#                    footnote = 
+#                      "Stratified by Elevated baseline CES-D (CES-D > 4)",
+#                    data = table1_data))
+# 
+# table_1_df <- as.data.frame(read_html(table_1) %>% html_table(fill=TRUE))
+# 
+# readr::write_csv(table_1_df, path = paste0(path_to_dropbox, 
+#                                     "/exposure_trajectories/manuscript/tables", 
+#                                     "/table_1_df.csv"))
 
 # Attempt to save the html using gtsave
 

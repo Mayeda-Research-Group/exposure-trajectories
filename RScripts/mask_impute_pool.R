@@ -15,7 +15,7 @@ mask_impute_pool <-
                            "widowed", "drinking_cat", "memrye_impute", 
                            "stroke_impute", "hearte_impute", "lunge_impute", 
                            "cancre_impute", "hibpe_impute", "diabe_impute", 
-                           "cesd", "BMI", "shlt")
+                           "cesd", "BMI")#, "shlt")
     
     time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker")

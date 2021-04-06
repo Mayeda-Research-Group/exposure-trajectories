@@ -319,7 +319,7 @@ mask_impute_pool <-
         complete_data %<>% 
           pivot_wider(id_cols = c("HHIDPN", all_of(time_invariant_vars)), 
                       names_from = wave, 
-                      values_from = all_of(time_updated_vars), 
+                      values_from = c("age_y_int", all_of(time_updated_vars)), 
                       names_glue = "{wave}{.value}")
         
         #---- **post process: dummy vars ----

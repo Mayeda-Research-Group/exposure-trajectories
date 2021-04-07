@@ -200,16 +200,16 @@ mask_impute_pool <-
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
       #2-level heteroskedatic between group variances
-      start <- Sys.time()
+      #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
-                           #m = as.numeric(sub("%","", mask_percent)), 
-                           #maxit = max_it[method, mask_percent],
-                           m = 2, maxit = 1,
+                           m = as.numeric(sub("%","", mask_percent)), 
+                           maxit = max_it[method, mask_percent],
+                           #m = 2, maxit = 1,
                            method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      stop <- Sys.time() - start
+      #stop <- Sys.time() - start
       
       # #look at convergence-- this is really more about time constraints
       # #10% missing needs maxit = 10

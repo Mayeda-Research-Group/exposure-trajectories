@@ -378,7 +378,7 @@ mask_impute_pool <-
                          r4stroke_impute + r4hearte_impute + r4lunge_impute + 
                          r4cancre_impute + r4hibpe_impute + r4diabe_impute + 
                          smoker + r4BMI + hispanic + black + other + female + 
-                         r4age_y_int + r4shlt + r4cesd_elevated))
+                         r4age_y_int + r4cesd_elevated))
         } else if(exposure == "CES-D Wave 9"){
           model_list[[exposure]][[i]] <- 
             with(complete_data, 
@@ -387,7 +387,7 @@ mask_impute_pool <-
                          r9stroke_impute + r9hearte_impute + r9lunge_impute + 
                          r9cancre_impute + r9hibpe_impute + r9diabe_impute + 
                          smoker + r9BMI + hispanic + black + other + female + 
-                         r9age_y_int + r9shlt + r9cesd_elevated))
+                         r9age_y_int + r9cesd_elevated))
         } else if(exposure == "Elevated CES-D Count"){
           model_list[[exposure]][[i]] <- 
             with(complete_data, 
@@ -396,7 +396,7 @@ mask_impute_pool <-
                          r4stroke_impute + r4hearte_impute + r4lunge_impute + 
                          r4cancre_impute + r4hibpe_impute + r4diabe_impute + 
                          smoker + r4BMI + hispanic + black + other + female + 
-                         r4age_y_int + r4shlt + total_elevated_cesd))
+                         r4age_y_int + total_elevated_cesd))
         } else{
           model_list[[exposure]][[i]] <- 
             with(complete_data, 
@@ -405,7 +405,7 @@ mask_impute_pool <-
                          r4stroke_impute + r4hearte_impute + r4lunge_impute + 
                          r4cancre_impute + r4hibpe_impute + r4diabe_impute + 
                          smoker + r4BMI + hispanic + black + other + female + 
-                         r4age_y_int + r4shlt + avg_cesd_elevated))
+                         r4age_y_int + avg_cesd_elevated))
         }
       }
     }

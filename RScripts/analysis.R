@@ -42,7 +42,7 @@ num_runs <- 10
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #all methods: "JMVN", "FCS", "PMM", "JMVN Long", "FCS Long"
-methods <- c("PMM")
+methods <- c("2l.norm")
 #mechanisms <- c("MCAR")
 #mask_props <- c(0.10)
 mechanisms <- c("MCAR", "MAR", "MNAR")
@@ -64,7 +64,7 @@ TTEmodel_CESD4 <-
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
           r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
           r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
-          r4age_y_int + r4shlt + r4cesd_elevated, data = CESD_data_wide)
+          r4age_y_int + r4cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD4)
 
@@ -85,7 +85,7 @@ TTEmodel_CESD9 <-
           ed_cat + r9drinking_cat + r9memrye_impute + r9stroke_impute + 
           r9hearte_impute + r9lunge_impute + r9cancre_impute + r9hibpe_impute + 
           r9diabe_impute + smoker + r9BMI + hispanic + black + other + female + 
-          r9age_y_int + r9shlt + r9cesd_elevated, data = CESD_data_wide)
+          r9age_y_int + r9cesd_elevated, data = CESD_data_wide)
 
 #summary(TTEmodel_CESD9)
 
@@ -106,7 +106,7 @@ TTEmodel_total_CESD <-
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
           r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
           r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
-          r4age_y_int + r4shlt + total_elevated_cesd, data = CESD_data_wide)
+          r4age_y_int + total_elevated_cesd, data = CESD_data_wide)
 
 TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
                                     exponentiate = FALSE, conf.int = TRUE)
@@ -125,7 +125,7 @@ TTEmodel_elevated_avg_CESD <-
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
           r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
           r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
-          r4age_y_int + r4shlt + avg_cesd_elevated, data = CESD_data_wide)
+          r4age_y_int + avg_cesd_elevated, data = CESD_data_wide)
 
 TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
                                            exponentiate = FALSE, 

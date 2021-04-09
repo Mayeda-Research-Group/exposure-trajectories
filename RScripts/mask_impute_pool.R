@@ -199,13 +199,13 @@ mask_impute_pool <-
       
     } else if(method == "2l.norm"){
       #---- ****2l.norm ----
-      #2-level heteroskedatic between group variances
+      #2-level homoskedastic variances
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent],
                            #m = 2, maxit = 1,
-                           method = "2l.norm", predictorMatrix = predict, 
+                           method = "2l.lmer", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)

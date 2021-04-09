@@ -78,6 +78,10 @@ table1_data <- CESD_data_wide %>%
   modify_if(is.labelled, to_factor)
 
 # #---- Use gtsummary package ----
+# Showing 2 digits for percentages for categorical variables)
+options(
+  gtsummary.tbl_summary.percent_fun = function(x) sprintf(x * 100, fmt='%#.2f'))
+
 table_1 <- table1_data %>%
   select("r4age_y_int","female", "raceeth", "ed_cat", "r4mstat_cat",
            "r4hibpe_impute", "r4diabe_impute", "r4hearte_impute",
@@ -85,13 +89,12 @@ table_1 <- table1_data %>%
            "r4memrye_impute", "r4conde_impute", "r4BMI", "r4drinking_cat",
            "smoker", "r4shlt", "r4cesd_elevated") %>%
   tbl_summary(statistic = list(
-    all_categorical() ~ "{n} ({p}%)",
+    all_categorical() ~ "{n} ({p})",
     all_continuous() ~ "{mean} ({sd})"),
     type = list(c("r4conde_impute") ~ "continuous"),
     by = r4cesd_elevated,
     missing = "no"
   ) %>%
-  # add_p %>%
   add_overall %>%
   modify_header(label = "") %>%
   modify_spanning_header(starts_with("stat_") ~ "**Baseline CES-D**") %>%

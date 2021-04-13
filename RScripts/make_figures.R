@@ -20,6 +20,7 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in data ----
+#---- **CESD data ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
@@ -27,17 +28,23 @@ CESD_data_wide <-
            col_types = cols(HHIDPN = col_character())) %>% 
   mutate_if(is.character, as.factor) 
 
-# for(method in tolower(methods)){
-#   for(prop in 100*mask_props){
-#     assign(paste0(method, "_mcar", prop), 
-#            readRDS(here("MI datasets", paste0(method, "_mcar", prop))))
-#   }
-# }
+#---- **results ----
+methods <- c("JMVN", "PMM")
 
-table_effect_ests <- 
-  read.xlsx(paste0(path_to_dropbox, 
-                   "/exposure_trajectories/manuscript/", 
-                   "tables/main_text_tables2_20210309_184622_.xlsx"))
+for(method in methods){
+  if(method == methods[1]){
+    results <- 
+      read_csv(Sys.glob(
+        paste0(path_to_dropbox, 
+               "/exposure_trajectories/manuscript/tables/results_", method, 
+               "_100*.csv")))
+  } else{
+    results <- 
+      rbind(results, read_csv(Sys.glob(
+        paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+               "results_", method, "_100*.csv"))))
+  }
+}
 
 #---- values ----
 methods <- unique(table_effect_ests$Method)

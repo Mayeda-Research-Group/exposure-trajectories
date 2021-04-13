@@ -30,6 +30,7 @@ CESD_data_wide <-
 
 #---- **results ----
 methods <- c("JMVN", "PMM")
+num_runs <- 100
 
 for(method in methods){
   if(method == methods[1]){
@@ -37,12 +38,12 @@ for(method in methods){
       read_csv(Sys.glob(
         paste0(path_to_dropbox, 
                "/exposure_trajectories/manuscript/tables/results_", method, 
-               "_100*.csv")))
+               "_", num_runs, "*.csv")))
   } else{
     results <- 
       rbind(results, read_csv(Sys.glob(
         paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-               "results_", method, "_100*.csv"))))
+               "results_", method, "_", num_runs, "*.csv"))))
   }
 }
 

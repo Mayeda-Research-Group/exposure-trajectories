@@ -22,7 +22,7 @@ mask_impute_pool <-
                              "observed")
     
     #---- convert to long?? ----
-    if(method %in% c("2l.norm", "2l.fcs")){
+    if(method == "LMM"){
       data_long <- data_wide %>% 
         dplyr::select("HHIDPN", 
                       apply(expand.grid("r", seq(4, 9), 
@@ -56,7 +56,7 @@ mask_impute_pool <-
     
     #---- imputation ----
     #---- **predictor matrix ----
-    if(method %in% c("2l.norm", "2l.fcs")){
+    if(method == "LMM"){
       blocks <- time_updated_vars
       predict <- matrix(1, length(blocks), ncol = ncol(data_long)) %>% 
         set_rownames(blocks) %>% 
@@ -104,10 +104,10 @@ mask_impute_pool <-
     }
     
     #---- **run imputation ----
-    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "2l.norm", "2l.fcs"), 
-                     "10%" = c(20, 25, 10, 10, 10),
-                     "20%" = c(25, 25, 20, 10, 10),
-                     "30%" = c(25, 25, 20, 10, 10)) %>% 
+    max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
+                     "10%" = c(20, 25, 10, 5),
+                     "20%" = c(25, 25, 20, 5),
+                     "30%" = c(25, 25, 20, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -197,25 +197,19 @@ mask_impute_pool <-
       # #30% missing needs maxit = 20
       # plot(data_imputed)
       
-    } else if(method == "2l.norm"){
-      #---- ****2l.norm ----
-      #2-level homoskedastic variances
+    } else if(method == "LMM"){
+      #---- ****LMM ----
+      #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent],
-                           #m = 2, maxit = 1,
-                           method = "2l.lmer", predictorMatrix = predict, 
+                           #m = 2, maxit = 10,
+                           method = "2l.norm", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       #stop <- Sys.time() - start
-      
-      # #look at convergence-- this is really more about time constraints
-      # #10% missing needs maxit = 10
-      # #20% missing needs maxit = 10
-      # #30% missing needs maxit = 10
-      # plot(data_imputed)
       
       # } else if(method == "2l.fcs"){
       #   #---- ****2l.fcs ----
@@ -314,7 +308,7 @@ mask_impute_pool <-
         }
       }
       
-      if(method == "2l.norm"){
+      if(method == "LMM"){
         #---- **long --> wide ----
         complete_data %<>% 
           pivot_wider(id_cols = c("HHIDPN", all_of(time_invariant_vars)), 
@@ -433,34 +427,34 @@ mask_impute_pool <-
     return(pooled_effect_ests)
   }
 
-# #---- testing ----
-# #Single run
-# test <- mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                          mechanism = "MCAR", method = "JMVN",
-#                          mask_percent = "10%", num_impute = 2, save = "no")
-# #Multiple runs
-# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                                                mechanism = "MCAR",
-#                                                method = "PMM",
-#                                                mask_percent = "10%",
-#                                                num_impute = 2, save = "no"),
-#                     simplify = FALSE)
-# 
-# #Formatting data
-# formatted <- do.call(rbind, test_2)
-# 
-# #Summarizing results
-# results <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-# 
-# results2 <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
-#   
-# #---- code optimization ----
-# library("profvis")
-# profvis::profvis(
-#   mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                    mechanism = "MNAR", method = "PMM",
-#                    mask_percent = "10%", truth = truth, save = "no"))
+#---- testing ----
+#Single run
+test <- mask_impute_pool(CESD_data_wide, exposures = exposures,
+                         mechanism = "MCAR", method = "PMM", truth = truth,
+                         mask_percent = "10%", save = "yes")
+#Multiple runs
+test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
+                                               mechanism = "MCAR",
+                                               method = "PMM",
+                                               mask_percent = "10%",
+                                               num_impute = 2, save = "no"),
+                    simplify = FALSE)
+
+#Formatting data
+formatted <- do.call(rbind, test_2)
+
+#Summarizing results
+results <- formatted %>% group_by(Exposure) %>%
+  summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
+
+results2 <- formatted %>% group_by(Exposure) %>%
+  summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
+
+#---- code optimization ----
+library("profvis")
+profvis::profvis(
+  mask_impute_pool(CESD_data_wide, exposures = exposures,
+                   mechanism = "MNAR", method = "PMM",
+                   mask_percent = "10%", truth = truth, save = "no"))
 
 

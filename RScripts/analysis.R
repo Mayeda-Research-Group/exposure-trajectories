@@ -41,10 +41,12 @@ CESD_data_wide <-
 num_runs <- 100
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-#all methods: "JMVN", "FCS", "PMM", "JMVN Long", "FCS Long"
-methods <- c("FCS")
+
 #mechanisms <- c("MCAR")
 #mask_props <- c(0.10)
+#methods <- c("JMVN", "PMM", "FCS")
+
+methods <- c("PMM")
 mechanisms <- c("MCAR", "MAR", "MNAR")
 mask_props <- c(.10, 0.20, 0.30)
 
@@ -139,24 +141,26 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          rep(c("conf.low", "conf.high"), 2))])
 
-#---- all combos ----
-all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
-  mutate("mask_percent" = paste0(100*mask_props, "%"))
+truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 
+# #---- all combos ----
+# all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
+#   mutate("mask_percent" = paste0(100*mask_props, "%"))
+# 
 # #---- create one set of imputations for plot ----
-# single_run <- apply(all_combos[8:9, ], 1, function(x)
-#   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures, 
-#                    mechanism = x["mechanisms"], 
-#                    method = x["methods"], 
-#                    mask_percent = x["mask_percent"], num_impute = 5, 
+# start <- Sys.time()
+# single_run <- apply(all_combos, 1, function(x)
+#   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
+#                    mechanism = x["mechanisms"],
+#                    method = x["methods"],
+#                    mask_percent = x["mask_percent"], truth = truth, 
 #                    save = "yes"))
+# end <- Sys.time() - start
 
 #---- create cluster ----
 plan(multisession, gc = FALSE)
 
 #---- get pooled effect estimates ----
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
-
 start <- Sys.time()
 for(i in which(!table_effect_ests$Method == "Truth")){
   #because we fill multiple rows at a time
@@ -214,13 +218,14 @@ end <- Sys.time() - start
 future::plan("sequential")
 
 #---- save tables ----
-#Round numbers in dataframe
-table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
+# #Round numbers in dataframe
+# table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
 
 #Save results 
-write_csv(table_effect_ests, file = paste0(path_to_dropbox,
-                                           "/exposure_trajectories/manuscript/",
-                                           "tables/results_", method, "_", num_runs, 
-                                           "_", format(now(), "%Y%m%d"),
-                                           ".csv"))
+write_csv(table_effect_ests, 
+          file = paste0(path_to_dropbox,
+                        "/exposure_trajectories/manuscript/",
+                        "tables/results_", method, "_", num_runs, 
+                        "_", format(now(), "%Y%m%d"),
+                        ".csv"))
 

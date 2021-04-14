@@ -20,6 +20,7 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in data ----
+#---- **CESD data ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
@@ -27,40 +28,42 @@ CESD_data_wide <-
            col_types = cols(HHIDPN = col_character())) %>% 
   mutate_if(is.character, as.factor) 
 
-# for(method in tolower(methods)){
-#   for(prop in 100*mask_props){
-#     assign(paste0(method, "_mcar", prop), 
-#            readRDS(here("MI datasets", paste0(method, "_mcar", prop))))
-#   }
-# }
+#---- **results ----
+methods <- c("JMVN", "PMM", "FCS")
+num_runs <- 100
 
-table_effect_ests <- 
-  read.xlsx(paste0(path_to_dropbox, 
-                   "/exposure_trajectories/manuscript/", 
-                   "tables/main_text_tables2_20210309_184622_.xlsx"))
-
-#---- values ----
-methods <- unique(table_effect_ests$Method)
-mask_props <- unique(table_effect_ests$Missingness)[-1] #Don't want 0%
-num_runs <- 2 #from the filename (number after table)
+for(method in methods){
+  if(method == methods[1]){
+    results <- 
+      read_csv(Sys.glob(
+        paste0(path_to_dropbox, 
+               "/exposure_trajectories/manuscript/tables/results_", method, 
+               "_", num_runs, "*.csv")))
+  } else{
+    results <- 
+      rbind(results, read_csv(Sys.glob(
+        paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+               "results_", method, "_", num_runs, "*.csv"))))
+  }
+}
 
 #---- visualizations ----
 #---- **effect estimates ----
-table_effect_ests %<>% mutate_at(c("Missingness"), as.factor) 
-table_effect_ests$Method <- 
-  factor(table_effect_ests$Method, 
-         levels = methods)
+mask_props <- unique(results$Missingness)[-1] #Don't want 0%
+results %<>% mutate_at(c("Missingness"), as.factor) 
+results$Method <- factor(results$Method, levels = c("Truth", methods))
+results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
 
 #---- ****Distribution of beta ----
-ggplot(table_effect_ests, 
+ggplot(results, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2, position = position_dodge(0.60)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
-  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .2, 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  geom_errorbar(aes(xmin = LCI_beta, xmax = UCI_beta), width = .2, 
                 position = position_dodge(0.60)) + theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
   ggtitle(paste0("95% CI of beta across ", num_runs, " runs"))
@@ -70,15 +73,15 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        dpi = 300, width = 9, height = 5, units = "in")
 
 #---- ****mean LCI and mean UCI ----
-ggplot(table_effect_ests, 
+ggplot(results, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2, position = position_dodge(0.50)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
   geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .2, 
                 position = position_dodge(0.50)) + theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
   ggtitle(paste0("Mean 95% CI of beta across ", num_runs, " runs"))
@@ -88,15 +91,15 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
 
 #---- ****CI with mean SD ----
-ggplot(table_effect_ests, 
+ggplot(results, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2, position = position_dodge(0.50)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(table_effect_ests))))) + 
-  geom_errorbar(aes(xmin = beta - SD, xmax = beta + SD), width = .2, 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  geom_errorbar(aes(xmin = beta - 1.96*SD, xmax = beta + 1.96*SD), width = .2, 
                 position = position_dodge(0.50)) + theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(table_effect_ests$Missingness))) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
   ggtitle(paste0("95% CI of beta using mean SD across ", num_runs, " runs"))

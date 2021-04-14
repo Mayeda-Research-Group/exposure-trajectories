@@ -218,13 +218,14 @@ end <- Sys.time() - start
 future::plan("sequential")
 
 #---- save tables ----
-#Round numbers in dataframe
-table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
+# #Round numbers in dataframe
+# table_effect_ests %<>% mutate(across(where(is.numeric), ~ round(., 3)))
 
 #Save results 
-write_csv(table_effect_ests, file = paste0(path_to_dropbox,
-                                           "/exposure_trajectories/manuscript/",
-                                           "tables/results_", method, "_", num_runs, 
-                                           "_", format(now(), "%Y%m%d"),
-                                           ".csv"))
+write_csv(table_effect_ests, 
+          file = paste0(path_to_dropbox,
+                        "/exposure_trajectories/manuscript/",
+                        "tables/results_", method, "_", num_runs, 
+                        "_", format(now(), "%Y%m%d"),
+                        ".csv"))
 

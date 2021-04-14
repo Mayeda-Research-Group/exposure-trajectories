@@ -29,7 +29,7 @@ CESD_data_wide <-
   mutate_if(is.character, as.factor) 
 
 #---- **results ----
-methods <- c("JMVN", "PMM")
+methods <- c("JMVN", "PMM", "FCS")
 num_runs <- 100
 
 for(method in methods){

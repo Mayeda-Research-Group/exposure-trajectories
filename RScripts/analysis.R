@@ -38,11 +38,11 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 10
+num_runs <- 100
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #all methods: "JMVN", "FCS", "PMM", "JMVN Long", "FCS Long"
-methods <- c("2l.norm")
+methods <- c("FCS")
 #mechanisms <- c("MCAR")
 #mask_props <- c(0.10)
 mechanisms <- c("MCAR", "MAR", "MNAR")

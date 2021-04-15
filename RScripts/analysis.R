@@ -4,7 +4,9 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "future.apply", "lme4")
+       "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
+devtools::install_github(repo = "amices/mice")
+library(mice)
 
 #No scientific notation
 options(scipen = 999)
@@ -146,14 +148,14 @@ truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 # #---- all combos ----
 # all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 #   mutate("mask_percent" = paste0(100*mask_props, "%"))
-# 
+
 # #---- create one set of imputations for plot ----
 # start <- Sys.time()
-# single_run <- apply(all_combos, 1, function(x)
+# single_run <- apply(all_combos[1, ], 1, function(x)
 #   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
 #                    mechanism = x["mechanisms"],
 #                    method = x["methods"],
-#                    mask_percent = x["mask_percent"], truth = truth, 
+#                    mask_percent = x["mask_percent"], truth = truth,
 #                    save = "yes"))
 # end <- Sys.time() - start
 

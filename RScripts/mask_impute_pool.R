@@ -15,7 +15,7 @@ mask_impute_pool <-
                            "widowed", "drinking_cat", "memrye_impute", 
                            "stroke_impute", "hearte_impute", "lunge_impute", 
                            "cancre_impute", "hibpe_impute", "diabe_impute", 
-                           "cesd", "BMI")#, "shlt")
+                           "cesd", "BMI")
     
     time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker", 
@@ -63,7 +63,7 @@ mask_impute_pool <-
         set_colnames(colnames(data_long))
       
       #Don't use these as predictors
-      predict[, c("wave", "observed")] <- 0
+      predict[, c("wave", "observed", "white")] <- 0
       
       #Indicated cluster variable
       predict[, "HHIDPN"] <- -2
@@ -82,9 +82,9 @@ mask_impute_pool <-
       
       #Don't use these as predictors
       predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
-                  "age_death_y", "observed", "r3cesd", "r4cesd_elevated", 
-                  "r9cesd_elevated", "avg_cesd", "avg_cesd_elevated", 
-                  "total_elevated_cesd")] <- 0
+                  paste0("r", seq(4, 9), "shlt"),"age_death_y", "white", 
+                  "observed", "r3cesd", "r4cesd_elevated", "r9cesd_elevated", 
+                  "avg_cesd", "avg_cesd_elevated", "total_elevated_cesd")] <- 0
       
       #---- ****time-updated var models ----
       for(var in time_updated_vars){
@@ -92,21 +92,25 @@ mask_impute_pool <-
         predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
           (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
         
-        #use time-updated predictors
-        predictors <- c(time_updated_vars[which(time_updated_vars != var)], 
-                        "age_y_int")
+        #can't predict in the same wave (all missing)
+        predictors <- time_updated_vars[which(time_updated_vars != var)]
         for(predictor in predictors){
           predict[paste0("r", seq(4, 9), var), 
                   paste0("r", seq(4, 9), predictor)] <- 
-            diag(x = 1, nrow = 6, ncol = 6)
+            (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
         }
+        
+        #use time-updated age
+        predict[paste0("r", seq(4, 9), var), 
+                paste0("r", seq(4, 9), "age_y_int")] <- 
+          diag(x = 1, nrow = 6, ncol = 6)
       }
     }
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
-                     "10%" = c(20, 25, 10, 5),
-                     "20%" = c(25, 25, 20, 5),
+                     "10%" = c(20, 20, 10, 5),
+                     "20%" = c(25, 20, 20, 5),
                      "30%" = c(25, 25, 20, 5)) %>% 
       column_to_rownames("Method")
     
@@ -115,6 +119,7 @@ mask_impute_pool <-
       #Joint multivariate normal
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
+                           #m = 1, maxit = 25,
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent], 
                            method = "norm", predictorMatrix = predict, 
@@ -123,8 +128,8 @@ mask_impute_pool <-
       #stop <- Sys.time() - start
       
       # #look at convergence
-      #   #10% missing needs maxit = 25
-      #   #20% missing needs maxit = 25
+      #   #10% missing needs maxit = 20
+      #   #20% missing needs maxit = 20
       #   #30% missing needs maxit = 25
       # plot(data_imputed)
       
@@ -200,16 +205,16 @@ mask_impute_pool <-
     } else if(method == "LMM"){
       #---- ****LMM ----
       #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
-      #start <- Sys.time()
+      start <- Sys.time()
       data_imputed <- mice(data = data_long, 
-                           m = as.numeric(sub("%","", mask_percent)), 
-                           maxit = max_it[method, mask_percent],
-                           #m = 2, maxit = 10,
-                           method = "2l.norm", predictorMatrix = predict, 
+                           #m = as.numeric(sub("%","", mask_percent)), 
+                           #maxit = max_it[method, mask_percent],
+                           m = 2, maxit = 2,
+                           method = "2l.lmer", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      #stop <- Sys.time() - start
+      stop <- Sys.time() - start
       
       # } else if(method == "2l.fcs"){
       #   #---- ****2l.fcs ----

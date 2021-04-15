@@ -110,9 +110,9 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 
 #---- **individual imputations ----
 #Read in data
-methods <- c("jmvn_", "pmm_")
-type <- c("mcar")
-mask_percent <- c("20", "30")
+methods <- c("jmvn_", "pmm_", "fcs_")
+type <- c("mcar", "mar", "mnar")
+mask_percent <- c("10", "20", "30")
 
 filenames <- expand_grid(methods, type, mask_percent) %>% 
   unite("filenames", sep = "", remove = FALSE) 

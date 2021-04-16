@@ -5,7 +5,7 @@ if (!require("pacman")){
 
 p_load("here", "tidyverse", "magrittr", "mice", "broom", "ResourceSelection", 
        "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
-devtools::install_github(repo = "amices/mice")
+#devtools::install_github(repo = "amices/mice")
 library(mice)
 
 #No scientific notation
@@ -40,7 +40,7 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 100
+num_runs <- 10
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 
@@ -48,7 +48,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
 #mask_props <- c(0.10)
 #methods <- c("JMVN", "PMM", "FCS")
 
-methods <- c("PMM")
+methods <- c("JMVN")
 mechanisms <- c("MCAR", "MAR", "MNAR")
 mask_props <- c(.10, 0.20, 0.30)
 

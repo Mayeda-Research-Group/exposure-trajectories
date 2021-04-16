@@ -103,11 +103,16 @@ table_1 <- table1_data %>%
 table_1 %>% as_flex_table()
 
 table1_xlsx <- table_1 %>% as_tibble()
-library("writexl")
+
 write_xlsx(table1_xlsx, paste0(path_to_dropbox, 
                                "/exposure_trajectories/manuscript/tables/OLD/", 
                                "table_1_temp.xlsx"))
-
+# # Save as png (but the format is very different from a flex_table)
+# table1_png <- table_1 %>% as_gt()
+# gt::gtsave(table1_png, "table_1.png",
+#            paste0(path_to_dropbox, 
+#            "/exposure_trajectories/manuscript/tables"),
+#            vwidth = 1250, vheight = 50)
 
 # #---- Use table1 pacakge ----
 # # Really annoying that "table1" and "furniture" fight with each other to "death"

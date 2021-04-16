@@ -109,9 +109,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
-                     "10%" = c(20, 20, 10, 5),
-                     "20%" = c(25, 20, 20, 5),
-                     "30%" = c(25, 25, 20, 5)) %>% 
+                     "10%" = c(0, 20, 20, 5),
+                     "20%" = c(0, 20, 20, 5),
+                     "30%" = c(0, 25, 25, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -189,6 +189,7 @@ mask_impute_pool <-
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent], 
+                           #m = 1, maxit = 30,
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 
                            where = is.na(data_wide), 
@@ -197,9 +198,9 @@ mask_impute_pool <-
       #stop <- Sys.time() - start
       
       # #look at convergence
-      # #10% missing needs maxit = 10
+      # #10% missing needs maxit = 20
       # #20% missing needs maxit = 20
-      # #30% missing needs maxit = 20
+      # #30% missing needs maxit = 25
       # plot(data_imputed)
       
     } else if(method == "LMM"){

@@ -245,18 +245,27 @@ mask <- function(data_wide, mechanism, mask_percent){
 #   read_csv(paste0(path_to_dropbox,
 #                   "/exposure_trajectories/data/",
 #                   "CESD_data_wide.csv"))
-# # MCAR
-# test <- nrows(mask(CESD_data_wide, "MCAR", "20%"))
-# # {index <- mask(CESD_data_wide, "MCAR", "20%")
-# #   length(index)/(9445*6)
-# # }
+# # geting the coefficients in MAR and MNAR models
+# coef_df <- data.frame(
+#   intercept = exp(beta_0),
+#   age_j = exp(beta_age),
+#   CESD_j_1 = exp(beta_cesdpre),
+#   conde_j_1 = exp(beta_condepre),
+#   cesd_j = exp(beta_cesdcurrent)
+# ) %>% print()
+
+# MCAR
+# test <- mask(CESD_data_wide, "MCAR", "20%")
+# {index <- mask(CESD_data_wide, "MCAR", "20%")
+#   length(index)/(9445*6)
+# }
 # test %>%
 #   select(contains("cesd"),
 #          -contains(c("elevated", "avg", "r3"))) %>%
 #   pivot_longer(everything(),
 #                names_to = "origvar",
 #                values_to = "CESD") %>%
-#     count(CESD) %>%
+#     dplyr::count(CESD) %>%
 #     mutate(prop = prop.table(n))
 # 
 # view(test[is.na(test$r9cesd), ])
@@ -272,7 +281,7 @@ mask <- function(data_wide, mechanism, mask_percent){
 #   test_sample_size <- replicate(size, test_func(CESD_data_wide, "MCAR", "30%")))
 # summary(test_sample_size)
 # 
-# # MAR
+# MAR
 # test1 <- mask(CESD_data_wide, "MAR", "20%")
 # test1 %>%
 #   select(contains("cesd"),
@@ -291,7 +300,7 @@ mask <- function(data_wide, mechanism, mask_percent){
 # system.time(
 #   test1_sample_size <- replicate(size, test_func(CESD_data_wide, "MAR", "30%")))
 # summary(test1_sample_size)
-# 
+
 # # MNAR
 # test2 <- mask(CESD_data_wide, "MNAR", "30%")
 # test2 %>%

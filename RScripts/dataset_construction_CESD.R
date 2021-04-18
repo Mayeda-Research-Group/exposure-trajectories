@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -948,7 +948,7 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # 1. full HRSsample (n = 43398)
 
 # 2. remove people who were not sampled in 2018
-# sum(is.na(hrs_samp$QALIVE))
+sum(is.na(hrs_samp$QALIVE))
 hrs_samp %<>% filter(!is.na(QALIVE))
 
 # 3. drop those with missing CESD observations in wave 4 - 9
@@ -965,39 +965,40 @@ if(length(still_missing) > 0){
   hrs_samp <- hrs_samp[-c(still_missing), ]
 }
 
-# 4 + 5 Drop those not age-eligible at HRS wave 4 and those who are 91+
-sum(hrs_samp$r4age_y_int %in% c(seq(50, 90)))
+# 4.2 Drop those not age-eligible at HRS wave 4 and those who are 91+
+sum(!hrs_samp$r4age_y_int %in% c(seq(50, 90)))
 hrs_samp %<>% filter(r4age_y_int %in% c(seq(50, 90)))
 
-# 6. Dropping those missing race/ethnicity data
-# sum(hrs_samp$unknown_race_eth == 0)
+# 5. Dropping those missing race/ethnicity data
+sum(!hrs_samp$unknown_race_eth == 0)
 hrs_samp %<>% filter(unknown_race_eth == 0)
 
-# 7. Drop people missing height data
+# 6. Drop people missing height data
 #Drop RAND's height variables + extra derived variables
 # sum(is.na(hrs_samp$height))
 hrs_samp %<>% filter(!is.na(height)) %>% 
   dplyr::select(-c(paste0("r", seq(8, 13, by = 1), "pmhght"), 
                    paste0("r", number_waves, "height"), 
                    "med_height", "self_height"))
-# 8. Drop those missing BMI （weight)
-# sum(hrs_samp$missing_bmi != 0)
+
+# 7. Drop those missing BMI （weight)
+sum(hrs_samp$missing_bmi != 0)
 hrs_samp %<>% filter(missing_bmi == 0)
 
-# 9.  Drop those who miss drinking status at any wave after imputation
+# 8. Drop those who miss drinking status at any wave after imputation
 subset <- hrs_samp %>% dplyr::select(contains("drinking"))
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
-# 10. Drop those without self-reported health
-drop <- rowSums(is.na(hrs_samp %>%
-                        dplyr::select(paste0("r", seq(4, 9), "shlt"))))
-# table(drop)
-hrs_samp[, "drop"] <- drop
-# #Sanity check
-# table(hrs_samp$drop, useNA = "ifany")
-hrs_samp %<>% filter(drop == 0)
+# # 9. Drop those without self-reported health
+# drop <- rowSums(is.na(hrs_samp %>%
+#                         dplyr::select(paste0("r", seq(4, 9), "shlt"))))
+# # table(drop)
+# hrs_samp[, "drop"] <- drop
+# # #Sanity check
+# # table(hrs_samp$drop, useNA = "ifany")
+# hrs_samp %<>% filter(drop == 0)
 
-#11. Drop people missing wave-updated ever/never chronic conditions
+#9. Drop people missing wave-updated ever/never chronic conditions
 conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke",
                 "memrye")
 subset <- hrs_samp %>% 
@@ -1039,6 +1040,7 @@ hrs_samp %<>% dplyr::select(all_of(vars))
 #Should have no missingness except in 
 # r3cesd (not part of optimal wave range)
 # age_death_y (for those who are still living)
+# self reported health  (rwshlt, since no longer using this in the models)
 colSums(is.na(hrs_samp))
 
 #---- Exposures ----

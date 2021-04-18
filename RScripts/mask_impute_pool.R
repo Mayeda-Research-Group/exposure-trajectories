@@ -109,9 +109,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
-                     "10%" = c(0, 20, 20, 5),
-                     "20%" = c(0, 20, 20, 5),
-                     "30%" = c(0, 25, 25, 5)) %>% 
+                     "10%" = c(20, 20, 20, 5),
+                     "20%" = c(25, 20, 20, 5),
+                     "30%" = c(25, 25, 25, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -153,7 +153,7 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
-                           #m = 2, maxit = 5,
+                           #m = 1, maxit = 25,
                            maxit = max_it[method, mask_percent],
                            defaultMethod = 
                              c("norm", "logreg", "polyreg", "polr"),

@@ -136,27 +136,48 @@ mask_impute_pool <-
     } else if(method == "FCS"){
       #---- ****FCS ----
       #Fully conditional specification
-      data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-                         paste0("r", seq(4, 9), "not_married_partnered"),
-                         paste0("r", seq(4, 9), "widowed"),
-                         paste0("r", seq(4, 9), "memrye_impute"), 
-                         paste0("r", seq(4, 9), "stroke_impute"),
-                         paste0("r", seq(4, 9), "hearte_impute"),
-                         paste0("r", seq(4, 9), "lunge_impute"), 
-                         paste0("r", seq(4, 9), "cancre_impute"), 
-                         paste0("r", seq(4, 9), "hibpe_impute"), 
-                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-                         "hispanic", "black", "other", "female", "death2018")), 
-                  as.factor)
+      impute_method <- make.method(data_wide)
+      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
+                 paste0("r", seq(4, 9), "not_married_partnered"),
+                 paste0("r", seq(4, 9), "widowed"),
+                 paste0("r", seq(4, 9), "memrye_impute"),
+                 paste0("r", seq(4, 9), "stroke_impute"),
+                 paste0("r", seq(4, 9), "hearte_impute"),
+                 paste0("r", seq(4, 9), "lunge_impute"),
+                 paste0("r", seq(4, 9), "cancre_impute"),
+                 paste0("r", seq(4, 9), "hibpe_impute"),
+                 paste0("r", seq(4, 9), "diabe_impute"))] <- "logreg"
+      
+      impute_method[c(paste0("r", seq(4, 9), "drinking_cat"),
+               paste0("r", seq(4, 9), "BMI"), 
+               paste0("r", seq(4, 9), "cesd"))] <- "norm"
+      
+      impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+               "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
+               "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated")] <- ""
+      
+     impute_method <- impute_method[-which(impute_method == "")]
+      
+      # data_wide %<>%
+      #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+      #                    paste0("r", seq(4, 9), "not_married_partnered"),
+      #                    paste0("r", seq(4, 9), "widowed"),
+      #                    paste0("r", seq(4, 9), "memrye_impute"),
+      #                    paste0("r", seq(4, 9), "stroke_impute"),
+      #                    paste0("r", seq(4, 9), "hearte_impute"),
+      #                    paste0("r", seq(4, 9), "lunge_impute"),
+      #                    paste0("r", seq(4, 9), "cancre_impute"),
+      #                    paste0("r", seq(4, 9), "hibpe_impute"),
+      #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker",
+      #                    "hispanic", "black", "other", "female", "death2018")),
+      #             as.factor)
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            #m = 1, maxit = 25,
                            maxit = max_it[method, mask_percent],
-                           defaultMethod = 
-                             c("norm", "logreg", "polyreg", "polr"),
+                           method = impute_method,
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)),
                            seed = 20210126)
@@ -168,84 +189,84 @@ mask_impute_pool <-
       #   #30% missing needs maxit = 25
       # plot(data_imputed)
       
-    } else if(method == "PMM"){
-      #---- ****PMM ----
-      #Predictive Mean Matching
-      data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-                         paste0("r", seq(4, 9), "not_married_partnered"),
-                         paste0("r", seq(4, 9), "widowed"),
-                         paste0("r", seq(4, 9), "memrye_impute"), 
-                         paste0("r", seq(4, 9), "stroke_impute"),
-                         paste0("r", seq(4, 9), "hearte_impute"),
-                         paste0("r", seq(4, 9), "lunge_impute"), 
-                         paste0("r", seq(4, 9), "cancre_impute"), 
-                         paste0("r", seq(4, 9), "hibpe_impute"), 
-                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-                         "hispanic", "black", "other", "female", "death2018")), 
-                  as.factor)
-      
-      #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, 
-                           m = as.numeric(sub("%","", mask_percent)), 
-                           maxit = max_it[method, mask_percent], 
-                           #m = 1, maxit = 30,
-                           method = "pmm", donors = 5, 
-                           predictorMatrix = predict, 
-                           where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), 
-                           seed = 20210126)
-      #stop <- Sys.time() - start
-      
-      # #look at convergence
-      # #10% missing needs maxit = 20
-      # #20% missing needs maxit = 20
-      # #30% missing needs maxit = 25
-      # plot(data_imputed)
-      
-    } else if(method == "LMM"){
-      #---- ****LMM ----
-      #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
-      start <- Sys.time()
-      data_imputed <- mice(data = data_long, 
-                           #m = as.numeric(sub("%","", mask_percent)), 
-                           #maxit = max_it[method, mask_percent],
-                           m = 2, maxit = 2,
-                           method = "2l.lmer", predictorMatrix = predict, 
-                           where = is.na(data_long), 
-                           blocks = as.list(rownames(predict)), 
-                           seed = 20210126)
-      stop <- Sys.time() - start
-      
-      # } else if(method == "2l.fcs"){
-      #   #---- ****2l.fcs ----
-      #   #Longitudinal fully conditional specification
-      #   #Fully conditional specification
-      #   data_long %<>% 
-      #     mutate_at(vars(c("married_partnered", "not_married_partnered", 
-      #                      "widowed", "memrye_impute", "stroke_impute", 
-      #                      "hearte_impute", "lunge_impute", "cancre_impute", 
-      #                      "hibpe_impute", "diabe_impute", "black", "hispanic", 
-      #                      "other", "female", "death2018", "smoker")), 
-      #               as.factor)
-      #   
-      #   start <- Sys.time()
-      #   data_imputed <- mice(data = data_long, m = num_impute, 
-      #                        maxit = 10, 
-      #                        defaultMethod = 
-      #                          c("2l.norm", "2l.bin", "2l.norm", "2l.norm"), 
-      #                        predictorMatrix = predict, 
-      #                        where = is.na(data_long), 
-      #                        blocks = as.list(rownames(predict)), 
-      #                        seed = 20210126)
-      #   stop <- Sys.time() - start
-      #   
-      #   # #look at convergence
-      #   # #10% missing needs maxit = 
-      #   # #20% missing needs maxit = 
-      #   # #30% missing needs maxit = 
-      #   plot(data_imputed) 
-    } 
+      } else if(method == "PMM"){
+        #---- ****PMM ----
+        #Predictive Mean Matching
+        data_wide %<>% 
+          mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+                           paste0("r", seq(4, 9), "not_married_partnered"),
+                           paste0("r", seq(4, 9), "widowed"),
+                           paste0("r", seq(4, 9), "memrye_impute"), 
+                           paste0("r", seq(4, 9), "stroke_impute"),
+                           paste0("r", seq(4, 9), "hearte_impute"),
+                           paste0("r", seq(4, 9), "lunge_impute"), 
+                           paste0("r", seq(4, 9), "cancre_impute"), 
+                           paste0("r", seq(4, 9), "hibpe_impute"), 
+                           paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
+                           "hispanic", "black", "other", "female", "death2018")), 
+                    as.factor)
+        
+        #start <- Sys.time()
+        data_imputed <- mice(data = data_wide, 
+                             m = as.numeric(sub("%","", mask_percent)), 
+                             maxit = max_it[method, mask_percent], 
+                             #m = 1, maxit = 30,
+                             method = "pmm", donors = 5, 
+                             predictorMatrix = predict, 
+                             where = is.na(data_wide), 
+                             blocks = as.list(rownames(predict)), 
+                             seed = 20210126)
+        #stop <- Sys.time() - start
+        
+        # #look at convergence
+        # #10% missing needs maxit = 20
+        # #20% missing needs maxit = 20
+        # #30% missing needs maxit = 25
+        # plot(data_imputed)
+        
+      } else if(method == "LMM"){
+        #---- ****LMM ----
+        #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
+        start <- Sys.time()
+        data_imputed <- mice(data = data_long, 
+                             #m = as.numeric(sub("%","", mask_percent)), 
+                             #maxit = max_it[method, mask_percent],
+                             m = 2, maxit = 2,
+                             method = "2l.lmer", predictorMatrix = predict, 
+                             where = is.na(data_long), 
+                             blocks = as.list(rownames(predict)), 
+                             seed = 20210126)
+        stop <- Sys.time() - start
+        
+        # } else if(method == "2l.fcs"){
+        #   #---- ****2l.fcs ----
+        #   #Longitudinal fully conditional specification
+        #   #Fully conditional specification
+        #   data_long %<>% 
+        #     mutate_at(vars(c("married_partnered", "not_married_partnered", 
+        #                      "widowed", "memrye_impute", "stroke_impute", 
+        #                      "hearte_impute", "lunge_impute", "cancre_impute", 
+        #                      "hibpe_impute", "diabe_impute", "black", "hispanic", 
+        #                      "other", "female", "death2018", "smoker")), 
+        #               as.factor)
+        #   
+        #   start <- Sys.time()
+        #   data_imputed <- mice(data = data_long, m = num_impute, 
+        #                        maxit = 10, 
+        #                        defaultMethod = 
+        #                          c("2l.norm", "2l.bin", "2l.norm", "2l.norm"), 
+        #                        predictorMatrix = predict, 
+        #                        where = is.na(data_long), 
+        #                        blocks = as.list(rownames(predict)), 
+        #                        seed = 20210126)
+        #   stop <- Sys.time() - start
+        #   
+        #   # #look at convergence
+        #   # #10% missing needs maxit = 
+        #   # #20% missing needs maxit = 
+        #   # #30% missing needs maxit = 
+        #   plot(data_imputed) 
+      } 
     
     #---- **save results ----
     if(save == "yes"){
@@ -431,7 +452,7 @@ mask_impute_pool <-
     
     #---- return values ----
     return(pooled_effect_ests)
-  }
+    }
 
 # #---- testing ----
 # #Single run

@@ -55,6 +55,16 @@ results$Method <- factor(results$Method,
                          levels = c("Truth", "Complete Case", methods))
 results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
 
+#update exposure defs
+results[which(results$Exposure == "CES-D Wave 4"), "Exposure"] <- 
+  "Elevated CES-D Wave 4" 
+results[which(results$Exposure == "CES-D Wave 9"), "Exposure"] <- 
+  "Elevated CES-D Wave 9" 
+results$Exposure <- 
+  factor(results$Exposure, 
+         levels = c("Elevated CES-D Wave 4", "Elevated CES-D Wave 9" , 
+                    "Elevated Average CES-D", "Elevated CES-D Count"))
+
 # #---- ****Distribution of beta ----
 # ggplot(results, 
 #        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
@@ -76,10 +86,10 @@ results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
 #---- ****mean LCI and mean UCI ----
 ggplot(results, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(0.50)) + 
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
   geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3, 
-                position = position_dodge(0.50)) + theme_minimal() + 
+                position = position_dodge(0.75)) + theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 

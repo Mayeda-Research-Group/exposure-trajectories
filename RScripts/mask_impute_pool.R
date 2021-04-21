@@ -347,9 +347,14 @@ mask_impute_pool <-
           probs <- 1/rowSums(subset)
           
           for(row in which(probs != 1)){
-            cats <- as.numeric(which(subset[row, ] == 1))
-            this_one <- sample(cats, size = 1, 
-                               prob = rep(probs[row], floor(1/probs[row])))
+            if(probs[row] == Inf){
+              cats <- seq(1, length(vars))
+              this_one <- sample(cats, size = 1)
+            } else{
+              cats <- as.numeric(which(subset[row, ] == 1))
+              this_one <- sample(cats, size = 1, 
+                                 prob = rep(probs[row], floor(1/probs[row])))
+            }
             subset[row, ] <- 0
             subset[row, this_one] <- 1
           }

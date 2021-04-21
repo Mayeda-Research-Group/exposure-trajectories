@@ -44,7 +44,7 @@ num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("PMM")
+methods <- c("JMVN")
 mechanisms <- c("MCAR")
 mask_props <- c(0.10)
 
@@ -160,7 +160,7 @@ truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 # end <- Sys.time() - start
 
 #---- create cluster ----
-#plan(multisession, gc = FALSE)
+plan(multisession, gc = FALSE)
 
 #---- get pooled effect estimates ----
 start <- Sys.time()
@@ -172,7 +172,7 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     mask_percent = table_effect_ests[i, "Missingness"]
     
     multi_runs <- 
-      replicate(num_runs, 
+      future_replicate(num_runs, 
                 mask_impute_pool(CESD_data_wide, exposures, 
                                  mechanism = mechanism, method = method, 
                                  mask_percent = mask_percent,
@@ -217,7 +217,7 @@ for(i in which(!table_effect_ests$Method == "Truth")){
 end <- Sys.time() - start
 
 #---- shut down cluster ----
-#future::plan("sequential")
+future::plan("sequential")
 
 #---- save tables ----
 # #Round numbers in dataframe

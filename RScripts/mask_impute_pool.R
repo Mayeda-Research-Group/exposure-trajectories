@@ -11,13 +11,12 @@ mask_impute_pool <-
     #---- create incomplete data ----
     data_wide <- mask(data_wide, mechanism, mask_percent)
     
-    time_updated_vars <- c("married_partnered", "not_married_partnered", 
-                           "widowed", "drinking_cat", "memrye_impute", 
-                           "stroke_impute", "hearte_impute", "lunge_impute", 
-                           "cancre_impute", "hibpe_impute", "diabe_impute", 
-                           "cesd", "BMI")
+    time_updated_vars <- c("not_married_partnered", "widowed", "drinking_cat", 
+                           "memrye_impute", "stroke_impute", "hearte_impute", 
+                           "lunge_impute", "cancre_impute", "hibpe_impute", 
+                           "diabe_impute", "cesd", "BMI")
     
-    time_invariant_vars <- c("ed_cat", "white", "black", "hispanic", "other", 
+    time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker", 
                              "observed")
     
@@ -82,6 +81,7 @@ mask_impute_pool <-
       
       #Don't use these as predictors
       predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
+                  paste0("r", seq(4, 9), "married_partnered"),
                   paste0("r", seq(4, 9), "shlt"),"age_death_y", "white", 
                   "observed", "r3cesd", "r4cesd_elevated", "r9cesd_elevated", 
                   "avg_cesd", "avg_cesd_elevated", "total_elevated_cesd")] <- 0
@@ -119,7 +119,7 @@ mask_impute_pool <-
       #Joint multivariate normal
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
-                           #m = 1, maxit = 25,
+                           #m = 2, maxit = 5,
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent], 
                            method = "norm", predictorMatrix = predict, 
@@ -136,27 +136,49 @@ mask_impute_pool <-
     } else if(method == "FCS"){
       #---- ****FCS ----
       #Fully conditional specification
-      data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-                         paste0("r", seq(4, 9), "not_married_partnered"),
-                         paste0("r", seq(4, 9), "widowed"),
-                         paste0("r", seq(4, 9), "memrye_impute"), 
-                         paste0("r", seq(4, 9), "stroke_impute"),
-                         paste0("r", seq(4, 9), "hearte_impute"),
-                         paste0("r", seq(4, 9), "lunge_impute"), 
-                         paste0("r", seq(4, 9), "cancre_impute"), 
-                         paste0("r", seq(4, 9), "hibpe_impute"), 
-                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-                         "hispanic", "black", "other", "female", "death2018")), 
-                  as.factor)
+      impute_method <- make.method(data_wide)
+      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
+                      paste0("r", seq(4, 9), "not_married_partnered"),
+                      paste0("r", seq(4, 9), "widowed"),
+                      paste0("r", seq(4, 9), "memrye_impute"),
+                      paste0("r", seq(4, 9), "stroke_impute"),
+                      paste0("r", seq(4, 9), "hearte_impute"),
+                      paste0("r", seq(4, 9), "lunge_impute"),
+                      paste0("r", seq(4, 9), "cancre_impute"),
+                      paste0("r", seq(4, 9), "hibpe_impute"),
+                      paste0("r", seq(4, 9), "diabe_impute"))] <- "logreg"
+      
+      impute_method[c(paste0("r", seq(4, 9), "drinking_cat"),
+                      paste0("r", seq(4, 9), "BMI"), 
+                      paste0("r", seq(4, 9), "cesd"))] <- "norm"
+      
+      impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                      "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
+                      "total_elevated_cesd", "avg_cesd", 
+                      "avg_cesd_elevated")] <- ""
+      
+      impute_method <- impute_method[-which(impute_method == "")]
+      
+      # data_wide %<>%
+      #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+      #                    paste0("r", seq(4, 9), "not_married_partnered"),
+      #                    paste0("r", seq(4, 9), "widowed"),
+      #                    paste0("r", seq(4, 9), "memrye_impute"),
+      #                    paste0("r", seq(4, 9), "stroke_impute"),
+      #                    paste0("r", seq(4, 9), "hearte_impute"),
+      #                    paste0("r", seq(4, 9), "lunge_impute"),
+      #                    paste0("r", seq(4, 9), "cancre_impute"),
+      #                    paste0("r", seq(4, 9), "hibpe_impute"),
+      #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker",
+      #                    "hispanic", "black", "other", "female", "death2018")),
+      #             as.factor)
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            #m = 1, maxit = 25,
                            maxit = max_it[method, mask_percent],
-                           defaultMethod = 
-                             c("norm", "logreg", "polyreg", "polr"),
+                           method = impute_method,
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)),
                            seed = 20210126)
@@ -171,25 +193,48 @@ mask_impute_pool <-
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
-      data_wide %<>% 
-        mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-                         paste0("r", seq(4, 9), "not_married_partnered"),
-                         paste0("r", seq(4, 9), "widowed"),
-                         paste0("r", seq(4, 9), "memrye_impute"), 
-                         paste0("r", seq(4, 9), "stroke_impute"),
-                         paste0("r", seq(4, 9), "hearte_impute"),
-                         paste0("r", seq(4, 9), "lunge_impute"), 
-                         paste0("r", seq(4, 9), "cancre_impute"), 
-                         paste0("r", seq(4, 9), "hibpe_impute"), 
-                         paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-                         "hispanic", "black", "other", "female", "death2018")), 
-                  as.factor)
+      impute_method <- make.method(data_wide)
+      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
+                      paste0("r", seq(4, 9), "not_married_partnered"),
+                      paste0("r", seq(4, 9), "widowed"),
+                      paste0("r", seq(4, 9), "memrye_impute"),
+                      paste0("r", seq(4, 9), "stroke_impute"),
+                      paste0("r", seq(4, 9), "hearte_impute"),
+                      paste0("r", seq(4, 9), "lunge_impute"),
+                      paste0("r", seq(4, 9), "cancre_impute"),
+                      paste0("r", seq(4, 9), "hibpe_impute"),
+                      paste0("r", seq(4, 9), "diabe_impute"))] <- "logreg"
+      
+      impute_method[c(paste0("r", seq(4, 9), "drinking_cat"),
+                      paste0("r", seq(4, 9), "BMI"), 
+                      paste0("r", seq(4, 9), "cesd"))] <- "norm"
+      
+      impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                      "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
+                      "total_elevated_cesd", "avg_cesd", 
+                      "avg_cesd_elevated")] <- ""
+      
+      impute_method <- impute_method[-which(impute_method == "")]
+      
+      # data_wide %<>% 
+      #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+      #                    paste0("r", seq(4, 9), "not_married_partnered"),
+      #                    paste0("r", seq(4, 9), "widowed"),
+      #                    paste0("r", seq(4, 9), "memrye_impute"), 
+      #                    paste0("r", seq(4, 9), "stroke_impute"),
+      #                    paste0("r", seq(4, 9), "hearte_impute"),
+      #                    paste0("r", seq(4, 9), "lunge_impute"), 
+      #                    paste0("r", seq(4, 9), "cancre_impute"), 
+      #                    paste0("r", seq(4, 9), "hibpe_impute"), 
+      #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
+      #                    "hispanic", "black", "other", "female", "death2018")), 
+      #             as.factor)
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)), 
                            maxit = max_it[method, mask_percent], 
-                           #m = 1, maxit = 30,
+                           #m = 2, maxit = 5,
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 
                            where = is.na(data_wide), 
@@ -268,11 +313,29 @@ mask_impute_pool <-
           vars <- c("married_partnered", "not_married_partnered", "widowed")
           cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
           subset <- complete_data[, cols]
-          rowmax <- apply(subset, 1, function(x) max(x))
-          subset <- subset/rowmax
-          subset[subset < 1] <- 0
+          
+          #fix impossible probs
+          subset[subset < 0] <- 0
           subset[subset > 1] <- 1
           
+          subset[, 2] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 2])
+          subset[, 3] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 3])
+          subset[, "sum"] <- rowSums(subset[, 2:3])
+          
+          for(row in 1:nrow(subset)){
+            if(!is.na(subset[row, 1])){
+              next
+            } else if(subset[row, "sum"] == 0){
+              subset[row, 1] <- 1
+            } else if(subset[row, "sum"] == 1){
+              subset[row, 1] <- 0
+            } else{
+              subset[row, 1] <- 0
+              this_cat <- sample(c(2, 3), size = 1)
+              subset[row, this_cat] <- 1
+              subset[row, (which(c(2,3) != this_cat) + 1)] <- 0
+            }
+          }
           complete_data[, colnames(subset)] <- subset
         }
         
@@ -304,9 +367,14 @@ mask_impute_pool <-
           probs <- 1/rowSums(subset)
           
           for(row in which(probs != 1)){
-            cats <- as.numeric(which(subset[row, ] == 1))
-            this_one <- sample(cats, size = 1, 
-                               prob = rep(probs[row], floor(1/probs[row])))
+            if(probs[row] == Inf){
+              cats <- seq(1, length(vars))
+              this_one <- sample(cats, size = 1)
+            } else{
+              cats <- as.numeric(which(subset[row, ] == 1))
+              this_one <- sample(cats, size = 1, 
+                                 prob = rep(probs[row], floor(1/probs[row])))
+            }
             subset[row, ] <- 0
             subset[row, this_one] <- 1
           }

@@ -40,17 +40,17 @@ CESD_data_wide <-
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 10
+num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 
-#mechanisms <- c("MCAR")
-#mask_props <- c(0.10)
-#methods <- c("JMVN", "PMM", "FCS")
-
 methods <- c("JMVN")
-mechanisms <- c("MCAR", "MAR", "MNAR")
-mask_props <- c(.10, 0.20, 0.30)
+mechanisms <- c("MCAR")
+mask_props <- c(.10)
+
+# methods <- c("JMVN", "PMM", "FCS")
+# mechanisms <- c("MCAR", "MAR", "MNAR")
+# mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
@@ -173,11 +173,11 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     
     multi_runs <- 
       future_replicate(num_runs, 
-                       mask_impute_pool(CESD_data_wide, exposures, 
-                                        mechanism = mechanism, method = method, 
-                                        mask_percent = mask_percent,
-                                        truth = truth, save = "no"), 
-                       simplify = FALSE)
+                mask_impute_pool(CESD_data_wide, exposures, 
+                                 mechanism = mechanism, method = method, 
+                                 mask_percent = mask_percent,
+                                 truth = truth, save = "no"), 
+                simplify = FALSE)
     #Formatting data
     formatted <- do.call(rbind, multi_runs)
     

@@ -44,7 +44,7 @@ num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 #all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("JMVN")
+methods <- c("FCS")
 mechanisms <- c("MCAR")
 mask_props <- c(0.10)
 

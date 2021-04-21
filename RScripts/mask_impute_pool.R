@@ -137,8 +137,7 @@ mask_impute_pool <-
       #---- ****FCS ----
       #Fully conditional specification
       impute_method <- make.method(data_wide)
-      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
-                      paste0("r", seq(4, 9), "not_married_partnered"),
+      impute_method[c(paste0("r", seq(4, 9), "not_married_partnered"),
                       paste0("r", seq(4, 9), "widowed"),
                       paste0("r", seq(4, 9), "memrye_impute"),
                       paste0("r", seq(4, 9), "stroke_impute"),
@@ -153,6 +152,7 @@ mask_impute_pool <-
                       paste0("r", seq(4, 9), "cesd"))] <- "norm"
       
       impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                      paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 
                       "avg_cesd_elevated")] <- ""
@@ -232,9 +232,9 @@ mask_impute_pool <-
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
-                           #m = as.numeric(sub("%","", mask_percent)), 
-                           #maxit = max_it[method, mask_percent], 
-                           m = 2, maxit = 5,
+                           m = as.numeric(sub("%","", mask_percent)), 
+                           maxit = max_it[method, mask_percent], 
+                           #m = 2, maxit = 5,
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 
                            where = is.na(data_wide), 

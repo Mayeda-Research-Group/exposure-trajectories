@@ -192,25 +192,47 @@ mask_impute_pool <-
       } else if(method == "PMM"){
         #---- ****PMM ----
         #Predictive Mean Matching
-        data_wide %<>% 
-          mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-                           paste0("r", seq(4, 9), "not_married_partnered"),
-                           paste0("r", seq(4, 9), "widowed"),
-                           paste0("r", seq(4, 9), "memrye_impute"), 
-                           paste0("r", seq(4, 9), "stroke_impute"),
-                           paste0("r", seq(4, 9), "hearte_impute"),
-                           paste0("r", seq(4, 9), "lunge_impute"), 
-                           paste0("r", seq(4, 9), "cancre_impute"), 
-                           paste0("r", seq(4, 9), "hibpe_impute"), 
-                           paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-                           "hispanic", "black", "other", "female", "death2018")), 
-                    as.factor)
+        impute_method <- make.method(data_wide)
+        impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
+                        paste0("r", seq(4, 9), "not_married_partnered"),
+                        paste0("r", seq(4, 9), "widowed"),
+                        paste0("r", seq(4, 9), "memrye_impute"),
+                        paste0("r", seq(4, 9), "stroke_impute"),
+                        paste0("r", seq(4, 9), "hearte_impute"),
+                        paste0("r", seq(4, 9), "lunge_impute"),
+                        paste0("r", seq(4, 9), "cancre_impute"),
+                        paste0("r", seq(4, 9), "hibpe_impute"),
+                        paste0("r", seq(4, 9), "diabe_impute"))] <- "logreg"
+        
+        impute_method[c(paste0("r", seq(4, 9), "drinking_cat"),
+                        paste0("r", seq(4, 9), "BMI"), 
+                        paste0("r", seq(4, 9), "cesd"))] <- "norm"
+        
+        impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                        "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
+                        "total_elevated_cesd", "avg_cesd", "avg_cesd_elevated")] <- ""
+        
+        impute_method <- impute_method[-which(impute_method == "")]
+        
+        # data_wide %<>% 
+        #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
+        #                    paste0("r", seq(4, 9), "not_married_partnered"),
+        #                    paste0("r", seq(4, 9), "widowed"),
+        #                    paste0("r", seq(4, 9), "memrye_impute"), 
+        #                    paste0("r", seq(4, 9), "stroke_impute"),
+        #                    paste0("r", seq(4, 9), "hearte_impute"),
+        #                    paste0("r", seq(4, 9), "lunge_impute"), 
+        #                    paste0("r", seq(4, 9), "cancre_impute"), 
+        #                    paste0("r", seq(4, 9), "hibpe_impute"), 
+        #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
+        #                    "hispanic", "black", "other", "female", "death2018")), 
+        #             as.factor)
         
         #start <- Sys.time()
         data_imputed <- mice(data = data_wide, 
-                             m = as.numeric(sub("%","", mask_percent)), 
-                             maxit = max_it[method, mask_percent], 
-                             #m = 1, maxit = 30,
+                             #m = as.numeric(sub("%","", mask_percent)), 
+                             #maxit = max_it[method, mask_percent], 
+                             m = 2, maxit = 5,
                              method = "pmm", donors = 5, 
                              predictorMatrix = predict, 
                              where = is.na(data_wide), 

@@ -137,8 +137,7 @@ mask_impute_pool <-
       #---- ****FCS ----
       #Fully conditional specification
       impute_method <- make.method(data_wide)
-      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
-                      paste0("r", seq(4, 9), "not_married_partnered"),
+      impute_method[c(paste0("r", seq(4, 9), "not_married_partnered"),
                       paste0("r", seq(4, 9), "widowed"),
                       paste0("r", seq(4, 9), "memrye_impute"),
                       paste0("r", seq(4, 9), "stroke_impute"),
@@ -153,6 +152,7 @@ mask_impute_pool <-
                       paste0("r", seq(4, 9), "cesd"))] <- "norm"
       
       impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                      paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 
                       "avg_cesd_elevated")] <- ""
@@ -194,8 +194,7 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       impute_method <- make.method(data_wide)
-      impute_method[c(paste0("r", seq(4, 9), "married_partnered"),
-                      paste0("r", seq(4, 9), "not_married_partnered"),
+      impute_method[c(paste0("r", seq(4, 9), "not_married_partnered"),
                       paste0("r", seq(4, 9), "widowed"),
                       paste0("r", seq(4, 9), "memrye_impute"),
                       paste0("r", seq(4, 9), "stroke_impute"),
@@ -210,6 +209,7 @@ mask_impute_pool <-
                       paste0("r", seq(4, 9), "cesd"))] <- "norm"
       
       impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+                      paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 
                       "avg_cesd_elevated")] <- ""
@@ -362,21 +362,23 @@ mask_impute_pool <-
         for(wave in seq(4, 9)){
           vars <- c("married_partnered", "not_married_partnered", "widowed")
           cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
-          subset <- complete_data[, cols] %>% as.matrix() %>% 
-            apply(2, as.numeric)
-          probs <- 1/rowSums(subset)
+          subset <- complete_data[, cols]
           
-          for(row in which(probs != 1)){
-            if(probs[row] == Inf){
-              cats <- seq(1, length(vars))
-              this_one <- sample(cats, size = 1)
+          subset[, "sum"] <- rowSums(subset[, 2:3])
+          
+          for(row in 1:nrow(subset)){
+            if(!is.na(subset[row, 1])){
+              next
+            } else if(subset[row, "sum"] == 0){
+              subset[row, 1] <- 1
+            } else if(subset[row, "sum"] == 1){
+              subset[row, 1] <- 0
             } else{
-              cats <- as.numeric(which(subset[row, ] == 1))
-              this_one <- sample(cats, size = 1, 
-                                 prob = rep(probs[row], floor(1/probs[row])))
+              subset[row, 1] <- 0
+              this_cat <- sample(c(2, 3), size = 1)
+              subset[row, this_cat] <- 1
+              subset[row, (which(c(2,3) != this_cat) + 1)] <- 0
             }
-            subset[row, ] <- 0
-            subset[row, this_one] <- 1
           }
           complete_data[, colnames(subset)] <- subset
         }

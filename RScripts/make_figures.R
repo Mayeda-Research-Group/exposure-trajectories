@@ -29,7 +29,7 @@ CESD_data_wide <-
   mutate_if(is.character, as.factor) 
 
 #---- **results ----
-methods <- c("JMVN")
+methods <- c("JMVN", "PMM")
 num_runs <- 10
 
 #complete case

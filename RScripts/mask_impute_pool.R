@@ -62,7 +62,7 @@ mask_impute_pool <-
         set_colnames(colnames(data_long))
       
       #Don't use these as predictors
-      predict[, c("wave", "observed", "white")] <- 0
+      predict[, c("wave", "observed")] <- 0
       
       #Indicated cluster variable
       predict[, "HHIDPN"] <- -2
@@ -253,14 +253,21 @@ mask_impute_pool <-
       #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
-                           #m = as.numeric(sub("%","", mask_percent)), 
-                           #maxit = max_it[method, mask_percent],
-                           m = 2, maxit = 2,
+                           m = as.numeric(sub("%","", mask_percent)), 
+                           maxit = max_it[method, mask_percent],
+                           #m = 1, maxit = 5,
                            method = "2l.lmer", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-     # stop <- Sys.time() - start
+
+      #stop <- Sys.time() - start
+      
+      # #look at convergence
+      # #10% missing needs maxit = 
+      # #20% missing needs maxit = 
+      # #30% missing needs maxit = 
+      # plot(data_imputed)
       
       # } else if(method == "2l.fcs"){
       #   #---- ****2l.fcs ----
@@ -394,14 +401,29 @@ mask_impute_pool <-
         
         #---- **post process: dummy vars ----
         for(wave in seq(4, 9)){
-          vars <- c("married_partnered", "not_married_partnered", "widowed")
+          vars <- c("not_married_partnered", "widowed")
           cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
           subset <- complete_data[, cols]
-          rowmax <- apply(subset, 1, function(x) max(x))
-          subset <- subset/rowmax
-          subset[subset < 1] <- 0
+          
+          #fix impossible probs
+          subset[subset < 0] <- 0
           subset[subset > 1] <- 1
           
+          subset[, 1] <- rbinom(n = nrow(subset), size = 1, 
+                                prob = unlist(subset[, 1]))
+          subset[, 2] <- rbinom(n = nrow(subset), size = 1, 
+                                prob = unlist(subset[, 2]))
+          subset[, "sum"] <- rowSums(subset[, 1:2])
+          
+          for(row in 1:nrow(subset)){
+            if(subset[row, "sum"] == 0 | subset[row, "sum"] == 1){
+              next
+            } else{
+              this_cat <- sample(c(1, 2), size = 1)
+              subset[row, this_cat] <- 1
+              subset[row, (which(c(1,2) != this_cat))] <- 0
+            }
+          }
           complete_data[, colnames(subset)] <- subset
         }
         
@@ -420,7 +442,7 @@ mask_impute_pool <-
         for(col in cols){
           complete_data[, col] <- 
             rbinom(n = nrow(complete_data), size = 1, 
-                   prob = as.matrix(subset[, col]))
+                   prob = unlist(subset[, col]))
         }
       }
       

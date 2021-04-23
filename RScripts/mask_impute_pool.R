@@ -251,7 +251,7 @@ mask_impute_pool <-
     } else if(method == "LMM"){
       #---- ****LMM ----
       #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
-      start <- Sys.time()
+      #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
                            #m = as.numeric(sub("%","", mask_percent)), 
                            #maxit = max_it[method, mask_percent],
@@ -260,7 +260,7 @@ mask_impute_pool <-
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-      stop <- Sys.time() - start
+     # stop <- Sys.time() - start
       
       # } else if(method == "2l.fcs"){
       #   #---- ****2l.fcs ----

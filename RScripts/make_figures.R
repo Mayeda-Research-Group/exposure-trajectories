@@ -29,7 +29,7 @@ CESD_data_wide <-
   mutate_if(is.character, as.factor) 
 
 #---- **results ----
-methods <- c("JMVN", "PMM")
+methods <- c("JMVN", "PMM", "FCS")
 num_runs <- 10
 
 #complete case
@@ -99,7 +99,7 @@ ggplot(results,
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_mean_LCI_UCI.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- ****CI with mean SD ----
 ggplot(results, 

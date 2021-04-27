@@ -43,14 +43,14 @@ CESD_data_wide <-
 num_runs <- 2
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-#all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("LMM")
-mechanisms <- c("MCAR")
-mask_props <- c(0.10)
+# #all methods: "JMVN", "FCS", "PMM", "LMM"
+# methods <- c("LMM")
+# mechanisms <- c("MCAR")
+# mask_props <- c(0.10)
 
-#methods <- c("JMVN", "PMM", "FCS")
-# mechanisms <- c("MCAR", "MAR", "MNAR")
-# mask_props <- c(.10, 0.20, 0.30)
+methods <- c("JMVN", "PMM", "FCS")
+mechanisms <- c("MCAR", "MAR", "MNAR")
+mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 

@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -885,43 +885,43 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 
 # #---- Preliminary models ----
 # # DO NOT DELETE DURING CODE CLEAN-UP
-# # logit(P(missing CESD this wave)) = 
-# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
+# # logit(P(missing CESD this wave)) =
+# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD +
 # # \beta_3* chronic condition count (at last wave)
 # 
-# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
+# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~
 #                                    r4age_y_int + r3cesd + r3conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
+# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~
 #                                    r5age_y_int + r4cesd + r4conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
+# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~
 #                                    r6age_y_int + r5cesd + r5conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
+# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~
 #                                    r7age_y_int + r6cesd + r6conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
+# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~
 #                                    r8age_y_int + r7cesd + r7conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
+# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~
 #                                    r9age_y_int + r8cesd + r8conde_impute,
-#                                  family = binomial(link = "logit"), 
+#                                  family = binomial(link = "logit"),
 #                                  data = hrs_samp))
 # r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
@@ -934,7 +934,7 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 #   r7beta = round(r7results$estimate, 4),
 #   r8beta = round(r8results$estimate, 4),
 #   r9beta = round(r9results$estimate, 4)
-# ) 
+# )
 # 
 # results_tbl %>%
 #   kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
@@ -943,6 +943,63 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # write_csv(results_tbl, paste0(path_to_dropbox,
 #                               "/exposure_trajectories/data/",
 #                               "CESD_missing_model_betas.csv"))
+# 
+# #---- **predict outcome?? ----
+# # DO NOT DELETE DURING CODE CLEAN-UP
+# summary(r4outcome_mod <- glm(death2018 ~
+#                                r4age_y_int + r3cesd + r3conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r4outcome_results <- tidy(r4outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r5outcome_mod <- glm(death2018 ~
+#                                r5age_y_int + r4cesd + r4conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r5outcome_results <- tidy(r5outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r6outcome_mod <- glm(death2018 ~
+#                                r6age_y_int + r5cesd + r5conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r6outcome_results <- tidy(r6outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r7outcome_mod <- glm(death2018 ~
+#                                    r7age_y_int + r6cesd + r6conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r7outcome_results <- tidy(r7outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r8outcome_mod <- glm(death2018 ~
+#                                    r8age_y_int + r7cesd + r7conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r8outcome_results <- tidy(r8outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r9outcome_mod <- glm(death2018 ~
+#                                    r9age_y_int + r8cesd + r8conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r9outcome_results <- tidy(r9outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# results_tbl <- tibble(
+#   variables = c("Intercept", "age at current wave", "previous CESD value",
+#                 "Previous chronic condition count"),
+#   r4beta = round(r4outcome_results$estimate, 4),
+#   r5beta = round(r5outcome_results$estimate, 4),
+#   r6beta = round(r6outcome_results$estimate, 4),
+#   r7beta = round(r7outcome_results$estimate, 4),
+#   r8beta = round(r8outcome_results$estimate, 4),
+#   r9beta = round(r9outcome_results$estimate, 4)
+# )
+# 
+# results_tbl %>%
+#   kbl(caption = "Exponentiated betas association with death2018 missing model (wave 4 - 9)") %>%
+#   kable_classic(full_width = F, html_font = "Arial")
+# 
+# write_csv(results_tbl, paste0(path_to_dropbox,
+#                               "/exposure_trajectories/data/",
+#                               "predict_death2018_betas.csv"))
 
 #---- Dropping people ----
 # 1. full HRSsample (n = 43398)

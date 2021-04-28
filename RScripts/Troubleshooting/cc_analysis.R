@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "lme4")
+       "survival", "openxlsx", "lubridate", "lme4", "ghibli")
 
 #No scientific notation
 options(scipen = 999)
@@ -265,7 +265,7 @@ for(combo in 1:nrow(all_combos)){
   
   #Storing results
   table_effect_ests[which(table_effect_ests$Method == "CC" & 
-                            table_effect_ests$Missingness == mask_percent & 
+                            table_effect_ests$Missingness == percent & 
                             table_effect_ests$Type == mechanism), 
                     c("Exposure", "beta", "SD", "mean_LCI", "mean_UCI", 
                       "truth_capture", "people_dropped")] <- 

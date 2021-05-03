@@ -39,24 +39,32 @@ mask <- function(data_wide, mechanism, mask_percent){
     e_conde <- 
       mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "conde_impute")]), 
            na.rm = TRUE)
+    e_shlt <- mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "shlt")]), 
+                   na.rm = TRUE)
+    e_death2018 <- mean(data_wide$death2018)
     
     #---- **betas ----
-    beta_age_10 <- log(1.05)
-    beta_cesdpre_10 <- log(1.10)
-    beta_condepre_10 <- log(1.30)
+    beta_age_10 <- log(1.03)
+    beta_cesdpre_10 <- log(1.05)
+    beta_condepre_10 <- log(1.20)
+    beta_shltpre_10 <- log(1.20)
+    beta_death2018_10 <- log(2.00)
     beta_cesdcurrent_10 <- log(1.15)
     
     if (mechanism == "MAR"){
       #---- MAR ----
       beta_0_10 <- logit(0.1) -
         (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
-           beta_condepre_10*e_conde)
+           beta_condepre_10*e_conde + beta_shltpre_10*e_shlt + 
+           beta_death2018_10*e_death2018)
       
       if (mask_prop == 0.1){
         beta_0 <- beta_0_10
         beta_age <- beta_age_10
         beta_cesdpre <- beta_cesdpre_10
         beta_condepre <- beta_condepre_10
+        beta_shlt <- beta_shltpre_10
+        beta_death2018 <- beta_death2018_10
       } else if (mask_prop == 0.5){
         beta_age <- beta_age_10
         beta_cesdpre <- beta_cesdpre_10
@@ -69,31 +77,47 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_age <- scaling_coef * beta_age_10
         beta_cesdpre <- scaling_coef * beta_cesdpre_10
         beta_condepre <- scaling_coef * beta_condepre_10
+        beta_shlt <- scaling_coef * beta_shltpre_10
+        beta_death2018 <- scaling_coef * beta_death2018_10
       }
       
       subset <- data_wide %>%
         mutate(
           r4pcesd = ifelse(is.na(expit(beta_0 + beta_age * r4age_y_int + 
-                                         beta_cesdpre * r3cesd
-                                       + beta_condepre * r4conde_impute)),
+                                         beta_cesdpre * r3cesd + 
+                                         beta_condepre * r3conde_impute + 
+                                         beta_shlt * r3shlt + 
+                                         beta_death2018 * death2018)),
                            0, expit(beta_0 + beta_age * r4age_y_int +
-                                      beta_cesdpre * r3cesd
-                                    + beta_condepre * r4conde_impute)),
+                                      beta_cesdpre * r3cesd + 
+                                      beta_condepre * r3conde_impute + 
+                                      beta_shlt * r3shlt + 
+                                      beta_death2018 * death2018)),
           r5pcesd = expit(beta_0 + beta_age * r5age_y_int + 
-                            beta_cesdpre * r4cesd
-                          + beta_condepre * r5conde_impute),
+                            beta_cesdpre * r4cesd + 
+                            beta_condepre * r4conde_impute + 
+                            beta_shlt * r4shlt + 
+                            beta_death2018 * death2018),
           r6pcesd = expit(beta_0 + beta_age * r6age_y_int + 
-                            beta_cesdpre * r5cesd
-                          + beta_condepre * r6conde_impute),
+                            beta_cesdpre * r5cesd +
+                            beta_condepre * r5conde_impute + 
+                            beta_shlt * r5shlt + 
+                            beta_death2018 * death2018),
           r7pcesd = expit(beta_0 + beta_age * r7age_y_int + 
-                            beta_cesdpre * r6cesd
-                          + beta_condepre * r7conde_impute),
+                            beta_cesdpre * r6cesd + 
+                            beta_condepre * r6conde_impute + 
+                            beta_shlt * r6shlt + 
+                            beta_death2018 * death2018),
           r8pcesd = expit(beta_0 + beta_age * r8age_y_int + 
-                            beta_cesdpre * r7cesd
-                          + beta_condepre * r8conde_impute),
+                            beta_cesdpre * r7cesd +
+                            beta_condepre * r7conde_impute + 
+                            beta_shlt * r7shlt + 
+                            beta_death2018 * death2018),
           r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
-                            beta_cesdpre * r8cesd
-                          + beta_condepre * r9conde_impute)
+                            beta_cesdpre * r8cesd +
+                            beta_condepre * r8conde_impute + 
+                            beta_shlt * r8shlt + 
+                            beta_death2018 * death2018)
         ) %>%
         select(contains("pcesd"))
       
@@ -115,13 +139,16 @@ mask <- function(data_wide, mechanism, mask_percent){
       #---- MNAR ----
       beta_0_10 <- logit(0.1) -
         (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
-           beta_condepre_10*e_conde + beta_cesdcurrent_10*e_CESD_4_9)
+           beta_condepre_10*e_conde + beta_cesdcurrent_10*e_CESD_4_9 + 
+           beta_shltpre_10*e_shlt + beta_death2018*e_death2018)
       
       if (mask_prop == 0.1){
         beta_0 <- beta_0_10
         beta_age <- beta_age_10
         beta_cesdpre <- beta_cesdpre_10
         beta_condepre <- beta_condepre_10
+        beta_shlt <- beta_shltpre_10
+        beta_death2018 <- beta_death2018_10
         beta_cesdcurrent <- beta_cesdcurrent_10
       } else if (mask_prop == 0.5){
         beta_age <- beta_age_10

@@ -24,7 +24,6 @@ round_df <- function(df, digits) {
   (df)
 }
 
-
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
@@ -33,8 +32,8 @@ round_df <- function(df, digits) {
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -43,7 +42,6 @@ CESD_data_wide <-
                   "CESD_data_wide.csv"))
 
 #---- Getting the balancing intercept ----
-
 # colnames(CESD_data_wide)
 # Age
 overall_ages <- CESD_data_wide %>% 
@@ -63,6 +61,12 @@ conde_3_8_long <- CESD_data_wide %>%
   pivot_longer(everything(), names_to = "orig_varname", 
                values_to = "conde_impute")
 
+# self-reported health at previous wave
+shlt_3_8_long <- CESD_data_wide %>%
+  dplyr::select(paste0("r", seq(3, 8, by = 1), "shlt")) %>%
+  pivot_longer(everything(), names_to = "orig_varname", 
+               values_to = "shlt")
+
 # CESD this wave (wave 4-9)
 CESD_4_9_long <- CESD_data_wide %>%
   dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>%
@@ -74,6 +78,8 @@ e_age <- mean(overall_ages$age_int)
 e_CESD_3_8 <- mean(CESD_3_8_long$cesd, na.rm = T)
 e_CESD_4_9 <- mean(CESD_4_9_long$cesd)
 e_conde <- mean(conde_3_8_long$conde_impute, na.rm = T)
+e_shlt <- mean(shlt_3_8_long$shlt, na.rm = T)
+e_death2018 <- mean(CESD_data_wide$death2018)
 
 #---- ** Coefficients ----
 beta_age <- log(1.05)
@@ -101,7 +107,6 @@ beta_0_MNAR_50 <- logit(0.5) - (
     beta_cesdcurrent*e_CESD_4_9)
 
 #----  MAR and MNAR function ----
-
 MAR_MNAR_func <- function (beta_0_MAR, beta_0_MNAR, dataset){
   
   n <- nrow(dataset)
@@ -187,8 +192,8 @@ MAR_MNAR_func <- function (beta_0_MAR, beta_0_MNAR, dataset){
 # Repeat for 1000 times
 replicate = 1000
 set.seed(20210226)
-#---- Missing proportion results ----
 
+#---- Missing proportion results ----
 system.time({
   # 10%
   missing_prop_represults_10 <- 

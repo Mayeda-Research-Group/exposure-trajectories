@@ -134,7 +134,7 @@ mask <- function(data_wide, mechanism, mask_percent){
       beta_0_10 <- logit(0.1) -
         (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
            beta_condepre_10*e_conde + beta_cesdcurrent_10*e_CESD_4_9 + 
-           beta_shltpre_10*e_shlt + beta_death2018*e_death2018)
+           beta_shltpre_10*e_shlt + beta_death2018_10*e_death2018)
       
       if (mask_prop == 0.1){
         beta_0 <- beta_0_10
@@ -161,7 +161,7 @@ mask <- function(data_wide, mechanism, mask_percent){
                                          beta_cesdpre * r3cesd + 
                                          beta_cesdcurrent * r4cesd +
                                          beta_condepre * r3conde_impute + 
-                                         beta_shlt * r8shlt + 
+                                         beta_shlt * r3shlt + 
                                          beta_death2018 * death2018)), 
                            0, expit(beta_0 + beta_age * r4age_y_int + 
                                       beta_cesdpre * r3cesd + 

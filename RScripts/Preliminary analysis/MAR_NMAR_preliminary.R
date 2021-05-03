@@ -221,15 +221,15 @@ system.time({
                                          CESD_data_wide),
             .id = "replication")
   
-  #25%
-  missing_prop_represults_25 <- 
-    map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_25, beta_0_MNAR_25,
+  #20%
+  missing_prop_represults_20 <- 
+    map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_20, beta_0_MNAR_20,
                                          CESD_data_wide),
             .id = "replication")
   
-  #50%
-  missing_prop_represults_50 <-
-    map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_50, beta_0_MNAR_50,
+  #30%
+  missing_prop_represults_30 <-
+    map_dfr(1:replicate, ~ MAR_MNAR_func(beta_0_MAR_30, beta_0_MNAR_30,
                                          CESD_data_wide),
             .id = "replication")
 })
@@ -238,16 +238,16 @@ system.time({
 #MAR
 {
   missing_prop_MAR_summary <- tibble(
-    "Prop_Missingness" = c("10%","25%", "50%"),
+    "Prop_Missingness" = c("10%","20%", "30%"),
     "Mean" = c(mean(missing_prop_represults_10$MAR_missing_prop),
-               mean(missing_prop_represults_25$MAR_missing_prop),
-               mean(missing_prop_represults_50$MAR_missing_prop)),
+               mean(missing_prop_represults_20$MAR_missing_prop),
+               mean(missing_prop_represults_30$MAR_missing_prop)),
     "p2.5th" = c(quantile(missing_prop_represults_10$MAR_missing_prop, 0.025),
-                 quantile(missing_prop_represults_25$MAR_missing_prop, 0.025),
-                 quantile(missing_prop_represults_50$MAR_missing_prop, 0.025)),
+                 quantile(missing_prop_represults_20$MAR_missing_prop, 0.025),
+                 quantile(missing_prop_represults_30$MAR_missing_prop, 0.025)),
     "p97.5th" = c(quantile(missing_prop_represults_10$MAR_missing_prop, 0.975),
-                  quantile(missing_prop_represults_25$MAR_missing_prop, 0.975),
-                  quantile(missing_prop_represults_50$MAR_missing_prop, 0.975))
+                  quantile(missing_prop_represults_20$MAR_missing_prop, 0.975),
+                  quantile(missing_prop_represults_30$MAR_missing_prop, 0.975))
   ) %>%
     round_df(digits = 4)
   
@@ -259,16 +259,16 @@ system.time({
 # MNAR
 {
   missing_prop_MNAR_summary <- tibble(
-    "Prop_Missingness" = c("10%","25%", "50%"),
+    "Prop_Missingness" = c("10%","20%", "30%"),
     "Mean" = c(mean(missing_prop_represults_10$MNAR_missing_prop),
-               mean(missing_prop_represults_25$MNAR_missing_prop),
-               mean(missing_prop_represults_50$MNAR_missing_prop)),
+               mean(missing_prop_represults_20$MNAR_missing_prop),
+               mean(missing_prop_represults_30$MNAR_missing_prop)),
     "p2.5th" = c(quantile(missing_prop_represults_10$MNAR_missing_prop, 0.025),
-                 quantile(missing_prop_represults_25$MNAR_missing_prop, 0.025),
-                 quantile(missing_prop_represults_50$MNAR_missing_prop, 0.025)),
+                 quantile(missing_prop_represults_20$MNAR_missing_prop, 0.025),
+                 quantile(missing_prop_represults_30$MNAR_missing_prop, 0.025)),
     "p97.5th" = c(quantile(missing_prop_represults_10$MNAR_missing_prop, 0.975),
-                  quantile(missing_prop_represults_25$MNAR_missing_prop, 0.975),
-                  quantile(missing_prop_represults_50$MNAR_missing_prop, 0.975))
+                  quantile(missing_prop_represults_20$MNAR_missing_prop, 0.975),
+                  quantile(missing_prop_represults_30$MNAR_missing_prop, 0.975))
   ) %>%
     round_df(digits = 4)
   

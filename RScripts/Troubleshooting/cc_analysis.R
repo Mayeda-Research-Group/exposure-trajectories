@@ -67,8 +67,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 
   set_colnames(c("Exposure", "Method", "Type", "Missingness")) %>% 
-  rbind(expand_grid(exposures, "CC", mechanisms, 
-                    paste0(mask_props*100, "%")) %>% 
+  rbind(expand_grid(exposures, "CC", mechanisms, percents) %>% 
           set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
   mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, 
          "truth_capture" = NA, "people_dropped" = NA)
@@ -279,7 +278,7 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC_100", format(now(), "%Y%m%d"), 
+                        "tables/results_CC_100_", format(now(), "%Y%m%d"), 
                         ".csv"))
 
 #---- make figure ----

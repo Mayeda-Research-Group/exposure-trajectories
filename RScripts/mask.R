@@ -44,11 +44,11 @@ mask <- function(data_wide, mechanism, mask_percent){
     e_death2018 <- mean(data_wide$death2018)
     
     #---- **betas ----
-    beta_age_10 <- log(1.03)
+    beta_age_10 <- log(1.04)
     beta_cesdpre_10 <- log(1.05)
-    beta_condepre_10 <- log(1.20)
-    beta_shltpre_10 <- log(1.20)
-    beta_death2018_10 <- log(2.00)
+    beta_condepre_10 <- log(1.25)
+    beta_shltpre_10 <- log(1.50)
+    beta_death2018_10 <- log(2.25)
     beta_cesdcurrent_10 <- log(1.15)
     
     if (mechanism == "MAR"){

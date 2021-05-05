@@ -4,7 +4,8 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "lme4", "ghibli")
+       "survival", "openxlsx", "lubridate", "lme4", "ghibli", "labelled", 
+       "gtsummary", "writexl")
 
 #No scientific notation
 options(scipen = 999)
@@ -35,32 +36,35 @@ CESD_data_wide <-
 # #Check column types
 # sapply(CESD_data_wide, class)
 
-#---- average missingess per wave ----
-avg_miss <- function(data, mechanism, mask_percent){
-  #---- mask data ----
-  data_wide <- mask(data, mechanism, mask_percent)
-  
-  #---- percent missing per wave ----
-  return(apply(data_wide[, paste0("r", seq(4, 9), "cesd")], 2, 
-               function(x) mean(is.na(x))))
-}
-
-#---- **run sim ----
-mechanisms <- c("MCAR", "MAR", "MNAR")
-percents <- c("10%", "20%", "30%")
-all_combos <- expand_grid(mechanisms, percents) 
-
-for(combo in 1:nrow(all_combos)){
-  mechanism = all_combos[[combo, "mechanisms"]]
-  percent = all_combos[[combo, "percents"]]
-  
-  assign(paste0("results_", mechanism, percent), 
-         rowMeans(replicate(100, avg_miss(CESD_data_wide, 
-                                          mechanism = mechanism, 
-                                          mask_percent = percent))))
-}
+# #---- average missingess per wave ----
+# avg_miss <- function(data, mechanism, mask_percent){
+#   #---- mask data ----
+#   data_wide <- mask(data, mechanism, mask_percent)
+#   
+#   #---- percent missing per wave ----
+#   return(apply(data_wide[, paste0("r", seq(4, 9), "cesd")], 2, 
+#                function(x) mean(is.na(x))))
+# }
+# 
+# #---- **run sim ----
+# mechanisms <- c("MCAR", "MAR", "MNAR")
+# percents <- c("10%", "20%", "30%")
+# all_combos <- expand_grid(mechanisms, percents)
+# 
+# for(combo in 1:nrow(all_combos)){
+#   mechanism = all_combos[[combo, "mechanisms"]]
+#   percent = all_combos[[combo, "percents"]]
+# 
+#   assign(paste0("results_", mechanism, percent),
+#          rowMeans(replicate(100, avg_miss(CESD_data_wide,
+#                                           mechanism = mechanism,
+#                                           mask_percent = percent))))
+# }
 
 #---- shell table ----
+mechanisms <- c("MCAR", "MAR", "MNAR")
+percents <- c("10%", "20%", "30%")
+
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
 
@@ -147,7 +151,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
                                        c("estimate", "std.error",
                                          "conf.low", "conf.high")])
-                                         
+
 truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 
 #---- cc analysis ----
@@ -176,7 +180,7 @@ cc <- function(data, mechanism, mask_percent, truth){
                                  exponentiate = FALSE, conf.int = TRUE)
   
   cc_results[which(cc_results$Exposure == "CES-D Wave 4"), 
-                    c("beta", "SD", "LCI", "UCI")] <- 
+             c("beta", "SD", "LCI", "UCI")] <- 
     c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
                              c("estimate", "std.error", 
                                "conf.low", "conf.high")])
@@ -195,11 +199,11 @@ cc <- function(data, mechanism, mask_percent, truth){
                                  exponentiate = FALSE, conf.int = TRUE)
   
   cc_results[which(cc_results$Exposure == "CES-D Wave 9"), 
-                    c("beta", "SD", "LCI", "UCI")] <- 
+             c("beta", "SD", "LCI", "UCI")] <- 
     c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
                              c("estimate", "std.error", 
                                "conf.low", "conf.high")])
-                               
+  
   #---- **Total Count Elevated CES-D ----
   TTEmodel_total_CESD <- 
     coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
@@ -215,11 +219,11 @@ cc <- function(data, mechanism, mask_percent, truth){
                                       exponentiate = FALSE, conf.int = TRUE)
   
   cc_results[which(cc_results$Exposure == "Elevated CES-D Count"), 
-                    c("beta", "SD", "LCI", "UCI")] <- 
+             c("beta", "SD", "LCI", "UCI")] <- 
     c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
                                   c("estimate", "std.error", 
                                     "conf.low", "conf.high")])
-                                    
+  
   #---- **Elevated Average CES-D ----
   TTEmodel_elevated_avg_CESD <- 
     coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
@@ -236,7 +240,7 @@ cc <- function(data, mechanism, mask_percent, truth){
                                              conf.int = TRUE)
   
   cc_results[which(cc_results$Exposure == "Elevated Average CES-D"), 
-                    c("beta", "SD", "LCI", "UCI")] <- 
+             c("beta", "SD", "LCI", "UCI")] <- 
     c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
                                          c("estimate", "std.error", 
                                            "conf.low", "conf.high")])
@@ -252,15 +256,28 @@ cc <- function(data, mechanism, mask_percent, truth){
 #---- **run sim ----
 start <- Sys.time()
 all_combos <- expand_grid(mechanisms, percents)
+runs = 1000
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]
   percent = all_combos[[combo, "percents"]]
   
-  multi_runs <- replicate(100, cc(CESD_data_wide, mechanism, percent, truth), 
+  multi_runs <- replicate(runs, cc(CESD_data_wide, mechanism, percent, truth), 
                           simplify = FALSE)
   #Formatting data
   formatted <- do.call(rbind, multi_runs)
+  
+  #Plot betas
+  for(exposure in table_effect_ests$Exposure){
+    ggsave(filename = here("RScripts", "Troubleshooting", 
+                           paste0(mechanism, "_", str_remove_all(percent, "%"), 
+                                  "_", exposure, "_", runs, ".jpeg")), 
+           ggplot(data = formatted %>% filter(Exposure == exposure)) + 
+             geom_histogram(aes(x = beta)) + theme_minimal() + 
+             ggtitle(paste0(mechanism, " ", percent, ": ", exposure, 
+                            " (", runs, " runs)")), 
+           width = 10, height = 8, units = "in")
+  }
   
   #Storing results
   table_effect_ests[which(table_effect_ests$Method == "CC" & 
@@ -278,8 +295,8 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC_100_", format(now(), "%Y%m%d"), 
-                        ".csv"))
+                        "tables/results_CC_", runs, "_", 
+                        format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----
 #or read in the data
@@ -313,10 +330,189 @@ ggplot(results,
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_CC.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- table 1 ----
+mechanisms <- c("MCAR", "MAR", "MNAR")
+percents <- c("10%", "20%", "30%")
+exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
+               "Elevated CES-D Count")
+
+all_combos <- expand_grid(mechanisms, percents)
+
+wave4_datasets <- CESD_data_wide %>% mutate("dataset" = "truth")
+wave9_datasets <- CESD_data_wide %>% mutate("dataset" = "truth")
+average_datasets <- CESD_data_wide %>% mutate("dataset" = "truth")
+count_datasets <- CESD_data_wide %>% mutate("dataset" = "truth")
+
+#---- **create datasets ----
+for(i in 1:nrow(all_combos)){
+  mechanism = all_combos[[i, "mechanisms"]]
+  mask_percent = all_combos[[i, "percents"]]
+  
+  masked <- mask(CESD_data_wide, mechanism, mask_percent) %>% 
+    mutate("dataset" = paste0(mechanism, mask_percent))
+  
+  for(exposure in exposures){
+    if(exposure == "CES-D Wave 4"){
+      wave4_datasets %<>% 
+        rbind(., masked %>% filter(!is.na(r4cesd_elevated)))
+    } else if(exposure == "CES-D Wave 9"){
+      wave9_datasets %<>% 
+        rbind(., masked %>% filter(!is.na(r9cesd_elevated)))
+    } else if(exposure == "Elevated Average CES-D"){
+      average_datasets %<>% 
+        rbind(., masked %>% filter(!is.na(avg_cesd_elevated)))
+    } else{
+      count_datasets %<>% 
+        rbind(., masked %>% filter(!is.na(total_elevated_cesd)))
+    }
+  }
+}
+
+#---- **create tables ----
+for(name in c("wave4", "wave9", "average", "count")){
+  data <- get(paste0(name, "_datasets"))
+  
+  table1_data <- data %>% 
+    mutate("raceeth" = 
+             case_when(hispanic == 0 & white == 1 ~ "Non-hispanic White",
+                       hispanic == 0 & black == 1 ~ "Non-hispanic Black",
+                       hispanic == 1 ~ "Hispanic",
+                       other == 1 ~ "Other"),
+           "r4mstat_cat" = 
+             case_when(r4married_partnered == 1 ~ "Married/Partnered",
+                       r4not_married_partnered == 1 ~ "Not Married/Partnered",
+                       r4widowed == 1 ~ "Widowed"), 
+           "r9mstat_cat" = 
+             case_when(r9married_partnered == 1 ~ "Married/Partnered",
+                       r9not_married_partnered == 1 ~ "Not Married/Partnered",
+                       r9widowed == 1 ~ "Widowed")) %>%
+    labelled::set_variable_labels(
+      r4age_y_int = "Wave 4 age in years",
+      r9age_y_int = "Wave 9 age in years",
+      female = "Female (%)",
+      raceeth = "Race/Ethnicity (%)",
+      ed_cat = "Education level (%)",
+      r4mstat_cat = "Wave 4 Marital status (%)",
+      r4hibpe_impute = "Wave 4 Hypertension (Diagnosed) (%)",
+      r4diabe_impute = "Wave 4 Diabetes (%)",
+      r4hearte_impute = "Wave 4 Heart disease (%)",
+      r4stroke_impute = "Wave 4 Stroke (%)",
+      r4cancre_impute = "Wave 4 Cancer (%)",
+      r4lunge_impute = "Wave 4 Lung disease (%)",
+      r4memrye_impute = "Wave 4 Memory problems (%)",
+      r4conde_impute = "Wave 4 Count of self-report chronic diseases",
+      r9mstat_cat = "Wave 9 Marital status (%)",
+      r9hibpe_impute = "Wave 9 Hypertension (Diagnosed) (%)",
+      r9diabe_impute = "Wave 9 Diabetes (%)",
+      r9hearte_impute = "Wave 9 Heart disease (%)",
+      r9stroke_impute = "Wave 9 Stroke (%)",
+      r9cancre_impute = "Wave 9 Cancer (%)",
+      r9lunge_impute = "Wave 9 Lung disease (%)",
+      r9memrye_impute = "Wave 9 Memory problems (%)",
+      r9conde_impute = "Wave 9 Count of self-report chronic diseases",
+      r4BMI = "Wave 4 BMI",
+      r9BMI = "Wave 9 BMI",
+      r4drinking_cat = "Wave 4 Alcohol intake (%)",
+      r9drinking_cat = "Wave 9 Alcohol intake (%)",
+      smoker = "Smoking status (%)",
+      r4cesd_elevated = "Wave 4 Elevated CES-D", 
+      r9cesd_elevated = "Wave 9 Elevated CES-D", 
+      avg_cesd_elevated = "Elevated Average CES-D", 
+      total_elevated_cesd = "Elevated CES-D Count", 
+      death2018 = "Death by 2018") %>%
+    labelled::drop_unused_value_labels() %>%
+    labelled::set_value_labels(female = c("Yes" = 1, "No" = 0),
+                               ed_cat = c("Less than High School" = 1, 
+                                          "High School" = 2, 
+                                          "Some college" = 3, "Bachelors" = 4, 
+                                          "Grad studies" = 5),
+                               r4hibpe_impute = c("Yes" = 1, "No" = 0),
+                               r4diabe_impute = c("Yes" = 1, "No" = 0),
+                               r4hearte_impute = c("Yes" = 1, "No" = 0),
+                               r4stroke_impute = c("Yes" = 1, "No" = 0),
+                               r4cancre_impute = c("Yes" = 1, "No" = 0),
+                               r4lunge_impute = c("Yes" = 1, "No" = 0),
+                               r4memrye_impute = c("Yes" = 1, "No" = 0),
+                               r4drinking_cat = c("Heavy Drinking" = 2,
+                                                  "Moderate Drinking" = 1,
+                                                  "No Drinking" = 0),
+                               r9hibpe_impute = c("Yes" = 1, "No" = 0),
+                               r9diabe_impute = c("Yes" = 1, "No" = 0),
+                               r9hearte_impute = c("Yes" = 1, "No" = 0),
+                               r9stroke_impute = c("Yes" = 1, "No" = 0),
+                               r9cancre_impute = c("Yes" = 1, "No" = 0),
+                               r9lunge_impute = c("Yes" = 1, "No" = 0),
+                               r9memrye_impute = c("Yes" = 1, "No" = 0),
+                               r9drinking_cat = c("Heavy Drinking" = 2,
+                                                  "Moderate Drinking" = 1,
+                                                  "No Drinking" = 0),
+                               smoker = c("Ever smoke" = 1, "No smoking" = 0)) %>%
+    modify_if(is.labelled, to_factor)
+  table1_data$dataset <- factor(table1_data$dataset, 
+                                levels = c("truth", 
+                                           "MCAR10%", "MCAR20%", "MCAR30%", 
+                                           "MAR10%", "MAR20%", "MAR30%", 
+                                           "MNAR10%", "MNAR20%", "MNAR30%"))
+  
+  # ----**select vars  ----
+  # Use gtsummary package
+  # Showing 2 digits for percentages for categorical variables)
+  options(gtsummary.tbl_summary.percent_fun = 
+            function(x) sprintf(x * 100, fmt = '%#.2f'))
+  
+  if(name == "wave4"){
+    selection_set <- c("r4age_y_int","female", "raceeth", "ed_cat", 
+                       "r4mstat_cat", "r4hibpe_impute", "r4diabe_impute", 
+                       "r4hearte_impute", "r4stroke_impute", "r4cancre_impute", 
+                       "r4lunge_impute", "r4memrye_impute","r4BMI", 
+                       "r4drinking_cat", "smoker", "r4cesd_elevated", 
+                       "death2018", "dataset")
+  } else if(name == "wave9"){
+    selection_set <- c("r9age_y_int","female", "raceeth", "ed_cat", 
+                       "r9mstat_cat", "r9hibpe_impute", "r9diabe_impute", 
+                       "r9hearte_impute", "r9stroke_impute", "r9cancre_impute", 
+                       "r9lunge_impute", "r9memrye_impute","r9BMI", 
+                       "r9drinking_cat", "smoker", "r9cesd_elevated", 
+                       "death2018", "dataset")
+  } else if(name == "average"){
+    selection_set <- c("r4age_y_int","female", "raceeth", "ed_cat", 
+                       "r4mstat_cat", "r4hibpe_impute", "r4diabe_impute", 
+                       "r4hearte_impute", "r4stroke_impute", "r4cancre_impute", 
+                       "r4lunge_impute", "r4memrye_impute","r4BMI", 
+                       "r4drinking_cat", "smoker", "avg_cesd_elevated", 
+                       "death2018", "dataset")
+  } else{
+    selection_set <- c("r4age_y_int","female", "raceeth", "ed_cat", 
+                       "r4mstat_cat", "r4hibpe_impute", "r4diabe_impute", 
+                       "r4hearte_impute", "r4stroke_impute", "r4cancre_impute", 
+                       "r4lunge_impute", "r4memrye_impute","r4BMI", 
+                       "r4drinking_cat", "smoker", "total_elevated_cesd", 
+                       "death2018", "dataset")
+  }
+  
+  table_1 <- table1_data %>% select(all_of(selection_set)) %>%
+    tbl_summary(statistic = list(
+      all_categorical() ~ "{n} ({p})",
+      all_continuous() ~ "{mean} ({sd})"),
+      by = dataset, missing = "no") %>%
+    modify_header(label = "") %>%
+    modify_spanning_header(starts_with("stat_") ~ "**Baseline CES-D**") %>%
+    bold_labels()
+  
+  table1_xlsx <- table_1 %>% as_tibble()
+  
+  write_xlsx(table1_xlsx, paste0(path_to_dropbox, 
+                                 "/exposure_trajectories/manuscript/tables/", 
+                                 "complete_case_analyses/", name, 
+                                 "table_1.xlsx"))
+}
+
+
 
 

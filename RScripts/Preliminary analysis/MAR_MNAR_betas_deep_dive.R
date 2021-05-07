@@ -63,23 +63,45 @@ CESD_data_wide <-
 #---- scaling the coefficients ----
 
 #---- ** Coefficients ----
-beta_age <- log(1.040)
-beta_cesdpre <- log(1.050)
-beta_condepre <- log(1.250)
-beta_shltpre <- log(1.200)
-beta_death2018 <- log(2.50)
-beta_cesdcurrent <- log(1.15)
+beta_age <- log(1.020)
+beta_cesdpre <- log(1.025)
+beta_condepre <- log(1.125)
+beta_shltpre <- log(1.100)
+beta_death2018 <- log(2.25)
+beta_cesdcurrent <- log(1.075)
 
 #----  scale coef function ----
 scale_coef_func <- function (dataset, mechanism, scale){
   
   n <- nrow(dataset)
-  beta_age_s <- scale * beta_age
-  beta_cesdpre_s <- scale * beta_cesdpre
-  beta_condepre_s <- scale * beta_condepre
-  beta_shltpre_s <- scale * beta_shltpre
-  beta_death2018_s <- scale * beta_death2018
-  beta_cesdcurrent_s <- scale * beta_cesdcurrent
+  # scale = 1E+5
+  beta_age_s <- beta_age * scale
+  beta_cesdpre_s <- beta_cesdpre * scale
+  beta_condepre_s <- beta_condepre * scale
+  beta_shltpre_s <- beta_shltpre * scale
+  beta_death2018_s <- beta_death2018 * scale
+  beta_cesdcurrent_s <- beta_cesdcurrent * scale
+  
+ #  # balancing intercept (TEMP)
+ #  #---- **E(X)s ----
+ #  e_age <- 
+ #    mean(unlist(dataset[, paste0("r", seq(4, 9, by = 1), "age_y_int")]))
+ #  e_CESD_3_8 <- 
+ #    mean(unlist(dataset[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
+ #         na.rm = TRUE)
+ #  e_CESD_4_9 <- 
+ #    mean(unlist(dataset[, paste0("r", seq(4, 9, by = 1), "cesd")]))
+ #  e_conde <- 
+ #    mean(unlist(dataset[, paste0("r", seq(3, 8, by = 1), "conde_impute")]), 
+ #         na.rm = TRUE)
+ #  e_shlt <- mean(unlist(dataset[, paste0("r", seq(3, 8, by = 1), "shlt")]), 
+ #                 na.rm = TRUE)
+ #  e_death2018 <- mean(dataset$death2018)
+ #  
+ # ( beta_0_MAR <- logit(0.40) - (
+ #    beta_age_s*e_age + beta_cesdpre_s*e_CESD_3_8 + beta_condepre_s*e_conde + 
+ #      beta_shltpre_s*e_shlt + beta_death2018_s*e_death2018))
+ #  exp(beta_0_MAR_10)
   
   if (mechanism == "MAR"){
     #---- MAR ----
@@ -187,11 +209,12 @@ scale_coef_func <- function (dataset, mechanism, scale){
 replicate = 10
 set.seed(20210507)
 
-# Missing proportion grid
-missing_prop_MAR <- 
-  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 3),
+# Missing proportion
+{missing_prop_MAR <- 
+  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 1E+5),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MAR %>%
   kbl(caption = "MAR missingness")%>%
   kable_classic(full_width = F, html_font = "Arial")
+}

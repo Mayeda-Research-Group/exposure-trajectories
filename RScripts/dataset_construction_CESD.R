@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/yingyan_wu"
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -263,10 +263,17 @@ for (j in 1:length(seq(2, 13))) {
 }
 
 hrs_samp[, colnames(cesd_mat)] <- cesd_mat
+
+# CESD missingness proportion
+cesd_missing <- cesd_mat %>%
+  select(contains("missing")) %>%
+  colSums(is.na(.))
+ cesd_missing/nrow(hrs_samp) 
 # Sanity check
 # table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
 # table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
 # table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
+
 
 #---- death ----
 hrs_samp %<>% mutate("death2018" = ifelse(is.na(raddate), 0, 1))

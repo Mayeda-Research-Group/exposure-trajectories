@@ -1,4 +1,4 @@
-# Aim: to find out  the coefficients which will produce approximately the proportion
+# Aim: to find out the coefficients which will produce approximately the proportion
 # we want for the missingness, and thus reduce the intercepts' effect
 # Created by: Yingyan Wu
 # 05.07.2021

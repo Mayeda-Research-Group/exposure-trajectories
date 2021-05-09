@@ -51,8 +51,8 @@ estimate_df <- function(dataframe){
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -63,12 +63,12 @@ CESD_data_wide <-
 #---- scaling the coefficients ----
 
 #---- ** Coefficients ----
-beta_age <- log(1.020)
-beta_cesdpre <- log(1.025)
-beta_condepre <- log(1.125)
-beta_shltpre <- log(1.100)
-beta_death2018 <- log(2.25)
-beta_cesdcurrent <- log(1.075)
+beta_age <- log(0.96)
+beta_cesdpre <- log(1.04)
+beta_condepre <- log(1.30)
+#beta_shltpre <- log(1.100)
+beta_death2018 <- log(3.00)
+beta_cesdcurrent <- log(1.25)
 
 #----  scale coef function ----
 scale_coef_func <- function (dataset, mechanism, scale){
@@ -78,7 +78,7 @@ scale_coef_func <- function (dataset, mechanism, scale){
   beta_age_s <- beta_age * scale
   beta_cesdpre_s <- beta_cesdpre * scale
   beta_condepre_s <- beta_condepre * scale
-  beta_shltpre_s <- beta_shltpre * scale
+  #beta_shltpre_s <- beta_shltpre * scale
   beta_death2018_s <- beta_death2018 * scale
   beta_cesdcurrent_s <- beta_cesdcurrent * scale
   
@@ -110,35 +110,34 @@ scale_coef_func <- function (dataset, mechanism, scale){
         r4pcesd_MAR = expit(beta_age_s * r4age_y_int + 
                               beta_cesdpre_s * r3cesd + 
                               beta_condepre_s * r3conde_impute + 
-                              beta_shltpre_s * r3shlt + 
+                              #beta_shltpre_s * r3shlt + 
                               beta_death2018_s * death2018),
         r5pcesd_MAR = expit(beta_age_s * r5age_y_int + 
                               beta_cesdpre_s * r4cesd + 
                               beta_condepre_s * r4conde_impute + 
-                              beta_shltpre_s * r4shlt + 
+                              #beta_shltpre_s * r4shlt + 
                               beta_death2018_s * death2018),
         r6pcesd_MAR = expit(beta_age_s * r6age_y_int + 
                               beta_cesdpre_s * r5cesd + 
                               beta_condepre_s * r5conde_impute + 
-                              beta_shltpre_s * r5shlt + 
+                              #beta_shltpre_s * r5shlt + 
                               beta_death2018_s * death2018),
         r7pcesd_MAR = expit(beta_age_s * r7age_y_int + 
                               beta_cesdpre_s * r6cesd + 
                               beta_condepre_s * r6conde_impute + 
-                              beta_shltpre_s * r6shlt + 
+                              #beta_shltpre_s * r6shlt + 
                               beta_death2018_s * death2018),
         r8pcesd_MAR = expit(beta_age_s * r8age_y_int + 
                               beta_cesdpre_s * r7cesd + 
                               beta_condepre_s * r7conde_impute + 
-                              beta_shltpre_s * r7shlt + 
+                              #beta_shltpre_s * r7shlt + 
                               beta_death2018_s * death2018),
         r9pcesd_MAR = expit(beta_age_s * r9age_y_int + 
                               beta_cesdpre_s * r8cesd + 
                               beta_condepre_s * r8conde_impute + 
-                              beta_shltpre_s * r8shlt + 
-                              beta_death2018_s * death2018)
-      ) %>%
-      select(contains("MAR"))
+                              #beta_shltpre_s * r8shlt + 
+                              beta_death2018_s * death2018)) %>%
+      dplyr::select(contains("MAR", ignore.case = FALSE))
   } else if(mechanism == "MNAR"){
     #---- MNAR ----
     subset <- dataset %>%
@@ -147,40 +146,39 @@ scale_coef_func <- function (dataset, mechanism, scale){
                                beta_cesdpre_s * r3cesd + 
                                beta_cesdcurrent_s * r4cesd +
                                beta_condepre_s * r3conde_impute + 
-                               beta_shltpre_s * r3shlt + 
+                               #beta_shltpre_s * r3shlt + 
                                beta_death2018_s * death2018),
         r5pcesd_MNAR = expit(beta_age_s * r5age_y_int + 
                                beta_cesdpre_s * r4cesd + 
                                beta_cesdcurrent_s * r5cesd +
                                beta_condepre_s * r4conde_impute + 
-                               beta_shltpre_s * r4shlt + 
+                               #beta_shltpre_s * r4shlt + 
                                beta_death2018_s * death2018),
         r6pcesd_MNAR = expit(beta_age_s * r6age_y_int + 
                                beta_cesdpre_s * r5cesd + 
                                beta_cesdcurrent_s * r6cesd +
                                beta_condepre_s * r5conde_impute + 
-                               beta_shltpre_s * r5shlt + 
+                               #beta_shltpre_s * r5shlt + 
                                beta_death2018_s * death2018),
         r7pcesd_MNAR = expit(beta_age_s * r7age_y_int + 
                                beta_cesdpre_s * r6cesd + 
                                beta_cesdcurrent_s * r7cesd +
                                beta_condepre_s * r6conde_impute + 
-                               beta_shltpre_s * r6shlt + 
+                               #beta_shltpre_s * r6shlt + 
                                beta_death2018_s * death2018),
         r8pcesd_MNAR = expit(beta_age_s * r8age_y_int + 
                                beta_cesdpre_s * r7cesd + 
                                beta_cesdcurrent_s * r8cesd +
                                beta_condepre_s * r7conde_impute + 
-                               beta_shltpre_s * r7shlt + 
+                               #beta_shltpre_s * r7shlt + 
                                beta_death2018_s * death2018),
         r9pcesd_MNAR = expit(beta_age_s * r9age_y_int + 
                                beta_cesdpre_s * r8cesd + 
                                beta_cesdcurrent_s * r9cesd +
                                beta_condepre_s * r8conde_impute + 
-                               beta_shltpre_s * r8shlt + 
-                               beta_death2018_s * death2018)
-      ) %>%
-      select(contains(c("MNAR")))
+                               #beta_shltpre_s * r8shlt + 
+                               beta_death2018_s * death2018)) %>%
+      select(contains("MNAR", ignore.case = FALSE))
   }
   
   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
@@ -211,7 +209,7 @@ set.seed(20210507)
 
 # Missing proportion
 {missing_prop_MAR <- 
-  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 1E+5),
+  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 1),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MAR %>%

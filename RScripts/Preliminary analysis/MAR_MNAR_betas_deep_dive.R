@@ -67,7 +67,7 @@ beta_age <- log(0.96)
 beta_cesdpre <- log(1.04)
 beta_condepre <- log(1.30)
 #beta_shltpre <- log(1.100)
-beta_death2018 <- log(3.00)
+beta_death2018 <- log(2.25)
 beta_cesdcurrent <- log(1.25)
 
 #----  scale coef function ----
@@ -204,7 +204,7 @@ scale_coef_func <- function (dataset, mechanism, scale){
 }
 
 # Repeat for 1000 times
-replicate = 10
+replicate = 1000
 set.seed(20210507)
 
 # Missing proportion

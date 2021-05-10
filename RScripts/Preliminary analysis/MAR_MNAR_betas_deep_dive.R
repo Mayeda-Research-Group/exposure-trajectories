@@ -62,10 +62,17 @@ CESD_data_wide <-
 
 #---- scaling the coefficients ----
 
-#---- ** Coefficients ----
+#---- ** MAR Coefficients ----
 beta_age <- log(0.96)
 beta_cesdpre <- log(1.04)
 beta_condepre <- log(1.30)
+#beta_shltpre <- log(1.100)
+beta_death2018 <- log(2.25)
+
+#---- ** MNAR Coefficients ----
+beta_age <- log(0.955)
+beta_cesdpre <- log(1.04)
+beta_condepre <- log(1.20)
 #beta_shltpre <- log(1.100)
 beta_death2018 <- log(2.25)
 beta_cesdcurrent <- log(1.25)
@@ -207,6 +214,7 @@ scale_coef_func <- function (dataset, mechanism, scale){
 replicate = 1000
 set.seed(20210507)
 
+#---- run MAR sim ----
 # Missing proportion
 {missing_prop_MAR <- 
   map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 1),
@@ -215,4 +223,14 @@ set.seed(20210507)
 missing_prop_MAR %>%
   kbl(caption = "MAR missingness")%>%
   kable_classic(full_width = F, html_font = "Arial")
+}
+
+#---- run MNAR sim ----
+{missing_prop_MNAR <- 
+    map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MNAR", 1),
+            .id = "replication") %>% estimate_df()
+  
+  missing_prop_MNAR %>%
+    kbl(caption = "MNAR missingness")%>%
+    kable_classic(full_width = F, html_font = "Arial")
 }

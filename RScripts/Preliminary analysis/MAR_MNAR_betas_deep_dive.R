@@ -63,19 +63,21 @@ CESD_data_wide <-
 #---- scaling the coefficients ----
 
 #---- ** MAR Coefficients ----
-beta_age <- log(0.96)
-beta_cesdpre <- log(1.04)
-beta_condepre <- log(1.30)
+scale = 1.0075
+beta_age <- log(0.97*scale)
+beta_cesdpre <- log(1.04*scale)
+beta_condepre <- log(1.30*scale)
 #beta_shltpre <- log(1.100)
-beta_death2018 <- log(2.25)
+beta_death2018 <- log(2.25*scale)
 
 #---- ** MNAR Coefficients ----
-beta_age <- log(0.955)
-beta_cesdpre <- log(1.04)
-beta_condepre <- log(1.15)
+scale = 1.02
+beta_age <- log(0.955*scale)
+beta_cesdpre <- log(1.04*scale)
+beta_condepre <- log(1.15*scale)
 #beta_shltpre <- log(1.100)
-beta_death2018 <- log(2.25)
-beta_cesdcurrent <- log(1.30)
+beta_death2018 <- log(2.25*scale)
+beta_cesdcurrent <- log(1.30*scale)
 
 #----  scale coef function ----
 scale_coef_func <- function (dataset, mechanism, scale){

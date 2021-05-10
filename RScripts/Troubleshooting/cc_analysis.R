@@ -269,7 +269,7 @@ for(combo in 1:nrow(all_combos)){
   
   #Plot betas
   for(exposure in table_effect_ests$Exposure){
-    ggsave(filename = here("RScripts", "Troubleshooting", 
+    ggsave(filename = here::here("RScripts", "Troubleshooting", 
                            paste0(mechanism, "_", str_remove_all(percent, "%"), 
                                   "_", exposure, "_", runs, ".jpeg")), 
            ggplot(data = formatted %>% filter(Exposure == exposure)) + 

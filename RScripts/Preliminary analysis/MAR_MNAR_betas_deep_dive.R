@@ -72,10 +72,10 @@ beta_death2018 <- log(2.25)
 #---- ** MNAR Coefficients ----
 beta_age <- log(0.955)
 beta_cesdpre <- log(1.04)
-beta_condepre <- log(1.20)
+beta_condepre <- log(1.15)
 #beta_shltpre <- log(1.100)
 beta_death2018 <- log(2.25)
-beta_cesdcurrent <- log(1.25)
+beta_cesdcurrent <- log(1.30)
 
 #----  scale coef function ----
 scale_coef_func <- function (dataset, mechanism, scale){

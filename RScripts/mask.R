@@ -48,7 +48,7 @@ mask <- function(data_wide, mechanism, mask_percent){
       beta_age_10 <- log(0.96)
       beta_cesdpre_10 <- log(1.04)
       beta_condepre_10 <- log(1.30)
-      beta_death2018 <- log(2.25)
+      beta_death2018_10 <- log(2.25)
       
       beta_0_10 <- logit(0.1) -
         (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
@@ -66,7 +66,6 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_age <- scaling_coef * beta_age_10
         beta_cesdpre <- scaling_coef * beta_cesdpre_10
         beta_condepre <- scaling_coef * beta_condepre_10
-        beta_shlt <- scaling_coef * beta_shltpre_10
         beta_death2018 <- scaling_coef * beta_death2018_10
       }
       
@@ -119,9 +118,9 @@ mask <- function(data_wide, mechanism, mask_percent){
       #---- ** MNAR Coefficients ----
       beta_age_10 <- log(0.955)
       beta_cesdpre_10 <- log(1.04)
-      beta_condepre_10 <- log(1.20)
+      beta_condepre_10 <- log(1.15)
       beta_death2018_10 <- log(2.25)
-      beta_cesdcurrent_10 <- log(1.25)
+      beta_cesdcurrent_10 <- log(1.30)
       
       beta_0_10 <- logit(0.1) -
         (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
@@ -141,7 +140,6 @@ mask <- function(data_wide, mechanism, mask_percent){
         beta_age <- scaling_coef * beta_age_10
         beta_cesdpre <- scaling_coef * beta_cesdpre_10
         beta_condepre <- scaling_coef * beta_condepre_10
-        beta_shlt <- scaling_coef * beta_shltpre_10
         beta_death2018 <- scaling_coef * beta_death2018_10
         beta_cesdcurrent <- scaling_coef * beta_cesdcurrent_10
       }

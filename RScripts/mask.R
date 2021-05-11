@@ -47,8 +47,10 @@ mask <- function(data_wide, mechanism, mask_percent){
       #---- ** MAR Coefficients ----
       MAR_coeff <- tibble("Var" = c("age", "cesdpre", "condepre", "death2018"), 
                           "10%" = c(log(0.96), log(1.03), log(1.29), log(2.23)), 
-                          "20%" = c(log(0.97), log(1.04), log(1.30), log(2.25)), 
-                          "30%" = c(log(0.98), log(1.05), log(1.31), log(2.27)))
+                          "20%" = c(log(0.971), log(1.041), log(1.301), 
+                                    log(2.252)), 
+                          "30%" = c(log(0.9785), log(1.0491), log(1.3114), 
+                                    log(2.2697)))
       
       beta_age <- MAR_coeff[[which(MAR_coeff$Var == "age"), mask_percent]]
       beta_cesdpre <- 
@@ -109,46 +111,25 @@ mask <- function(data_wide, mechanism, mask_percent){
       
     } else if(mechanism == "MNAR"){
       #---- ** MNAR Coefficients ----
-      MAR_coeff <- tibble("Var" = c("age", "cesdpre", "condepre", "death2018"), 
-                          "10%" = c(log(0.96), log(1.03), log(1.29), log(2.23)), 
-                          "20%" = c(log(0.97), log(1.04), log(1.30), log(2.25)), 
-                          "30%" = c(log(0.98), log(1.05), log(1.31), log(2.27)))
+      MNAR_coeff <- 
+        tibble("Var" = c("age", "cesdpre", "condepre", "death2018", "cesdcurrent"), 
+               "10%" = c(log(0.955), log(1.04), log(1.15), log(2.25), log(1.30)), 
+               "20%" = c(log(0.965), log(1.05), log(1.16), log(2.27), log(1.31)), 
+               "30%" = c(log(0.974), log(1.06), log(1.17), log(2.30), log(1.33)))
       
-      beta_age <- MAR_coeff[[which(MAR_coeff$Var == "age"), mask_percent]]
+      beta_age <- MNAR_coeff[[which(MNAR_coeff$Var == "age"), mask_percent]]
       beta_cesdpre <- 
-        MAR_coeff[[which(MAR_coeff$Var == "cesdpre"), mask_percent]]
+        MNAR_coeff[[which(MNAR_coeff$Var == "cesdpre"), mask_percent]]
       beta_condepre <- 
-        MAR_coeff[[which(MAR_coeff$Var == "condepre"), mask_percent]]
+        MNAR_coeff[[which(MNAR_coeff$Var == "condepre"), mask_percent]]
       beta_death2018 <- 
-        MAR_coeff[[which(MAR_coeff$Var == "death2018"), mask_percent]]
+        MNAR_coeff[[which(MNAR_coeff$Var == "death2018"), mask_percent]]
+      beta_cesdcurrent <- 
+        MNAR_coeff[[which(MNAR_coeff$Var == "cesdcurrent"), mask_percent]]
       
-      beta_age_10 <- log(0.955)
-      beta_cesdpre_10 <- log(1.04)
-      beta_condepre_10 <- log(1.15)
-      beta_death2018_10 <- log(2.25)
-      beta_cesdcurrent_10 <- log(1.30)
-      
-      beta_0_10 <- logit(0.1) -
-        (beta_age_10*e_age + beta_cesdpre_10*e_CESD_3_8 + 
-           beta_condepre_10*e_conde + beta_cesdcurrent_10*e_CESD_4_9 + 
-           beta_death2018_10*e_death2018)
-      
-      if (mask_prop == 0.1){
-        beta_0 <- beta_0_10
-        beta_age <- beta_age_10
-        beta_cesdpre <- beta_cesdpre_10
-        beta_condepre <- beta_condepre_10
-        beta_death2018 <- beta_death2018_10
-        beta_cesdcurrent <- beta_cesdcurrent_10
-      } else {
-        scaling_coef <- logit(mask_prop)/logit(0.1)
-        beta_0 <- scaling_coef * beta_0_10
-        beta_age <- scaling_coef * beta_age_10
-        beta_cesdpre <- scaling_coef * beta_cesdpre_10
-        beta_condepre <- scaling_coef * beta_condepre_10
-        beta_death2018 <- scaling_coef * beta_death2018_10
-        beta_cesdcurrent <- scaling_coef * beta_cesdcurrent_10
-      }
+      beta_0 <- logit(mask_prop) -
+        (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde + 
+           beta_cesdcurrent*e_CESD_4_9 + beta_death2018*e_death2018)
       
       subset <- data_wide %>%
         mutate(

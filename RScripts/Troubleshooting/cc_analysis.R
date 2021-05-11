@@ -319,7 +319,9 @@ results$Exposure <-
                     "Elevated Average CES-D", "Elevated CES-D Count"))
 
 #---- **make plot ----
-ggplot(results %>% filter(!Type %in% c("MNAR")), 
+ggplot(results %>% filter(!Type %in% c("MNAR") & 
+                            !Exposure %in% c("Elevated Average CES-D", 
+                                             "Elevated CES-D Count")), 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 

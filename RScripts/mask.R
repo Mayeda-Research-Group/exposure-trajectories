@@ -113,9 +113,12 @@ mask <- function(data_wide, mechanism, mask_percent){
       #---- ** MNAR Coefficients ----
       MNAR_coeff <- 
         tibble("Var" = c("age", "cesdpre", "condepre", "death2018", "cesdcurrent"), 
-               "10%" = c(log(0.955), log(1.04), log(1.15), log(2.25), log(1.30)), 
-               "20%" = c(log(0.965), log(1.05), log(1.16), log(2.27), log(1.31)), 
-               "30%" = c(log(0.974), log(1.06), log(1.17), log(2.30), log(1.33)))
+               "10%" = c(log(0.9562), log(1.0413), log(1.1514), log(2.2528), 
+                         log(1.3017)), 
+               "20%" = c(log(0.967), log(1.053), log(1.164), log(2.278), 
+                         log(1.316)), 
+               "30%" = c(log(0.9743), log(1.0611), log(1.1733), log(2.2956), 
+                         log(1.3263)))
       
       beta_age <- MNAR_coeff[[which(MNAR_coeff$Var == "age"), mask_percent]]
       beta_cesdpre <- 

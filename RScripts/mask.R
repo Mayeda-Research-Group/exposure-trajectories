@@ -45,14 +45,12 @@ mask <- function(data_wide, mechanism, mask_percent){
     
     if (mechanism == "MAR"){
       #---- ** MAR Coefficients ----
-      MAR_coeff <- tibble("Var" = c("age", "cesdpre", "condepre", "death2018"), 
-                          "10%" = c(log(0.96), log(1.03), log(1.29), log(2.23)), 
-                          "20%" = c(log(0.971), log(1.041), log(1.301), 
-                                    log(2.252)), 
-                          "30%" = c(log(0.9785), log(1.0491), log(1.3114), 
-                                    log(2.2697)))
+      MAR_coeff <- tibble("Var" = c("cesdpre", "condepre", "death2018"), 
+                          "10%" = c(log(2.028), log(2.535), log(5.85)), 
+                          "20%" = c(log(2.86), log(3.575), log(8.25)), 
+                          "30%" = c(log(4.16), log(5.2), log(12)))
       
-      beta_age <- MAR_coeff[[which(MAR_coeff$Var == "age"), mask_percent]]
+      #beta_age <- MAR_coeff[[which(MAR_coeff$Var == "age"), mask_percent]]
       beta_cesdpre <- 
         MAR_coeff[[which(MAR_coeff$Var == "cesdpre"), mask_percent]]
       beta_condepre <- 
@@ -61,36 +59,37 @@ mask <- function(data_wide, mechanism, mask_percent){
         MAR_coeff[[which(MAR_coeff$Var == "death2018"), mask_percent]]
       
       beta_0 <- logit(mask_prop) -
-        (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde + 
+        (#beta_age*e_age + 
+          beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
            beta_death2018*e_death2018)
       
       subset <- data_wide %>%
         mutate(
-          r4pcesd = ifelse(is.na(expit(beta_0 + beta_age * r4age_y_int + 
+          r4pcesd = ifelse(is.na(expit(beta_0 + #beta_age * r4age_y_int + 
                                          beta_cesdpre * r3cesd + 
                                          beta_condepre * r3conde_impute + 
                                          beta_death2018 * death2018)),
-                           0, expit(beta_0 + beta_age * r4age_y_int +
+                           0, expit(beta_0 + #beta_age * r4age_y_int +
                                       beta_cesdpre * r3cesd + 
                                       beta_condepre * r3conde_impute + 
                                       beta_death2018 * death2018)),
-          r5pcesd = expit(beta_0 + beta_age * r5age_y_int + 
+          r5pcesd = expit(beta_0 + #beta_age * r5age_y_int + 
                             beta_cesdpre * r4cesd + 
                             beta_condepre * r4conde_impute + 
                             beta_death2018 * death2018),
-          r6pcesd = expit(beta_0 + beta_age * r6age_y_int + 
+          r6pcesd = expit(beta_0 + #beta_age * r6age_y_int + 
                             beta_cesdpre * r5cesd +
                             beta_condepre * r5conde_impute + 
                             beta_death2018 * death2018),
-          r7pcesd = expit(beta_0 + beta_age * r7age_y_int + 
+          r7pcesd = expit(beta_0 + #beta_age * r7age_y_int + 
                             beta_cesdpre * r6cesd + 
                             beta_condepre * r6conde_impute + 
                             beta_death2018 * death2018),
-          r8pcesd = expit(beta_0 + beta_age * r8age_y_int + 
+          r8pcesd = expit(beta_0 + #beta_age * r8age_y_int + 
                             beta_cesdpre * r7cesd +
                             beta_condepre * r7conde_impute + 
                             beta_death2018 * death2018),
-          r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
+          r9pcesd = expit(beta_0 + #beta_age * r9age_y_int + 
                             beta_cesdpre * r8cesd +
                             beta_condepre * r8conde_impute + 
                             beta_death2018 * death2018)) %>%
@@ -136,33 +135,33 @@ mask <- function(data_wide, mechanism, mask_percent){
       
       subset <- data_wide %>%
         mutate(
-          r4pcesd = ifelse(is.na(expit(beta_0 + beta_age * r4age_y_int + 
+          r4pcesd = ifelse(is.na(expit(beta_0 + #beta_age * r4age_y_int + 
                                          beta_cesdpre * r3cesd + 
                                          beta_cesdcurrent * r4cesd +
                                          beta_condepre * r3conde_impute + 
                                          beta_death2018 * death2018)), 
-                           0, expit(beta_0 + beta_age * r4age_y_int + 
+                           0, expit(beta_0 + #beta_age * r4age_y_int + 
                                       beta_cesdpre * r3cesd + 
                                       beta_cesdcurrent * r4cesd +
                                       beta_condepre * r3conde_impute + 
                                       beta_death2018 * death2018)),
-          r5pcesd = expit(beta_0 + beta_age * r5age_y_int + 
+          r5pcesd = expit(beta_0 + #beta_age * r5age_y_int + 
                             beta_cesdpre * r4cesd + beta_cesdcurrent * r5cesd +
                             beta_condepre * r4conde_impute + 
                             beta_death2018 * death2018),
-          r6pcesd = expit(beta_0 + beta_age * r6age_y_int + 
+          r6pcesd = expit(beta_0 + #beta_age * r6age_y_int + 
                             beta_cesdpre * r5cesd + beta_cesdcurrent * r6cesd +
                             beta_condepre * r5conde_impute + 
                             beta_death2018 * death2018),
-          r7pcesd = expit(beta_0 + beta_age * r7age_y_int + 
+          r7pcesd = expit(beta_0 + #beta_age * r7age_y_int + 
                             beta_cesdpre * r6cesd + beta_cesdcurrent * r7cesd +
                             beta_condepre * r6conde_impute + 
                             beta_death2018 * death2018),
-          r8pcesd = expit(beta_0 + beta_age * r8age_y_int + 
+          r8pcesd = expit(beta_0 + #beta_age * r8age_y_int + 
                             beta_cesdpre * r7cesd + beta_cesdcurrent * r8cesd +
                             beta_condepre * r7conde_impute + 
                             beta_death2018 * death2018),
-          r9pcesd = expit(beta_0 + beta_age * r9age_y_int + 
+          r9pcesd = expit(beta_0 + #beta_age * r9age_y_int + 
                             beta_cesdpre * r8cesd + beta_cesdcurrent * r9cesd +
                             beta_condepre * r8conde_impute + 
                             beta_death2018 * death2018)) %>%

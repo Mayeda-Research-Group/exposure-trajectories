@@ -63,7 +63,7 @@ CESD_data_wide <-
 #---- scaling the coefficients ----
 
 #---- ** MAR Coefficients ----
-scale = 1.0075
+scale = 1.009
 beta_age <- log(0.97*scale)
 beta_cesdpre <- log(1.04*scale)
 beta_condepre <- log(1.30*scale)

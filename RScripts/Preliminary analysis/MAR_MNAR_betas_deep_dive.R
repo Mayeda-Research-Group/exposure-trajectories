@@ -57,15 +57,28 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
-CESD_data_wide <- 
+data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"))
 
-#---- scaling the coefficients ----
+#---- expected value for predictors of MAR & MNAR missingness ----
+#---- **E(X)s ----
+e_age <- 
+  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "age_y_int")]))
+e_CESD_3_8 <- 
+  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
+       na.rm = TRUE)
+e_CESD_4_9 <- 
+  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
+e_conde <- 
+  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "conde_impute")]), 
+       na.rm = TRUE)
+e_shlt <- mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "shlt")]), 
+               na.rm = TRUE)
+e_death2018 <- mean(data_wide$death2018)
 
 #---- ** MAR Coefficients ----
-scale = 4
 beta_0 = -6
 #beta_age <- log(0.97*scale)
 beta_cesdpre <- log(1.04*scale)

@@ -78,23 +78,21 @@ e_shlt <- mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "shlt")]),
                na.rm = TRUE)
 e_death2018 <- mean(data_wide$death2018)
 
-#---- ** MAR Coefficients ----
-beta_0 = -6
-#beta_age <- log(0.97*scale)
-beta_cesdpre <- log(1.04*scale)
-beta_condepre <- log(1.30*scale)
-#beta_shltpre <- log(1.100)
-beta_death2018 <- log(3*scale)
+# #---- ** MAR Coefficients ----
+# #beta_age <- log(0.97*scale)
+# beta_cesdpre <- log(1.04*scale)
+# beta_condepre <- log(1.30*scale)
+# #beta_shltpre <- log(1.100)
+# beta_death2018 <- log(3*scale)
 
 #---- ** MNAR Coefficients ----
-scale = 2.1
-beta_0 = -6
 #beta_age <- log(0.955*scale)
-beta_cesdpre <- log(1.04*scale)
-beta_condepre <- log(1.30*scale)
+#beta_cesdpre <- log(1.04*scale)
+#beta_condepre <- log(1.30*scale)
 #beta_shltpre <- log(1.100)
-beta_death2018 <- log(3*scale)
-beta_cesdcurrent <- log(2*scale)
+beta_death2018 <- log(1.5)
+beta_cesdcurrent <- log(4)
+beta_death2018*cesdcurrent <- log(1.5)
 
 #----  scale coef function ----
 scale_coef_func <- function (dataset, mechanism, scale){

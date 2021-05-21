@@ -95,7 +95,7 @@ beta_cesdcurrent <- log(4)
 beta_death2018*cesdcurrent <- log(1.5)
 
 #----  scale coef function ----
-scale_coef_func <- function (dataset, mechanism, scale){
+coef_func <- function (dataset, mechanism){
   
   n <- nrow(dataset)
   beta_0 <- -6
@@ -173,41 +173,41 @@ scale_coef_func <- function (dataset, mechanism, scale){
     subset <- dataset %>%
       mutate( 
         r4pcesd_MNAR = expit(#beta_age_s * r4age_y_int + 
-                               beta_cesdpre_s * r3cesd + 
-                               beta_cesdcurrent_s * r4cesd +
-                               beta_condepre_s * r3conde_impute + 
-                               #beta_shltpre_s * r3shlt + 
-                               beta_death2018_s * death2018 + beta_0),
+          beta_cesdpre_s * r3cesd + 
+            beta_cesdcurrent_s * r4cesd +
+            beta_condepre_s * r3conde_impute + 
+            #beta_shltpre_s * r3shlt + 
+            beta_death2018_s * death2018 + beta_0),
         r5pcesd_MNAR = expit(#beta_age_s * r5age_y_int + 
-                               beta_cesdpre_s * r4cesd + 
-                               beta_cesdcurrent_s * r5cesd +
-                               beta_condepre_s * r4conde_impute + 
-                               #beta_shltpre_s * r4shlt + 
-                               beta_death2018_s * death2018 + beta_0),
+          beta_cesdpre_s * r4cesd + 
+            beta_cesdcurrent_s * r5cesd +
+            beta_condepre_s * r4conde_impute + 
+            #beta_shltpre_s * r4shlt + 
+            beta_death2018_s * death2018 + beta_0),
         r6pcesd_MNAR = expit(#beta_age_s * r6age_y_int + 
-                               beta_cesdpre_s * r5cesd + 
-                               beta_cesdcurrent_s * r6cesd +
-                               beta_condepre_s * r5conde_impute + 
-                               #beta_shltpre_s * r5shlt + 
-                               beta_death2018_s * death2018 + beta_0),
+          beta_cesdpre_s * r5cesd + 
+            beta_cesdcurrent_s * r6cesd +
+            beta_condepre_s * r5conde_impute + 
+            #beta_shltpre_s * r5shlt + 
+            beta_death2018_s * death2018 + beta_0),
         r7pcesd_MNAR = expit(#beta_age_s * r7age_y_int + 
-                               beta_cesdpre_s * r6cesd + 
-                               beta_cesdcurrent_s * r7cesd +
-                               beta_condepre_s * r6conde_impute + 
-                               #beta_shltpre_s * r6shlt + 
-                               beta_death2018_s * death2018 + beta_0),
+          beta_cesdpre_s * r6cesd + 
+            beta_cesdcurrent_s * r7cesd +
+            beta_condepre_s * r6conde_impute + 
+            #beta_shltpre_s * r6shlt + 
+            beta_death2018_s * death2018 + beta_0),
         r8pcesd_MNAR = expit(#beta_age_s * r8age_y_int + 
-                               beta_cesdpre_s * r7cesd + 
-                               beta_cesdcurrent_s * r8cesd +
-                               beta_condepre_s * r7conde_impute + 
-                               #beta_shltpre_s * r7shlt + 
-                               beta_death2018_s * death2018 + beta_0),
+          beta_cesdpre_s * r7cesd + 
+            beta_cesdcurrent_s * r8cesd +
+            beta_condepre_s * r7conde_impute + 
+            #beta_shltpre_s * r7shlt + 
+            beta_death2018_s * death2018 + beta_0),
         r9pcesd_MNAR = expit(#beta_age_s * r9age_y_int + 
-                               beta_cesdpre_s * r8cesd + 
-                               beta_cesdcurrent_s * r9cesd +
-                               beta_condepre_s * r8conde_impute + 
-                               #beta_shltpre_s * r8shlt + 
-                               beta_death2018_s * death2018 + beta_0)) %>%
+          beta_cesdpre_s * r8cesd + 
+            beta_cesdcurrent_s * r9cesd +
+            beta_condepre_s * r8conde_impute + 
+            #beta_shltpre_s * r8shlt + 
+            beta_death2018_s * death2018 + beta_0)) %>%
       select(contains("MNAR", ignore.case = FALSE))
   }
   
@@ -240,7 +240,7 @@ set.seed(20210507)
 #---- run MAR sim ----
 # Missing proportion
 {missing_prop_MAR <- 
-  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MAR", 1),
+  map_dfr(1:replicate, ~ scale_coef_func(data_wide, "MAR", 1),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MAR %>%
@@ -250,7 +250,7 @@ missing_prop_MAR %>%
 
 #---- run MNAR sim ----
 {missing_prop_MNAR <- 
-  map_dfr(1:replicate, ~ scale_coef_func(CESD_data_wide, "MNAR", 1),
+  map_dfr(1:replicate, ~ scale_coef_func(data_wide, "MNAR", 1),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MNAR %>%

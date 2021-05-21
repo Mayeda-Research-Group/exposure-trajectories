@@ -84,8 +84,8 @@ e_shlt <- mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "shlt")]),
                na.rm = TRUE)
 e_death2018 <- mean(data_wide$death2018)
 e_death2018_CESD_4_9 <- 
-  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "")]), 
-                             na.rm = TRUE)
+  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
+       na.rm = TRUE)
 
 # #---- ** MAR Coefficients ----
 # #beta_age <- log(0.97*scale)
@@ -103,17 +103,15 @@ beta_death2018 <- log(1.5)
 beta_cesdcurrent <- log(4)
 beta_death2018_cesdcurrent <- log(1.5)
 
-#----  coef function ----
-coef_func <- function (dataset, mechanism, mask_prop){
-  
-  n <- nrow(dataset)
-  
+#----  prop missing function ----
+missing_prop <- function (dataset, mechanism, mask_prop){
+
   if (mechanism == "MNAR"){
     #---- MNAR ----
     #balancing intercept
     beta_0 <- logit(mask_prop) - 
-      (beta_death2018*e_death2018 + beta_cesdcurrent*e_CESD_4_9 + 
-         beta_death2018_cesdcurrent*e_CESD_4_9*e_death2018)
+      (beta_death2018*e_death2018 + beta_cesdcurrent*e_CESD_4_9 +
+         beta_death2018_cesdcurrent*e_death2018_CESD_4_9)
     
     subset <- dataset
     
@@ -187,6 +185,12 @@ coef_func <- function (dataset, mechanism, mask_prop){
            tibble(missing_prop = mean(subset_long$Missingness, na.rm = T)))
 }
 
+
+
+#---- optimizer ----
+mask_prop = 0.10
+warm_start <- 
+
 # Repeat for 1000 times
 replicate = 1000
 set.seed(20210507)
@@ -205,7 +209,7 @@ missing_prop_MAR %>%
 #---- run MNAR sim ----
 {missing_prop_MNAR <- 
   map_dfr(1:replicate, ~ 
-            coef_func(dataset = data_wide, mechanism = "MNAR", mask_prop = 0.20), 
+            coef_func(dataset = data_wide, mechanism = "MNAR", mask_prop = 0.10), 
           .id = "replication") %>% estimate_df()
 
 missing_prop_MNAR %>%

@@ -1,7 +1,9 @@
-# Aim: to find out the coefficients which will produce approximately the proportion
-# we want for the missingness, and thus reduce the intercepts' effect
+# Aim: to simulate many missing datasets to ensure that we are achieving our 
+#   desired levels of missingness
 # Created by: Yingyan Wu
 # 05.07.2021
+# Edited by: Crystal Shaw
+# 05.21.2021
 
 #---- Package loading + options ----
 if (!require("pacman")){

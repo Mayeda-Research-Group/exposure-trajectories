@@ -142,8 +142,8 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
                                 beta_death2018_cesdcurrent, e_death2018_CESD_4_9)
   
   assign(paste0("optim_MNAR", 100*mask_prop), 
-         optimize(missing_prop, lower = warm_start + 2*warm_start, 
-                  upper = warm_start, maximum = FALSE, 
+         optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
+                  upper = 0, maximum = FALSE, 
                   dataset = data_wide, mechanism = "MNAR", 
                   mask_prop = 0.10, beta_death2018 = beta_death2018, 
                   beta_cesdcurrent = beta_cesdcurrent, 

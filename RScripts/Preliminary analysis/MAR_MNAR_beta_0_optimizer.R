@@ -145,7 +145,7 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
          optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
                   upper = 0, maximum = FALSE, 
                   dataset = data_wide, mechanism = "MNAR", 
-                  mask_prop = 0.10, beta_death2018 = beta_death2018, 
+                  mask_prop = mask_prop, beta_death2018 = beta_death2018, 
                   beta_cesdcurrent = beta_cesdcurrent, 
                   beta_death2018_cesdcurrent = beta_death2018_cesdcurrent))
 }
@@ -189,7 +189,7 @@ set.seed(20210507)
 {missing_prop_MNAR <- 
     map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
                                      mask_prop = 0.10, 
-                                     beta_0 = optim_MNAR10$minimum), 
+                                     beta_0 = optim_MNAR20$minimum), 
             .id = "replication") %>% estimate_df()
   
   missing_prop_MNAR %>%

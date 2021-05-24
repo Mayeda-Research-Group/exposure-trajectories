@@ -151,7 +151,7 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
 }
 
 #---- test masking ----
-test_mask <- function (dataset, mechanism, mask_prop, beta_0){
+test_mask <- function (dataset, mechanism, beta_0){
   
   if (mechanism == "MNAR"){
     #---- MNAR ----
@@ -188,8 +188,7 @@ set.seed(20210507)
 
 {missing_prop_MNAR <- 
     map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
-                                     mask_prop = 0.10, 
-                                     beta_0 = optim_MNAR20$minimum), 
+                                     beta_0 = optim_MNAR10$minimum), 
             .id = "replication") %>% estimate_df()
   
   missing_prop_MNAR %>%

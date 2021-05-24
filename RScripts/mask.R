@@ -1,3 +1,14 @@
+#---- read in optimized betas ----
+for(mechanism in c("MNAR")){
+  for(percent in c(10, 20, 30)){
+    assign(paste0("beta0_", mechanism, percent), 
+           read_rds(file = 
+                      paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                             "optimized_masking_intercepts/optim_", mechanism, 
+                             percent, ".RDS")))
+  }
+}
+
 #---- Expit function ----
 expit <- function(x) {
   output <- (exp(x)/(1+exp(x)))
@@ -20,8 +31,6 @@ mask <- function(data_wide, mechanism, mask_percent){
     #it's easier to do this with my own code than the ampute function in MICE, 
     # which requires specifying all possible missing patterns you'd like it to 
     # consider
-    #   Need to add the following: wave-updated marital status, wave-updated 
-    #   drinking behavior, wave-updated chronic conditions,
     total_indices <- nrow(data_wide)*6 #6 waves of data per person
     mask_index <- sample(seq(1, total_indices), 
                          size = floor(mask_prop*total_indices), 
@@ -61,7 +70,7 @@ mask <- function(data_wide, mechanism, mask_percent){
       beta_0 <- logit(mask_prop) -
         (#beta_age*e_age + 
           beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
-           beta_death2018*e_death2018)
+            beta_death2018*e_death2018)
       
       subset <- data_wide %>%
         mutate(

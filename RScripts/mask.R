@@ -1,11 +1,20 @@
-#---- read in optimized betas ----
-for(mechanism in c("MNAR")){
-  for(percent in c(10, 20, 30)){
-    assign(paste0("beta0_", mechanism, percent), 
-           read_rds(file = 
-                      paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+#---- optimized betas table ----
+mechanisms <- c("MNAR")
+percents <- c(10, 20, 30)
+
+beta_0_table <- expand_grid(mechanisms, percents) %>% 
+  mutate("beta0" = 0)
+
+for(mechanism in mechanisms){
+  for(percent in percents){
+    optimized <- 
+      read_rds(file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                              "optimized_masking_intercepts/optim_", mechanism, 
-                             percent, ".RDS")))
+                             percent, ".RDS"))
+    
+    beta_0_table[which(beta_0_table$mechanisms == mechanism & 
+                         beta_0_table$percents == percent), "beta0"] <- 
+      optimized$minimum
   }
 }
 
@@ -21,7 +30,7 @@ logit <- function(x){
 }
 
 #---- Mask function ----
-mask <- function(data_wide, mechanism, mask_percent){
+mask <- function(data_wide, mechanism, mask_percent, beta_0_table){
   
   mask_prop <- as.numeric(sub("%","", mask_percent))/100
   

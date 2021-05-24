@@ -12,9 +12,6 @@ options(scipen = 999)
 
 set.seed(20200819)
 
-#---- source scripts ----
-source(here::here("RScripts", "mask.R"))
-
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
@@ -25,6 +22,9 @@ source(here::here("RScripts", "mask.R"))
 
 #Changing directories here will change them throughout the script
 path_to_dropbox <- "~/Dropbox/Projects"
+
+#---- source scripts ----
+source(here::here("RScripts", "mask.R"))
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -62,7 +62,7 @@ CESD_data_wide <-
 # }
 
 #---- shell table ----
-mechanisms <- c("MCAR", "MAR")
+mechanisms <- c("MCAR", "MNAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -155,14 +155,14 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 
 #---- cc analysis ----
-cc <- function(data, mechanism, mask_percent, truth){
+cc <- function(data, mechanism, mask_percent, truth, beta_0_table){
   cc_results <- 
     data.frame("Exposure" = exposures, "beta" = NA, "SD" = NA, "LCI" = NA, 
                "UCI" = NA, "Missingness" = mask_percent, 
                "Type" = mechanism, "capture_truth" = NA, "people_dropped" = NA)
   
   #---- mask data ----
-  data_wide <- mask(data, mechanism, mask_percent)
+  data_wide <- mask(data, mechanism, mask_percent, beta_0_table)
   
   #---- **CES-D Wave 4 ----
   TTEmodel_CESD4 <- 
@@ -262,16 +262,19 @@ for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]
   percent = all_combos[[combo, "percents"]]
   
-  multi_runs <- replicate(runs, cc(CESD_data_wide, mechanism, percent, truth), 
-                          simplify = FALSE)
+  multi_runs <- 
+    replicate(runs, cc(CESD_data_wide, mechanism, percent, truth, beta_0_table), 
+              simplify = FALSE)
+  
   #Formatting data
   formatted <- do.call(rbind, multi_runs)
   
   #Plot betas
   for(exposure in table_effect_ests$Exposure){
     ggsave(filename = here::here("RScripts", "Troubleshooting", 
-                           paste0(mechanism, "_", str_remove_all(percent, "%"), 
-                                  "_", exposure, "_", runs, ".jpeg")), 
+                                 paste0(mechanism, "_", 
+                                        str_remove_all(percent, "%"), 
+                                        "_", exposure, "_", runs, ".jpeg")), 
            ggplot(data = formatted %>% filter(Exposure == exposure)) + 
              geom_histogram(aes(x = beta)) + theme_minimal() + 
              ggtitle(paste0(mechanism, " ", percent, ": ", exposure, 
@@ -295,7 +298,7 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC_MCAR_MAR", runs, "_", 
+                        "tables/results_CC_MCAR_MNAR", runs, "_", 
                         format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----
@@ -319,9 +322,11 @@ results$Exposure <-
                     "Elevated Average CES-D", "Elevated CES-D Count"))
 
 #---- **make plot ----
-ggplot(results %>% filter(!Type %in% c("MNAR") & 
-                            !Exposure %in% c("Elevated Average CES-D", 
-                                             "Elevated CES-D Count")), 
+ggplot(results %>% filter(!Type %in% c("MNAR")), 
+                          # & 
+                          #   !Missingness %in% c("30%")),
+                            # !Exposure %in% c("Elevated Average CES-D", 
+                            #                  "Elevated CES-D Count")), 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 

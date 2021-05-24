@@ -188,12 +188,20 @@ set.seed(20210507)
 
 {missing_prop_MNAR <- 
     map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
-                                     beta_0 = optim_MNAR10$minimum), 
+                                     beta_0 = optim_MNAR30$minimum), 
             .id = "replication") %>% estimate_df()
   
   missing_prop_MNAR %>%
     kbl(caption = "MNAR missingness")%>%
     kable_classic(full_width = F, html_font = "Arial")
+}
+
+#---- **save optimized beta_0 ----
+for(percent in c(10, 20, 30)){
+  write_rds(get(paste0("optim_MNAR", percent)), 
+            file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                          "optimized_masking_intercepts/optim_MNAR", percent, 
+                          ".RDS"))
 }
 
 #---- run MAR sim ----

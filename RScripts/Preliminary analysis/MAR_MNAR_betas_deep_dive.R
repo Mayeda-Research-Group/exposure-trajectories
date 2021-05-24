@@ -104,12 +104,12 @@ beta_cesdcurrent <- log(4)
 beta_death2018_cesdcurrent <- log(1.5)
 
 #----  prop missing function ----
-missing_prop <- function (dataset, mechanism, mask_prop){
+coef_func <- function (dataset, mechanism, mask_prop){
 
   if (mechanism == "MNAR"){
     #---- MNAR ----
     #balancing intercept
-    beta_0 <- logit(mask_prop) - 
+    beta_0 <- -log(1/(mask_prop) - 1) -
       (beta_death2018*e_death2018 + beta_cesdcurrent*e_CESD_4_9 +
          beta_death2018_cesdcurrent*e_death2018_CESD_4_9)
     
@@ -187,9 +187,8 @@ missing_prop <- function (dataset, mechanism, mask_prop){
 
 
 
-#---- optimizer ----
+#---- settings ----
 mask_prop = 0.10
-warm_start <- 
 
 # Repeat for 1000 times
 replicate = 1000
@@ -209,7 +208,8 @@ missing_prop_MAR %>%
 #---- run MNAR sim ----
 {missing_prop_MNAR <- 
   map_dfr(1:replicate, ~ 
-            coef_func(dataset = data_wide, mechanism = "MNAR", mask_prop = 0.10), 
+            coef_func(dataset = data_wide, mechanism = "MNAR", 
+                      mask_prop = mask_prop), 
           .id = "replication") %>% estimate_df()
 
 missing_prop_MNAR %>%

@@ -62,7 +62,7 @@ CESD_data_wide <-
 # }
 
 #---- shell table ----
-mechanisms <- c("MCAR", "MNAR")
+mechanisms <- c("MCAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 

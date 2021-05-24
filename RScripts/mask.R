@@ -45,160 +45,42 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table){
                          size = floor(mask_prop*total_indices), 
                          replace = FALSE)
   } else{
-    #---- expected value for predictors of MAR & MNAR missingness ----
-    #---- **E(X)s ----
-    e_age <- 
-      mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "age_y_int")]))
-    e_CESD_3_8 <- 
-      mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
-           na.rm = TRUE)
-    e_CESD_4_9 <- 
-      mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
-    e_conde <- 
-      mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "conde_impute")]), 
-           na.rm = TRUE)
-    e_shlt <- mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "shlt")]), 
-                   na.rm = TRUE)
-    e_death2018 <- mean(data_wide$death2018)
+    #Effect sizes
+    beta_death2018 <- log(1.5)
+    beta_cesdcurrent <- log(4)
+    beta_death2018_cesdcurrent <- log(1.5)
     
-    if (mechanism == "MAR"){
-      #---- ** MAR Coefficients ----
-      MAR_coeff <- tibble("Var" = c("cesdpre", "condepre", "death2018"), 
-                          "10%" = c(log(2.028), log(2.535), log(5.85)), 
-                          "20%" = c(log(2.86), log(3.575), log(8.25)), 
-                          "30%" = c(log(4.16), log(5.2), log(12)))
+    if(mechanism == "MNAR"){
+      subset <- data_wide
       
-      #beta_age <- MAR_coeff[[which(MAR_coeff$Var == "age"), mask_percent]]
-      beta_cesdpre <- 
-        MAR_coeff[[which(MAR_coeff$Var == "cesdpre"), mask_percent]]
-      beta_condepre <- 
-        MAR_coeff[[which(MAR_coeff$Var == "condepre"), mask_percent]]
-      beta_death2018 <- 
-        MAR_coeff[[which(MAR_coeff$Var == "death2018"), mask_percent]]
+      for(wave in seq(4, 9)){
+        subset %<>% 
+          mutate(!!paste0("r", wave, "pcesd") := 
+                   expit(beta_death2018*death2018 + 
+                           beta_cesdcurrent*
+                           !!sym(paste0("r", wave, "cesd")) + 
+                           beta_death2018_cesdcurrent*
+                           death2018*!!sym(paste0("r", wave, "cesd")) + 
+                           as.numeric(beta_0_table[which(
+                             beta_0_table$mechanisms == mechanism & 
+                               beta_0_table$percents == mask_prop*100), 
+                             "beta0"])))
+      }
       
-      beta_0 <- logit(mask_prop) -
-        (#beta_age*e_age + 
-          beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde +
-            beta_death2018*e_death2018)
-      
-      subset <- data_wide %>%
-        mutate(
-          r4pcesd = ifelse(is.na(expit(beta_0 + #beta_age * r4age_y_int + 
-                                         beta_cesdpre * r3cesd + 
-                                         beta_condepre * r3conde_impute + 
-                                         beta_death2018 * death2018)),
-                           0, expit(beta_0 + #beta_age * r4age_y_int +
-                                      beta_cesdpre * r3cesd + 
-                                      beta_condepre * r3conde_impute + 
-                                      beta_death2018 * death2018)),
-          r5pcesd = expit(beta_0 + #beta_age * r5age_y_int + 
-                            beta_cesdpre * r4cesd + 
-                            beta_condepre * r4conde_impute + 
-                            beta_death2018 * death2018),
-          r6pcesd = expit(beta_0 + #beta_age * r6age_y_int + 
-                            beta_cesdpre * r5cesd +
-                            beta_condepre * r5conde_impute + 
-                            beta_death2018 * death2018),
-          r7pcesd = expit(beta_0 + #beta_age * r7age_y_int + 
-                            beta_cesdpre * r6cesd + 
-                            beta_condepre * r6conde_impute + 
-                            beta_death2018 * death2018),
-          r8pcesd = expit(beta_0 + #beta_age * r8age_y_int + 
-                            beta_cesdpre * r7cesd +
-                            beta_condepre * r7conde_impute + 
-                            beta_death2018 * death2018),
-          r9pcesd = expit(beta_0 + #beta_age * r9age_y_int + 
-                            beta_cesdpre * r8cesd +
-                            beta_condepre * r8conde_impute + 
-                            beta_death2018 * death2018)) %>%
-        select(contains("pcesd"))
+      subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
       
       for (j in 1:ncol(subset)){
         subset[, paste0("r", j + 3, "cesd_missing")] <- 
           rbinom(nrow(subset), size = 1, prob = subset[[j]])
       }
       
-      subset_long <- subset %>%
-        select(contains("cesd_missing")) %>%
-        pivot_longer(everything(),
-                     names_to = "orig_varname",
-                     values_to = "cesd_missing")
-      
-      mask_index <- which(subset_long$cesd_missing == 1)
-      
-    } else if(mechanism == "MNAR"){
-      #---- ** MNAR Coefficients ----
-      MNAR_coeff <- 
-        tibble("Var" = c("age", "cesdpre", "condepre", "death2018", "cesdcurrent"), 
-               "10%" = c(log(0.9562), log(1.0413), log(1.1514), log(2.2528), 
-                         log(1.3017)), 
-               "20%" = c(log(0.967), log(1.053), log(1.164), log(2.278), 
-                         log(1.316)), 
-               "30%" = c(log(0.9743), log(1.0611), log(1.1733), log(2.2956), 
-                         log(1.3263)))
-      
-      beta_age <- MNAR_coeff[[which(MNAR_coeff$Var == "age"), mask_percent]]
-      beta_cesdpre <- 
-        MNAR_coeff[[which(MNAR_coeff$Var == "cesdpre"), mask_percent]]
-      beta_condepre <- 
-        MNAR_coeff[[which(MNAR_coeff$Var == "condepre"), mask_percent]]
-      beta_death2018 <- 
-        MNAR_coeff[[which(MNAR_coeff$Var == "death2018"), mask_percent]]
-      beta_cesdcurrent <- 
-        MNAR_coeff[[which(MNAR_coeff$Var == "cesdcurrent"), mask_percent]]
-      
-      beta_0 <- logit(mask_prop) -
-        (beta_age*e_age + beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde + 
-           beta_cesdcurrent*e_CESD_4_9 + beta_death2018*e_death2018)
-      
-      subset <- data_wide %>%
-        mutate(
-          r4pcesd = ifelse(is.na(expit(beta_0 + #beta_age * r4age_y_int + 
-                                         beta_cesdpre * r3cesd + 
-                                         beta_cesdcurrent * r4cesd +
-                                         beta_condepre * r3conde_impute + 
-                                         beta_death2018 * death2018)), 
-                           0, expit(beta_0 + #beta_age * r4age_y_int + 
-                                      beta_cesdpre * r3cesd + 
-                                      beta_cesdcurrent * r4cesd +
-                                      beta_condepre * r3conde_impute + 
-                                      beta_death2018 * death2018)),
-          r5pcesd = expit(beta_0 + #beta_age * r5age_y_int + 
-                            beta_cesdpre * r4cesd + beta_cesdcurrent * r5cesd +
-                            beta_condepre * r4conde_impute + 
-                            beta_death2018 * death2018),
-          r6pcesd = expit(beta_0 + #beta_age * r6age_y_int + 
-                            beta_cesdpre * r5cesd + beta_cesdcurrent * r6cesd +
-                            beta_condepre * r5conde_impute + 
-                            beta_death2018 * death2018),
-          r7pcesd = expit(beta_0 + #beta_age * r7age_y_int + 
-                            beta_cesdpre * r6cesd + beta_cesdcurrent * r7cesd +
-                            beta_condepre * r6conde_impute + 
-                            beta_death2018 * death2018),
-          r8pcesd = expit(beta_0 + #beta_age * r8age_y_int + 
-                            beta_cesdpre * r7cesd + beta_cesdcurrent * r8cesd +
-                            beta_condepre * r7conde_impute + 
-                            beta_death2018 * death2018),
-          r9pcesd = expit(beta_0 + #beta_age * r9age_y_int + 
-                            beta_cesdpre * r8cesd + beta_cesdcurrent * r9cesd +
-                            beta_condepre * r8conde_impute + 
-                            beta_death2018 * death2018)) %>%
-        select(contains("pcesd"))
-      
-      for (j in 1:ncol(subset)){
-        subset[, paste0("r", j + 3, "cesd_missing")] <- 
-          rbinom(nrow(subset), size = 1, prob = subset[[j]])
-      }
-      
-      subset_long <- subset %>%
-        select(contains("cesd_missing")) %>%
-        pivot_longer(everything(),
-                     names_to = "orig_varname",
+      subset_long <- subset %>% select(contains("cesd_missing")) %>%
+        pivot_longer(everything(), names_to = "orig_varname", 
                      values_to = "cesd_missing")
       
       mask_index <- which(subset_long$cesd_missing == 1)
     }
-  }
+  } 
   
   #---- masking wave-specific values ----
   mask_wave_specific <- c("married_partnered", "not_married_partnered", 
@@ -246,8 +128,7 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table){
              rowSums(data_wide %>%
                        dplyr::select(paste0("r", seq(4, 9), "cesd")) %>%
                        mutate_all(function(x) is.na(x)))) %>%
-    filter(CESD_missing < 6) %>%
-    select(-CESD_missing)
+    filter(CESD_missing < 6) %>% dplyr::select(-CESD_missing)
   
   # Return the dataset
   # return(mask_index)

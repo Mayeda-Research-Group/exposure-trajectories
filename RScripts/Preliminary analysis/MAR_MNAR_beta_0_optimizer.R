@@ -25,22 +25,15 @@ logit <- function(x){
 
 estimate_df <- function(dataframe){
   estimate <- function(x){
-    stats <- c(length(x), 
-               mean(x,na.rm = T), 
-               quantile(x,c(0.025, 0.975),na.rm = T)
-    )
-    names(stats) <- c("N", "Mean", 
-                      "p2.5th", "p97.5th"
-    )
+    stats <- c(length(x), mean(x,na.rm = T), 
+               quantile(x,c(0.025, 0.975),na.rm = T))
+    names(stats) <- c("N", "Mean", "p2.5th", "p97.5th")
     return(round(stats, 4))
   }
   
-  stats_tib <- dataframe %>%
-    select(where(is.numeric)) %>%
-    purrr::map_dfr(estimate) %>%
-    as_tibble() %>%
-    mutate("Effect" = colnames(dataframe)[-1]) %>%
-    select(Effect, everything())
+  stats_tib <- dataframe %>% select(where(is.numeric)) %>% 
+    purrr::map_dfr(estimate) %>% as_tibble() %>%
+    mutate("Effect" = colnames(dataframe)[-1]) %>% select(Effect, everything())
   
   return(stats_tib)
 }

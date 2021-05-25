@@ -120,33 +120,27 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
   }
 }
 
-#---- expected value for predictors ----
-#---- **MNAR ----
-e_CESD_4_9 <- 
-  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
-e_death2018 <- mean(data_wide$death2018)
-e_death2018_CESD_4_9 <- 
-  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
-       na.rm = TRUE)
-
-#---- **MAR ----
-e_CESD_3_8 <- 
-  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]))
-e_conde_3_8 <- 
-  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "conde_impute")]))
-e_CESD_3_8_conde_3_8 <- 
-  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd_conde_impute")]), 
-       na.rm = TRUE)
-
-#---- beta matrix ----
-beta_mat <- 
-  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25)), 
-         nrow = 1) %>% 
+#---- beta and expected values matrix ----
+beta_mat <- #effect sizes
+  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25),
+           #expected values
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
+                na.rm = TRUE), 
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
+                                          "conde_impute")]), na.rm = TRUE), 
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
+                                          "cesd_conde_impute")]), na.rm = TRUE), 
+           mean(data_wide$death2018), 
+           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")])), 
+           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), 
+                                          "cesd_death2018")]))), 
+         nrow = 2, byrow = TRUE) %>% 
   #MAR
   set_colnames(c("beta_cesdpre", "beta_condepre", "beta_cesdpre_condepre",
                  #MNAR
                  "beta_death2018", "beta_cesdcurrent", 
-                 "beta_death2018_cesdcurrent"))
+                 "beta_death2018_cesdcurrent")) %>% 
+  set_rownames(c("beta", "expected"))
 
 #---- optimizer ----
 #---- **MNAR ----

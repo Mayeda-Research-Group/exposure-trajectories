@@ -64,7 +64,7 @@ for(wave in seq(4, 9)){
 
 #---- beta and expected values matrix ----
 beta_mat <- #effect sizes
-  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25),
+  matrix(c(log(1.1), log(1.05), log(1.05), log(1.25), log(1.1), log(1.25),
            #expected values
            mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
                 na.rm = TRUE), 

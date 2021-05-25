@@ -265,7 +265,7 @@ cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
 #---- **run sim ----
 start <- Sys.time()
 all_combos <- expand_grid(mechanisms, percents)
-runs = 100
+runs = 1000
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]
@@ -350,7 +350,7 @@ ggplot(results %>% filter(!Type %in% c("MCAR")),
   ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_CC_MNAR100.jpeg"), 
+              "manuscript/figures/effect_ests_CC_MAR", runs, ".jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 # #---- table 1 ----

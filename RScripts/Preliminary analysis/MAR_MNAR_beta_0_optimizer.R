@@ -69,26 +69,37 @@ for(wave in seq(4, 9)){
 }
 
 #----  prop missing function ----
-missing_prop <- function (BETA_0, dataset, mechanism, mask_prop, 
-                          beta_death2018, beta_cesdcurrent, 
-                          beta_death2018_cesdcurrent){
+missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat, 
+                         optimize = "yes"){
+  subset <- dataset
   
   if (mechanism == "MNAR"){
     #---- MNAR ----
-    subset <- dataset
-    
     for(wave in seq(4, 9)){
       subset %<>% 
         mutate(!!paste0("r", wave, "pcesd") := 
-                 expit(beta_death2018*death2018 + 
-                         beta_cesdcurrent*
+                 expit(as.numeric(beta_mat[, "beta_death2018"])*death2018 + 
+                         as.numeric(beta_mat[, "beta_cesdcurrent"])*
                          !!sym(paste0("r", wave, "cesd")) + 
-                         beta_death2018_cesdcurrent*
+                         as.numeric(beta_mat[, "beta_death2018_cesdcurrent"])*
                          death2018*!!sym(paste0("r", wave, "cesd")) + BETA_0))
     }
-    
-    subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+  } else if(mechanism == "MAR"){
+    #---- MAR ----
+    for(wave in seq(4, 9)){
+      subset %<>% 
+        mutate(!!paste0("r", wave, "pcesd") := 
+                 expit(beta_cesdpre*
+                         !!sym(paste0("r", wave - 1, "cesd")) + 
+                         beta_condepre*
+                         !!sym(paste0("r", wave - 1, "conde_impute")) + 
+                         beta_cesdpre_condepre*
+                         !!sym(paste0("r", wave - 1, "cesd"))*
+                         !!sym(paste0("r", wave - 1, "conde_impute")) + BETA_0))
+    }
   } 
+  
+  subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
   
   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
   for (j in 1:ncol(subset)){
@@ -96,14 +107,21 @@ missing_prop <- function (BETA_0, dataset, mechanism, mask_prop,
       rbinom(nrow(subset), size = 1, prob = subset[[j]])
   }
   
-  return(abs(
-    mean(subset %>% dplyr::select(contains("cesd_missing")) %>% as.matrix()) - 
-      mask_prop))
+  if(optimize == "yes"){
+    return(abs(
+      mean(subset %>% dplyr::select(contains("cesd_missing")) %>% as.matrix()) - 
+        mask_prop)) 
+  } else{
+    return(Missing_prop_results <- 
+             tibble(missing_prop = 
+                      mean(subset %>% 
+                             dplyr::select(contains("cesd_missing")) %>% 
+                             as.matrix(), na.rm = T)))
+  }
 }
 
-#---- expected value for predictors of MAR & MNAR missingness ----
-#---- **E(X)s ----
-#for MNAR
+#---- expected value for predictors ----
+#---- **MNAR ----
 e_CESD_4_9 <- 
   mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
 e_death2018 <- mean(data_wide$death2018)
@@ -111,7 +129,7 @@ e_death2018_CESD_4_9 <-
   mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
        na.rm = TRUE)
 
-#for MAR
+#---- **MAR ----
 e_CESD_3_8 <- 
   mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]))
 e_conde_3_8 <- 
@@ -120,21 +138,15 @@ e_CESD_3_8_conde_3_8 <-
   mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd_conde_impute")]), 
        na.rm = TRUE)
 
-#---- ** MAR Coefficients ----
-#beta_age <- log(0.97)
-#beta_shltpre <- log(1.100)
-beta_cesdpre <- log(1.1)
-beta_condepre <- log(1.15)
-beta_cesdpre_condepre <- log(1.15)
-
-#---- ** MNAR Coefficients ----
-#beta_age <- log(0.955)
-#beta_cesdpre <- log(1.04)
-#beta_condepre <- log(1.30)
-#beta_shltpre <- log(1.100)
-beta_death2018 <- log(1.25)
-beta_cesdcurrent <- log(1.1)
-beta_death2018_cesdcurrent <- log(1.25)
+#---- beta matrix ----
+beta_mat <- 
+  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25)), 
+         nrow = 1) %>% 
+  #MAR
+  set_colnames(c("beta_cesdpre", "beta_condepre", "beta_cesdpre_condepre",
+                 #MNAR
+                 "beta_death2018", "beta_cesdcurrent", 
+                 "beta_death2018_cesdcurrent"))
 
 #---- optimizer ----
 #---- **MNAR ----
@@ -149,7 +161,8 @@ MNAR_warm_start <- function(mask_prop, beta_death2018, e_death2018,
 for(mask_prop in c(0.10, 0.20, 0.30)){
   warm_start <- MNAR_warm_start(mask_prop, beta_death2018, e_death2018, 
                                 beta_cesdcurrent, e_CESD_4_9, 
-                                beta_death2018_cesdcurrent, e_death2018_CESD_4_9)
+                                beta_death2018_cesdcurrent, 
+                                e_death2018_CESD_4_9)
   
   assign(paste0("optim_MNAR", 100*mask_prop), 
          optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
@@ -185,49 +198,49 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
                   e_CESD_3_8_conde_3_8 = e_CESD_3_8_conde_3_8))
 }
 
-#---- test masking ----
-test_mask <- function (dataset, mechanism, beta_0){
-  subset <- dataset
-  
-  if (mechanism == "MNAR"){
-    #---- MNAR ----
-    for(wave in seq(4, 9)){
-      subset %<>% 
-        mutate(!!paste0("r", wave, "pcesd") := 
-                 expit(beta_death2018*death2018 + 
-                         beta_cesdcurrent*
-                         !!sym(paste0("r", wave, "cesd")) + 
-                         beta_death2018_cesdcurrent*
-                         death2018*!!sym(paste0("r", wave, "cesd")) + beta_0))
-    }
-  } else if(mechanism == "MAR"){
-    #---- MAR ----
-    for(wave in seq(4, 9)){
-      subset %<>% 
-        mutate(!!paste0("r", wave, "pcesd") := 
-                 expit(beta_cesdpre*
-                         !!sym(paste0("r", wave - 1, "cesd")) + 
-                         beta_condepre*
-                         !!sym(paste0("r", wave - 1, "conde_impute")) + 
-                         beta_cesdpre_condepre*
-                         !!sym(paste0("r", wave - 1, "cesd"))*
-                         !!sym(paste0("r", wave - 1, "conde_impute")) + beta_0))
-    }
-  }
-  
-  subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
-  
-  # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
-  for (j in 1:ncol(subset)){
-    subset[, paste0("r", j + 3, "cesd_missing")] <- 
-      rbinom(nrow(subset), size = 1, prob = subset[[j]])
-  }
-  
-  return(Missing_prop_results <- 
-           tibble(missing_prop = 
-                    mean(subset %>% dplyr::select(contains("cesd_missing")) %>% 
-                           as.matrix(), na.rm = T)))
-}
+# #---- test masking ----
+# test_mask <- function (dataset, mechanism, beta_0){
+#   subset <- dataset
+#   
+#   if (mechanism == "MNAR"){
+#     #---- MNAR ----
+#     for(wave in seq(4, 9)){
+#       subset %<>% 
+#         mutate(!!paste0("r", wave, "pcesd") := 
+#                  expit(beta_death2018*death2018 + 
+#                          beta_cesdcurrent*
+#                          !!sym(paste0("r", wave, "cesd")) + 
+#                          beta_death2018_cesdcurrent*
+#                          death2018*!!sym(paste0("r", wave, "cesd")) + beta_0))
+#     }
+#   } else if(mechanism == "MAR"){
+#     #---- MAR ----
+#     for(wave in seq(4, 9)){
+#       subset %<>% 
+#         mutate(!!paste0("r", wave, "pcesd") := 
+#                  expit(beta_cesdpre*
+#                          !!sym(paste0("r", wave - 1, "cesd")) + 
+#                          beta_condepre*
+#                          !!sym(paste0("r", wave - 1, "conde_impute")) + 
+#                          beta_cesdpre_condepre*
+#                          !!sym(paste0("r", wave - 1, "cesd"))*
+#                          !!sym(paste0("r", wave - 1, "conde_impute")) + beta_0))
+#     }
+#   }
+#   
+#   subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+#   
+#   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
+#   for (j in 1:ncol(subset)){
+#     subset[, paste0("r", j + 3, "cesd_missing")] <- 
+#       rbinom(nrow(subset), size = 1, prob = subset[[j]])
+#   }
+#   
+#   return(Missing_prop_results <- 
+#            tibble(missing_prop = 
+#                     mean(subset %>% dplyr::select(contains("cesd_missing")) %>% 
+#                            as.matrix(), na.rm = T)))
+# }
 
 # #---- run MNAR sim ----
 # # Repeat for 1000 times

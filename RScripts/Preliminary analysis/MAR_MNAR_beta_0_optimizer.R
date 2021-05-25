@@ -167,34 +167,18 @@ for(mechanism in c("MAR", "MNAR")){
   }
 }
 
-# #---- run MNAR sim ----
-# # Repeat for 1000 times
-# replicate = 1000
-# set.seed(20210507)
-# 
-# {missing_prop_MNAR <- 
-#     map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
-#                                      beta_0 = optim_MNAR30$minimum), 
-#             .id = "replication") %>% estimate_df()
-#   
-#   missing_prop_MNAR %>%
-#     kbl(caption = "MNAR missingness")%>%
-#     kable_classic(full_width = F, html_font = "Arial")
-# }
-# 
-
 #---- run sims ----
 replicate = 1000
 set.seed(20210507)
 # Missing proportion
-{missing_prop <-
+{test_run <- 
     map_dfr(1:replicate, 
-            ~ missing_prop(BETA_0 = optim_MAR20$minimum, dataset = data_wide, 
-                           mechanism = "MAR", mask_prop = 0.20, 
+            ~ missing_prop(BETA_0 = optim_MAR30$minimum, dataset = data_wide, 
+                           mechanism = "MAR", mask_prop = 0.30, 
                            beta_mat = beta_mat, optimize = "No"),
             .id = "replication") %>% estimate_df()
   
-  missing_prop %>%
+  test_run %>%
     kbl(caption = "MAR missingness")%>%
     kable_classic(full_width = F, html_font = "Arial")
 }

@@ -173,7 +173,7 @@ set.seed(20210507)
 # Missing proportion
 {test_run <- 
     map_dfr(1:replicate, 
-            ~ missing_prop(BETA_0 = optim_MAR30$minimum, dataset = data_wide, 
+            ~ missing_prop(BETA_0 = optim_MNAR30$minimum, dataset = data_wide, 
                            mechanism = "MAR", mask_prop = 0.30, 
                            beta_mat = beta_mat, optimize = "No"),
             .id = "replication") %>% estimate_df()
@@ -186,7 +186,7 @@ set.seed(20210507)
 #---- **save optimized beta_0 ----
 for(mechanism in c("MAR", "MNAR")){
   for(percent in c(10, 20, 30)){
-    write_rds(get(paste0("optim_", mechnism, percent)), 
+    write_rds(get(paste0("optim_", mechanism, percent)), 
               file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                             "optimized_masking_intercepts/optim_", mechanism, 
                             percent, ".RDS"))

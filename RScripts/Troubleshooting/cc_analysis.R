@@ -33,6 +33,15 @@ CESD_data_wide <-
                   "CESD_data_wide.csv"), 
            col_types = cols(HHIDPN = col_character())) 
 
+for(wave in seq(4, 9)){
+  CESD_data_wide %<>% 
+    mutate(!!paste0("r", wave, "cesd_death2018") := 
+             !!sym(paste0("r", wave, "cesd"))*death2018, 
+           !!paste0("r", wave - 1, "cesd_conde_impute") := 
+             !!sym(paste0("r", wave - 1, "cesd"))*
+             !!sym(paste0("r", wave - 1, "conde_impute")))
+}
+
 # #Check column types
 # sapply(CESD_data_wide, class)
 

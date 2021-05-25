@@ -62,7 +62,7 @@ CESD_data_wide <-
 # }
 
 #---- shell table ----
-mechanisms <- c("MNAR")
+mechanisms <- c("MAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -152,17 +152,17 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          "conf.low", "conf.high")])
 
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MNAR")
+truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MAR")
 
 #---- cc analysis ----
-cc <- function(data, mechanism, mask_percent, truth, beta_0_table){
+cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
   cc_results <- 
     data.frame("Exposure" = exposures, "beta" = NA, "SD" = NA, "LCI" = NA, 
                "UCI" = NA, "Missingness" = mask_percent, 
                "Type" = mechanism, "capture_truth" = NA, "people_dropped" = NA)
   
   #---- mask data ----
-  data_wide <- mask(data, mechanism, mask_percent, beta_0_table)
+  data_wide <- mask(data, mechanism, mask_percent, beta_0_table, beta_mat)
   
   #---- **CES-D Wave 4 ----
   TTEmodel_CESD4 <- 
@@ -263,8 +263,8 @@ for(combo in 1:nrow(all_combos)){
   percent = all_combos[[combo, "percents"]]
   
   multi_runs <- 
-    replicate(runs, cc(CESD_data_wide, mechanism, percent, truth, beta_0_table), 
-              simplify = FALSE)
+    replicate(runs, cc(CESD_data_wide, mechanism, percent, truth, beta_0_table, 
+                       beta_mat), simplify = FALSE)
   
   #Formatting data
   formatted <- do.call(rbind, multi_runs)

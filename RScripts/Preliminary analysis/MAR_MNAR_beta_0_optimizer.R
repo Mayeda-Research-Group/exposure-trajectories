@@ -137,14 +137,24 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
 
 #---- optimizer ----
 #---- **MNAR ----
-MNAR_warm_start <- function(mask_prop, beta_death2018, e_death2018, 
-                            beta_cesdcurrent, e_CESD_4_9, 
-                            beta_death2018_cesdcurrent, e_death2018_CESD_4_9){
-  return(-log(1/(mask_prop) - 1) -
-           (beta_death2018*e_death2018 + beta_cesdcurrent*e_CESD_4_9 +
-              beta_death2018_cesdcurrent*e_death2018_CESD_4_9))
+warm_start <- function(mask_prop, mechanism, beta_mat){
+  if(mechanism == "MNAR"){
+    return(-log(1/(mask_prop) - 1) -
+             (beta_mat["beta", "death2018"]*beta_mat["expected", "death2018"] + 
+                beta_mat["beta", "cesdcurrent"]*
+                beta_mat["expected", "cesdcurrent"] +
+                beta_mat["beta", "death2018_cesdcurrent"]*
+                beta_mat["expected", "death2018_cesdcurrent"]))
+  } else{
+    return(-log(1/(mask_prop) - 1) -
+             (beta_mat["beta", "cesdpre"]*beta_mat["expected", "cesdpre"] + 
+                beta_mat["beta", "condepre"]*beta_mat["expected", "condepre"] +
+                beta_mat["beta", "cesdpre_condepre"]*
+                beta_mat["expected", "cesdpre_condepre"]))
+  }
 } 
 
+mechanism = "MAR"
 for(mask_prop in c(0.10, 0.20, 0.30)){
   warm_start <- MNAR_warm_start(mask_prop, beta_death2018, e_death2018, 
                                 beta_cesdcurrent, e_CESD_4_9, 

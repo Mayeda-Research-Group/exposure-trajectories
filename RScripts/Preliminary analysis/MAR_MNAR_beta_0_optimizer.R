@@ -167,50 +167,6 @@ for(mechanism in c("MAR", "MNAR")){
   }
 }
 
-# #---- test masking ----
-# test_mask <- function (dataset, mechanism, beta_0){
-#   subset <- dataset
-#   
-#   if (mechanism == "MNAR"){
-#     #---- MNAR ----
-#     for(wave in seq(4, 9)){
-#       subset %<>% 
-#         mutate(!!paste0("r", wave, "pcesd") := 
-#                  expit(beta_death2018*death2018 + 
-#                          beta_cesdcurrent*
-#                          !!sym(paste0("r", wave, "cesd")) + 
-#                          beta_death2018_cesdcurrent*
-#                          death2018*!!sym(paste0("r", wave, "cesd")) + beta_0))
-#     }
-#   } else if(mechanism == "MAR"){
-#     #---- MAR ----
-#     for(wave in seq(4, 9)){
-#       subset %<>% 
-#         mutate(!!paste0("r", wave, "pcesd") := 
-#                  expit(beta_cesdpre*
-#                          !!sym(paste0("r", wave - 1, "cesd")) + 
-#                          beta_condepre*
-#                          !!sym(paste0("r", wave - 1, "conde_impute")) + 
-#                          beta_cesdpre_condepre*
-#                          !!sym(paste0("r", wave - 1, "cesd"))*
-#                          !!sym(paste0("r", wave - 1, "conde_impute")) + beta_0))
-#     }
-#   }
-#   
-#   subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
-#   
-#   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
-#   for (j in 1:ncol(subset)){
-#     subset[, paste0("r", j + 3, "cesd_missing")] <- 
-#       rbinom(nrow(subset), size = 1, prob = subset[[j]])
-#   }
-#   
-#   return(Missing_prop_results <- 
-#            tibble(missing_prop = 
-#                     mean(subset %>% dplyr::select(contains("cesd_missing")) %>% 
-#                            as.matrix(), na.rm = T)))
-# }
-
 # #---- run MNAR sim ----
 # # Repeat for 1000 times
 # replicate = 1000
@@ -234,11 +190,15 @@ for(mechanism in c("MAR", "MNAR")){
 #                           ".RDS"))
 # }
 
-#---- run MAR sim ----
+#---- run sims ----
+replicate = 1000
+set.seed(20210507)
 # Missing proportion
 {missing_prop_MAR <-
-  map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MAR", 
-                                   beta_0 = optim_MAR30$minimum),
+  map_dfr(1:replicate, 
+          ~ missing_prop(BETA_0 = optim_MAR10$minimum, dataset = data_wide, 
+                         mechanism = "MAR", mask_prop = 0.10, 
+                         beta_mat = beta_mat, optimize = "No"),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MAR %>%
@@ -247,10 +207,12 @@ missing_prop_MAR %>%
 }
 
 #---- **save optimized beta_0 ----
-for(percent in c(10, 20, 30)){
-  write_rds(get(paste0("optim_MAR", percent)), 
-            file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                          "optimized_masking_intercepts/optim_MAR", percent, 
-                          ".RDS"))
+for(mechanism in c("MAR", "MNAR")){
+  for(percent in c(10, 20, 30)){
+    write_rds(get(paste0("optim_", mechnism, percent)), 
+              file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                            "optimized_masking_intercepts/optim_", mechanism, 
+                            percent, ".RDS"))
+  }
 }
 

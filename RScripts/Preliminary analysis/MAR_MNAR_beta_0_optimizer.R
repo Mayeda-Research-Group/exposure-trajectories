@@ -187,16 +187,16 @@ for(mechanism in c("MAR", "MNAR")){
 replicate = 1000
 set.seed(20210507)
 # Missing proportion
-{missing_prop_MAR <-
-  map_dfr(1:replicate, 
-          ~ missing_prop(BETA_0 = optim_MAR10$minimum, dataset = data_wide, 
-                         mechanism = "MAR", mask_prop = 0.10, 
-                         beta_mat = beta_mat, optimize = "No"),
-          .id = "replication") %>% estimate_df()
-
-missing_prop_MAR %>%
-  kbl(caption = "MAR missingness")%>%
-  kable_classic(full_width = F, html_font = "Arial")
+{missing_prop <-
+    map_dfr(1:replicate, 
+            ~ missing_prop(BETA_0 = optim_MAR20$minimum, dataset = data_wide, 
+                           mechanism = "MAR", mask_prop = 0.20, 
+                           beta_mat = beta_mat, optimize = "No"),
+            .id = "replication") %>% estimate_df()
+  
+  missing_prop %>%
+    kbl(caption = "MAR missingness")%>%
+    kable_classic(full_width = F, html_font = "Arial")
 }
 
 #---- **save optimized beta_0 ----

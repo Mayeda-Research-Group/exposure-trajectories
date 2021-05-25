@@ -1,5 +1,5 @@
 #---- optimized betas table ----
-mechanisms <- c("MNAR")
+mechanisms <- c("MAR", "MNAR")
 percents <- c(10, 20, 30)
 
 beta_0_table <- expand_grid(mechanisms, percents) %>% 
@@ -18,6 +18,16 @@ for(mechanism in mechanisms){
   }
 }
 
+#---- beta matrix ----
+beta_mat <- #effect sizes
+  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25)), 
+           nrow = 1) %>% 
+  #MAR
+  set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
+                 #MNAR
+                 "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
+  set_rownames(c("beta"))
+
 #---- Expit function ----
 expit <- function(x) {
   output <- (exp(x)/(1+exp(x)))
@@ -30,7 +40,7 @@ logit <- function(x){
 }
 
 #---- Mask function ----
-mask <- function(data_wide, mechanism, mask_percent, beta_0_table){
+mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
   
   mask_prop <- as.numeric(sub("%","", mask_percent))/100
   

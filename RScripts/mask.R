@@ -21,7 +21,7 @@ for(mechanism in mechanisms){
 #---- beta matrix ----
 beta_mat <- #effect sizes
   matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25)), 
-           nrow = 1) %>% 
+         nrow = 1) %>% 
   #MAR
   set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
                  #MNAR
@@ -55,42 +55,54 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
                          size = floor(mask_prop*total_indices), 
                          replace = FALSE)
   } else{
-    #Effect sizes
-    beta_death2018 <- log(1.25)
-    beta_cesdcurrent <- log(1.1)
-    beta_death2018_cesdcurrent <- log(1.25)
+    subset <- data_wide
     
     if(mechanism == "MNAR"){
-      subset <- data_wide
-      
+      #---- MNAR ----
       for(wave in seq(4, 9)){
         subset %<>% 
           mutate(!!paste0("r", wave, "pcesd") := 
-                   expit(beta_death2018*death2018 + 
-                           beta_cesdcurrent*
+                   expit(beta_mat["beta", "death2018"]*death2018 + 
+                           beta_mat["beta", "cesdcurrent"]*
                            !!sym(paste0("r", wave, "cesd")) + 
-                           beta_death2018_cesdcurrent*
-                           death2018*!!sym(paste0("r", wave, "cesd")) + 
+                           beta_mat["beta", "death2018_cesdcurrent"]*
+                           !!sym(paste0("r", wave, "cesd_death2018")) + 
                            as.numeric(beta_0_table[which(
                              beta_0_table$mechanisms == mechanism & 
                                beta_0_table$percents == mask_prop*100), 
                              "beta0"])))
       }
-      
-      subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
-      
-      for (j in 1:ncol(subset)){
-        subset[, paste0("r", j + 3, "cesd_missing")] <- 
-          rbinom(nrow(subset), size = 1, prob = subset[[j]])
+    } else if(mechanism == "MAR"){
+      #---- MAR ----
+      for(wave in seq(4, 9)){
+        subset %<>% 
+          mutate(!!paste0("r", wave, "pcesd") := 
+                   expit(beta_mat["beta", "cesdpre"]*
+                           !!sym(paste0("r", wave - 1, "cesd")) + 
+                           beta_mat["beta", "condepre"]*
+                           !!sym(paste0("r", wave - 1, "conde_impute")) + 
+                           beta_mat["beta", "cesdpre_condepre"]*
+                           !!sym(paste0("r", wave - 1, "cesd_conde_impute")) + 
+                           as.numeric(beta_0_table[which(
+                             beta_0_table$mechanisms == mechanism & 
+                               beta_0_table$percents == mask_prop*100), 
+                             "beta0"])))
       }
-      
-      subset_long <- subset %>% select(contains("cesd_missing")) %>%
-        pivot_longer(everything(), names_to = "orig_varname", 
-                     values_to = "cesd_missing")
-      
-      mask_index <- which(subset_long$cesd_missing == 1)
     }
-  } 
+    
+    subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+    
+    for (j in 1:ncol(subset)){
+      subset[, paste0("r", j + 3, "cesd_missing")] <- 
+        rbinom(nrow(subset), size = 1, prob = subset[[j]])
+    }
+    
+    subset_long <- subset %>% select(contains("cesd_missing")) %>%
+      pivot_longer(everything(), names_to = "orig_varname", 
+                   values_to = "cesd_missing")
+    
+    mask_index <- which(subset_long$cesd_missing == 1)
+  }
   
   #---- masking wave-specific values ----
   mask_wave_specific <- c("married_partnered", "not_married_partnered", 

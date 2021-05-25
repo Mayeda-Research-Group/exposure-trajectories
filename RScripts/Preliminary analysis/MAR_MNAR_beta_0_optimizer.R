@@ -160,7 +160,7 @@ for(mechanism in c("MAR", "MNAR")){
     start <- warm_start(mask_prop, mechanism, beta_mat)
     
     assign(paste0("optim_", mechanism, 100*mask_prop), 
-           optimize(missing_prop, lower = start + 2.5*start, upper = 0, 
+           optimize(missing_prop, lower = start + 3*start, upper = 0, 
                     maximum = FALSE, dataset = data_wide, mechanism = mechanism, 
                     mask_prop = mask_prop, beta_mat = beta_mat, 
                     optimize = "yes"))

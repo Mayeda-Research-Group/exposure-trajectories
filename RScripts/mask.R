@@ -46,9 +46,9 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table){
                          replace = FALSE)
   } else{
     #Effect sizes
-    beta_death2018 <- log(1.5)
-    beta_cesdcurrent <- log(4)
-    beta_death2018_cesdcurrent <- log(1.5)
+    beta_death2018 <- log(1.25)
+    beta_cesdcurrent <- log(1.1)
+    beta_death2018_cesdcurrent <- log(1.25)
     
     if(mechanism == "MNAR"){
       subset <- data_wide

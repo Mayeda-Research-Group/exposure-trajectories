@@ -112,14 +112,13 @@ e_death2018_CESD_4_9 <-
        na.rm = TRUE)
 
 #for MAR
-e_CESD_4_9 <- 
-  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
-e_death2018 <- mean(data_wide$death2018)
-e_death2018_CESD_4_9 <- 
-  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
+e_CESD_3_8 <- 
+  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]))
+e_conde_3_8 <- 
+  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "conde_impute")]))
+e_CESD_3_8_conde_3_8 <- 
+  mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd_conde_impute")]), 
        na.rm = TRUE)
-
-
 
 #---- ** MAR Coefficients ----
 #beta_age <- log(0.97)

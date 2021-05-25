@@ -163,11 +163,10 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
 
 #---- test masking ----
 test_mask <- function (dataset, mechanism, beta_0){
+  subset <- dataset
   
   if (mechanism == "MNAR"){
     #---- MNAR ----
-    subset <- dataset
-    
     for(wave in seq(4, 9)){
       subset %<>% 
         mutate(!!paste0("r", wave, "pcesd") := 
@@ -177,9 +176,23 @@ test_mask <- function (dataset, mechanism, beta_0){
                          beta_death2018_cesdcurrent*
                          death2018*!!sym(paste0("r", wave, "cesd")) + beta_0))
     }
-    
-    subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+  } else if(mechanism == "MAR"){
+    #---- MAR ----
+    for(wave in seq(4, 9)){
+      subset %<>% 
+        mutate(!!paste0("r", wave, "pcesd") := 
+                 expit(beta_cesdpre*
+                         !!sym(paste0("r", wave - 1, "cesd")) + 
+                         beta_condepre*
+                         !!sym(paste0("r", wave - 1, "conde_impute")) + 
+                         beta_cesdpre_condepre*
+                         !!sym(paste0("r", wave - 1, "cesd"))*
+                         !!sym(paste0("r", wave - 1, "conde_impute")) + beta_0))
+    }
   }
+  
+  subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+  
   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
   for (j in 1:ncol(subset)){
     subset[, paste0("r", j + 3, "cesd_missing")] <- 

@@ -160,7 +160,7 @@ for(mechanism in c("MAR", "MNAR")){
     start <- warm_start(mask_prop, mechanism, beta_mat)
     
     assign(paste0("optim_", mechanism, 100*mask_prop), 
-           optimize(missing_prop, lower = start + 3*start, upper = 0, 
+           optimize(missing_prop, lower = start + 2.5*start, upper = 0, 
                     maximum = FALSE, dataset = data_wide, mechanism = mechanism, 
                     mask_prop = mask_prop, beta_mat = beta_mat, 
                     optimize = "yes"))
@@ -174,7 +174,7 @@ set.seed(20210507)
 {test_run <- 
     map_dfr(1:replicate, 
             ~ missing_prop(BETA_0 = optim_MNAR30$minimum, dataset = data_wide, 
-                           mechanism = "MAR", mask_prop = 0.30, 
+                           mechanism = "MNAR", mask_prop = 0.30, 
                            beta_mat = beta_mat, optimize = "No"),
             .id = "replication") %>% estimate_df()
   

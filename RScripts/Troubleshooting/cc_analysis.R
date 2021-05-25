@@ -62,7 +62,7 @@ CESD_data_wide <-
 # }
 
 #---- shell table ----
-mechanisms <- c("MCAR")
+mechanisms <- c("MNAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -152,7 +152,7 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          "conf.low", "conf.high")])
 
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
+truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MNAR")
 
 #---- cc analysis ----
 cc <- function(data, mechanism, mask_percent, truth, beta_0_table){
@@ -256,7 +256,7 @@ cc <- function(data, mechanism, mask_percent, truth, beta_0_table){
 #---- **run sim ----
 start <- Sys.time()
 all_combos <- expand_grid(mechanisms, percents)
-runs = 1000
+runs = 100
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]
@@ -290,7 +290,7 @@ for(combo in 1:nrow(all_combos)){
                       "truth_capture", "people_dropped")] <- 
     formatted %>% group_by(Exposure) %>%
     summarize_at(.vars = c("beta", "SD", "LCI", "UCI", "capture_truth", 
-                           "people_dropped"), .funs = mean)
+                           "people_dropped"), ~mean(., na.rm = TRUE))
 }
 end <- Sys.time() - start
 
@@ -298,7 +298,7 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC_MCAR_MNAR", runs, "_", 
+                        "tables/results_CC_MNAR", runs, "_", 
                         format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----
@@ -322,25 +322,26 @@ results$Exposure <-
                     "Elevated Average CES-D", "Elevated CES-D Count"))
 
 #---- **make plot ----
-ggplot(results %>% filter(!Type %in% c("MNAR")), 
-                          # & 
-                          #   !Missingness %in% c("30%")),
-                            # !Exposure %in% c("Elevated Average CES-D", 
-                            #                  "Elevated CES-D Count")), 
+ggplot(results %>% filter(!Type %in% c("MCAR")), 
+       # & 
+       #   !Missingness %in% c("30%")),
+       # !Exposure %in% c("Elevated Average CES-D", 
+       #                  "Elevated CES-D Count")), 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3, 
-                position = position_dodge(0.75)) + theme_minimal() + 
+  # geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3, 
+  #               position = position_dodge(0.75)) + 
+  theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
   ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_CC_MCAR_MAR.jpeg"), 
+              "manuscript/figures/effect_ests_CC_MNAR100.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 # #---- table 1 ----

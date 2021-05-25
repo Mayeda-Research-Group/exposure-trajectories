@@ -103,6 +103,7 @@ missing_prop <- function (BETA_0, dataset, mechanism, mask_prop,
 
 #---- expected value for predictors of MAR & MNAR missingness ----
 #---- **E(X)s ----
+#for MNAR
 e_CESD_4_9 <- 
   mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
 e_death2018 <- mean(data_wide$death2018)
@@ -110,12 +111,22 @@ e_death2018_CESD_4_9 <-
   mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
        na.rm = TRUE)
 
-# #---- ** MAR Coefficients ----
-# #beta_age <- log(0.97*scale)
-# beta_cesdpre <- log(1.04*scale)
-# beta_condepre <- log(1.30*scale)
-# #beta_shltpre <- log(1.100)
-# beta_death2018 <- log(3*scale)
+#for MAR
+e_CESD_4_9 <- 
+  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")]))
+e_death2018 <- mean(data_wide$death2018)
+e_death2018_CESD_4_9 <- 
+  mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd_death2018")]), 
+       na.rm = TRUE)
+
+
+
+#---- ** MAR Coefficients ----
+#beta_age <- log(0.97)
+#beta_shltpre <- log(1.100)
+beta_cesdpre <- log(1.1)
+beta_condepre <- log(1.15)
+beta_cesdpre_condepre <- log(1.15)
 
 #---- ** MNAR Coefficients ----
 #beta_age <- log(0.955)
@@ -181,37 +192,45 @@ test_mask <- function (dataset, mechanism, beta_0){
                            as.matrix(), na.rm = T)))
 }
 
-#---- run MNAR sim ----
-# Repeat for 1000 times
-replicate = 1000
-set.seed(20210507)
+# #---- run MNAR sim ----
+# # Repeat for 1000 times
+# replicate = 1000
+# set.seed(20210507)
+# 
+# {missing_prop_MNAR <- 
+#     map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
+#                                      beta_0 = optim_MNAR30$minimum), 
+#             .id = "replication") %>% estimate_df()
+#   
+#   missing_prop_MNAR %>%
+#     kbl(caption = "MNAR missingness")%>%
+#     kable_classic(full_width = F, html_font = "Arial")
+# }
+# 
+# #---- **save optimized beta_0 ----
+# for(percent in c(10, 20, 30)){
+#   write_rds(get(paste0("optim_MNAR", percent)), 
+#             file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+#                           "optimized_masking_intercepts/optim_MNAR", percent, 
+#                           ".RDS"))
+# }
 
-{missing_prop_MNAR <- 
-    map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MNAR", 
-                                     beta_0 = optim_MNAR30$minimum), 
-            .id = "replication") %>% estimate_df()
-  
-  missing_prop_MNAR %>%
-    kbl(caption = "MNAR missingness")%>%
-    kable_classic(full_width = F, html_font = "Arial")
+#---- run MAR sim ----
+# Missing proportion
+{missing_prop_MAR <-
+  map_dfr(1:replicate, ~ test_mask(data_wide, "MAR", 1),
+          .id = "replication") %>% estimate_df()
+
+missing_prop_MAR %>%
+  kbl(caption = "MAR missingness")%>%
+  kable_classic(full_width = F, html_font = "Arial")
 }
 
 #---- **save optimized beta_0 ----
 for(percent in c(10, 20, 30)){
-  write_rds(get(paste0("optim_MNAR", percent)), 
+  write_rds(get(paste0("optim_MAR", percent)), 
             file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                          "optimized_masking_intercepts/optim_MNAR", percent, 
+                          "optimized_masking_intercepts/optim_MAR", percent, 
                           ".RDS"))
 }
-
-# #---- run MAR sim ----
-# # Missing proportion
-# {missing_prop_MAR <- 
-#   map_dfr(1:replicate, ~ scale_coef_func(data_wide, "MAR", 1),
-#           .id = "replication") %>% estimate_df()
-# 
-# missing_prop_MAR %>%
-#   kbl(caption = "MAR missingness")%>%
-#   kable_classic(full_width = F, html_font = "Arial")
-# }
 

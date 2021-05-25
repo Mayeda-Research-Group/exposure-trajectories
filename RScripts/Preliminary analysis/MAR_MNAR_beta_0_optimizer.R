@@ -161,6 +161,31 @@ for(mask_prop in c(0.10, 0.20, 0.30)){
                   beta_death2018_cesdcurrent = beta_death2018_cesdcurrent))
 }
 
+#---- **MAR ----
+MAR_warm_start <- function(mask_prop, beta_cesdpre, e_CESD_3_8, 
+                           beta_condepre, e_conde_3_8, 
+                           beta_cesdpre_condepre, e_CESD_3_8_conde_3_8){
+  return(-log(1/(mask_prop) - 1) -
+           (beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde_3_8 +
+              beta_cesdpre_condepre*e_CESD_3_8_conde_3_8))
+} 
+
+for(mask_prop in c(0.10, 0.20, 0.30)){
+  warm_start <- MAR_warm_start(mask_prop, beta_cesdpre, e_CESD_3_8, 
+                               beta_condepre, e_conde_3_8, 
+                               beta_cesdpre_condepre, e_CESD_3_8_conde_3_8)
+  
+  assign(paste0("optim_MAR", 100*mask_prop), 
+         optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
+                  upper = 0, maximum = FALSE, 
+                  dataset = data_wide, mechanism = "MAR", 
+                  mask_prop = mask_prop, beta_cesdpre = beta_cesdpre, 
+                  e_CESD_3_8 = e_CESD_3_8, beta_condepre = beta_condepre, 
+                  e_conde_3_8 = e_conde_3_8, 
+                  beta_cesdpre_condepre = beta_cesdpre_condepre, 
+                  e_CESD_3_8_conde_3_8 = e_CESD_3_8_conde_3_8))
+}
+
 #---- test masking ----
 test_mask <- function (dataset, mechanism, beta_0){
   subset <- dataset
@@ -231,7 +256,8 @@ test_mask <- function (dataset, mechanism, beta_0){
 #---- run MAR sim ----
 # Missing proportion
 {missing_prop_MAR <-
-  map_dfr(1:replicate, ~ test_mask(data_wide, "MAR", 1),
+  map_dfr(1:replicate, ~ test_mask(dataset = data_wide, mechanism = "MAR", 
+                                   beta_0 = optim_MAR30$minimum),
           .id = "replication") %>% estimate_df()
 
 missing_prop_MAR %>%

@@ -109,12 +109,13 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
                          beta_mat["beta", "condepre"]*
                          !!sym(paste0("r", wave - 1, "conde_impute")) + 
                          beta_mat["beta", "cesdpre_condepre"]*
-                         !!sym(paste0("r", wave - 1, "cesd_conde_impuate")) + 
+                         !!sym(paste0("r", wave - 1, "cesd_conde_impute")) + 
                          BETA_0))
     }
   } 
   
   subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+  subset[is.na(subset)] <- 0
   
   # Flag the score based on bernoulli distribution, prob = p_wave_MAR/MNAR
   for (j in 1:ncol(subset)){
@@ -154,45 +155,16 @@ warm_start <- function(mask_prop, mechanism, beta_mat){
   }
 } 
 
-mechanism = "MAR"
-for(mask_prop in c(0.10, 0.20, 0.30)){
-  warm_start <- MNAR_warm_start(mask_prop, beta_death2018, e_death2018, 
-                                beta_cesdcurrent, e_CESD_4_9, 
-                                beta_death2018_cesdcurrent, 
-                                e_death2018_CESD_4_9)
-  
-  assign(paste0("optim_MNAR", 100*mask_prop), 
-         optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
-                  upper = 0, maximum = FALSE, 
-                  dataset = data_wide, mechanism = "MNAR", 
-                  mask_prop = mask_prop, beta_death2018 = beta_death2018, 
-                  beta_cesdcurrent = beta_cesdcurrent, 
-                  beta_death2018_cesdcurrent = beta_death2018_cesdcurrent))
-}
-
-#---- **MAR ----
-MAR_warm_start <- function(mask_prop, beta_cesdpre, e_CESD_3_8, 
-                           beta_condepre, e_conde_3_8, 
-                           beta_cesdpre_condepre, e_CESD_3_8_conde_3_8){
-  return(-log(1/(mask_prop) - 1) -
-           (beta_cesdpre*e_CESD_3_8 + beta_condepre*e_conde_3_8 +
-              beta_cesdpre_condepre*e_CESD_3_8_conde_3_8))
-} 
-
-for(mask_prop in c(0.10, 0.20, 0.30)){
-  warm_start <- MAR_warm_start(mask_prop, beta_cesdpre, e_CESD_3_8, 
-                               beta_condepre, e_conde_3_8, 
-                               beta_cesdpre_condepre, e_CESD_3_8_conde_3_8)
-  
-  assign(paste0("optim_MAR", 100*mask_prop), 
-         optimize(missing_prop, lower = warm_start + 2.5*warm_start, 
-                  upper = 0, maximum = FALSE, 
-                  dataset = data_wide, mechanism = "MAR", 
-                  mask_prop = mask_prop, beta_cesdpre = beta_cesdpre, 
-                  e_CESD_3_8 = e_CESD_3_8, beta_condepre = beta_condepre, 
-                  e_conde_3_8 = e_conde_3_8, 
-                  beta_cesdpre_condepre = beta_cesdpre_condepre, 
-                  e_CESD_3_8_conde_3_8 = e_CESD_3_8_conde_3_8))
+for(mechanism in c("MAR", "MNAR")){
+  for(mask_prop in c(0.10, 0.20, 0.30)){
+    start <- warm_start(mask_prop, mechanism, beta_mat)
+    
+    assign(paste0("optim_", mechanism, 100*mask_prop), 
+           optimize(missing_prop, lower = start + 3*start, upper = 0, 
+                    maximum = FALSE, dataset = data_wide, mechanism = mechanism, 
+                    mask_prop = mask_prop, beta_mat = beta_mat, 
+                    optimize = "yes"))
+  }
 }
 
 # #---- test masking ----

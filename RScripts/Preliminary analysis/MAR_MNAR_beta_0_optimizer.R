@@ -62,6 +62,27 @@ for(wave in seq(4, 9)){
              !!sym(paste0("r", wave - 1, "conde_impute")))
 }
 
+#---- beta and expected values matrix ----
+beta_mat <- #effect sizes
+  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25),
+           #expected values
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
+                na.rm = TRUE), 
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
+                                          "conde_impute")]), na.rm = TRUE), 
+           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
+                                          "cesd_conde_impute")]), na.rm = TRUE), 
+           mean(data_wide$death2018), 
+           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")])), 
+           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), 
+                                          "cesd_death2018")]))), 
+         nrow = 2, byrow = TRUE) %>% 
+  #MAR
+  set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
+                 #MNAR
+                 "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
+  set_rownames(c("beta", "expected"))
+
 #----  prop missing function ----
 missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat, 
                          optimize = "yes"){
@@ -72,24 +93,24 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
     for(wave in seq(4, 9)){
       subset %<>% 
         mutate(!!paste0("r", wave, "pcesd") := 
-                 expit(as.numeric(beta_mat[, "beta_death2018"])*death2018 + 
-                         as.numeric(beta_mat[, "beta_cesdcurrent"])*
+                 expit(beta_mat["beta", "death2018"]*death2018 + 
+                         beta_mat["beta", "cesdcurrent"]*
                          !!sym(paste0("r", wave, "cesd")) + 
-                         as.numeric(beta_mat[, "beta_death2018_cesdcurrent"])*
-                         death2018*!!sym(paste0("r", wave, "cesd")) + BETA_0))
+                         beta_mat["beta", "death2018_cesdcurrent"]*
+                         !!sym(paste0("r", wave, "cesd_death2018")) + BETA_0))
     }
   } else if(mechanism == "MAR"){
     #---- MAR ----
     for(wave in seq(4, 9)){
       subset %<>% 
         mutate(!!paste0("r", wave, "pcesd") := 
-                 expit(beta_cesdpre*
+                 expit(beta_mat["beta", "cesdpre"]*
                          !!sym(paste0("r", wave - 1, "cesd")) + 
-                         beta_condepre*
+                         beta_mat["beta", "condepre"]*
                          !!sym(paste0("r", wave - 1, "conde_impute")) + 
-                         beta_cesdpre_condepre*
-                         !!sym(paste0("r", wave - 1, "cesd"))*
-                         !!sym(paste0("r", wave - 1, "conde_impute")) + BETA_0))
+                         beta_mat["beta", "cesdpre_condepre"]*
+                         !!sym(paste0("r", wave - 1, "cesd_conde_impuate")) + 
+                         BETA_0))
     }
   } 
   
@@ -113,28 +134,6 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
                              as.matrix(), na.rm = T)))
   }
 }
-
-#---- beta and expected values matrix ----
-beta_mat <- #effect sizes
-  matrix(c(log(1.1), log(1.15), log(1.15), log(1.25), log(1.1), log(1.25),
-           #expected values
-           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
-                na.rm = TRUE), 
-           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
-                                          "conde_impute")]), na.rm = TRUE), 
-           mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
-                                          "cesd_conde_impute")]), na.rm = TRUE), 
-           mean(data_wide$death2018), 
-           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")])), 
-           mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), 
-                                          "cesd_death2018")]))), 
-         nrow = 2, byrow = TRUE) %>% 
-  #MAR
-  set_colnames(c("beta_cesdpre", "beta_condepre", "beta_cesdpre_condepre",
-                 #MNAR
-                 "beta_death2018", "beta_cesdcurrent", 
-                 "beta_death2018_cesdcurrent")) %>% 
-  set_rownames(c("beta", "expected"))
 
 #---- optimizer ----
 #---- **MNAR ----

@@ -118,13 +118,13 @@ e_death2018_CESD_4_9 <-
 # beta_death2018 <- log(3*scale)
 
 #---- ** MNAR Coefficients ----
-#beta_age <- log(0.955*scale)
-#beta_cesdpre <- log(1.04*scale)
-#beta_condepre <- log(1.30*scale)
+#beta_age <- log(0.955)
+#beta_cesdpre <- log(1.04)
+#beta_condepre <- log(1.30)
 #beta_shltpre <- log(1.100)
-beta_death2018 <- log(1.5)
-beta_cesdcurrent <- log(4)
-beta_death2018_cesdcurrent <- log(1.5)
+beta_death2018 <- log(1.25)
+beta_cesdcurrent <- log(1.1)
+beta_death2018_cesdcurrent <- log(1.25)
 
 #---- optimizer ----
 #---- **MNAR ----
@@ -204,14 +204,14 @@ for(percent in c(10, 20, 30)){
                           ".RDS"))
 }
 
-#---- run MAR sim ----
-# Missing proportion
-{missing_prop_MAR <- 
-  map_dfr(1:replicate, ~ scale_coef_func(data_wide, "MAR", 1),
-          .id = "replication") %>% estimate_df()
-
-missing_prop_MAR %>%
-  kbl(caption = "MAR missingness")%>%
-  kable_classic(full_width = F, html_font = "Arial")
-}
+# #---- run MAR sim ----
+# # Missing proportion
+# {missing_prop_MAR <- 
+#   map_dfr(1:replicate, ~ scale_coef_func(data_wide, "MAR", 1),
+#           .id = "replication") %>% estimate_df()
+# 
+# missing_prop_MAR %>%
+#   kbl(caption = "MAR missingness")%>%
+#   kable_classic(full_width = F, html_font = "Arial")
+# }
 

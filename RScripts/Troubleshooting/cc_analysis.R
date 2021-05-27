@@ -531,4 +531,57 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 # }
 # 
 # 
-#---- 
+#---- exploratory models ----
+#---- **mortality ~ previous chronic conditions ----
+for(wave in 3:8){
+  if(wave == 3){
+    crude_table <- 
+      tidy(glm(as.formula(paste0("death2018 ~ r", wave, "conde_impute")), 
+               family = binomial(link = "logit"), 
+               data = CESD_data_wide), exponentiate = TRUE, conf.int = TRUE)
+  } else{
+    crude_table %<>% 
+      rbind(tidy(glm(as.formula(paste0("death2018 ~ r", wave, 
+                                       "conde_impute")), 
+                     family = binomial(link = "logit"), 
+                     data = CESD_data_wide), exponentiate = TRUE, 
+                 conf.int = TRUE))
+  }
+}
+
+write_csv(crude_table, paste0(path_to_dropbox, 
+                              "/exposure_trajectories/data/", 
+                              "death2018_on_chronic_conditions.csv"))
+
+#---- **mortality ~ previous chronic conditions + previous CESD ----
+for(wave in 3:8){
+  if(wave == 3){
+    adjusted_table <- 
+      tidy(glm(as.formula(paste0("death2018 ~ r", wave, "conde_impute + r", 
+                                 wave, "cesd")), 
+               family = binomial(link = "logit"), 
+               data = CESD_data_wide), exponentiate = TRUE, conf.int = TRUE)
+  } else{
+    adjusted_table %<>% 
+      rbind(tidy(glm(as.formula(paste0("death2018 ~ r", wave, "conde_impute + r", 
+                                       wave, "cesd")), 
+                     family = binomial(link = "logit"), 
+                     data = CESD_data_wide), exponentiate = TRUE, 
+                 conf.int = TRUE))
+  }
+}
+
+write_csv(adjusted_table, paste0(path_to_dropbox, 
+                              "/exposure_trajectories/data/", 
+                              "death2018_on_chronic_conditions_cesd.csv"))
+
+#---- distribution of chronic conditions ----
+chronic_conditions_data <- CESD_data_wide %>% 
+  dplyr::select(paste0("r", seq(3, 8), "conde_impute")) %>% 
+  pivot_longer(everything())
+
+ggplot(data = chronic_conditions_data, aes(x = value)) + 
+  geom_histogram() + 
+  facet_wrap(facets = vars(name)) + theme_minimal()
+
+

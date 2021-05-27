@@ -106,15 +106,16 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
   }
   
   # #---- plot of missing vs. observed ----
-  # plot_data <- cbind(subset_long, data_wide %>% 
-  #                      dplyr::select("HHIDPN", 
-  #                                    paste0("r", seq(3, 8), "conde_impute")) %>% 
+  # plot_data <- cbind(subset_long, data_wide %>%
+  #                      dplyr::select("HHIDPN",
+  #                                    paste0("r", seq(3, 8), "conde_impute")) %>%
   #                      pivot_longer(-"HHIDPN"))
   # 
-  # ggplot(data = plot_data, aes(x = value)) + 
-  #   geom_histogram(aes(color = as.factor(cesd_missing), 
-  #                      fill = as.factor(cesd_missing)), position = "dodge") + 
-  #   theme_minimal() + facet_wrap(facets = vars(name), scale = "free") + 
+  # ggplot(data = plot_data, aes(x = value)) +
+  #   geom_boxplot(aes(color = as.factor(cesd_missing),
+  #                      fill = as.factor(cesd_missing)), alpha = 0.5, 
+  #                position = "dodge") +
+  #   theme_minimal() + facet_wrap(facets = vars(name), scale = "free") +
   #   ggtitle("30% missing")
   
   #---- masking wave-specific values ----

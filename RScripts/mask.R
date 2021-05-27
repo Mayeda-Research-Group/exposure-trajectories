@@ -91,6 +91,7 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
     }
     
     subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
+    subset[is.na(subset)] <- 0
     
     for (j in 1:ncol(subset)){
       subset[, paste0("r", j + 3, "cesd_missing")] <- 

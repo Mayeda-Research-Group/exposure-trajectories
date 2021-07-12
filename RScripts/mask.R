@@ -20,7 +20,7 @@ for(mechanism in mechanisms){
 
 #---- beta matrix ----
 beta_mat <- #effect sizes
-  matrix(c(log(1.1), log(1.05), log(1.05), log(1.25), log(1.1), log(1.25)), 
+  matrix(c(log(1.10), log(1.05), log(1.05), log(1.25), log(1.10), log(1.25)), 
          nrow = 1) %>% 
   #MAR
   set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",

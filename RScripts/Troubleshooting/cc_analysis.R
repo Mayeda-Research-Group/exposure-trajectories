@@ -450,29 +450,33 @@ results <- table_effect_ests
 mask_props <- unique(results$Missingness)[-1] #Don't want 0%
 results %<>% mutate_at(c("Missingness"), as.factor) 
 results$Method <- factor(results$Method, levels = c("Truth", "CC"))
-results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
+results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MAR 2", "MNAR"))
 
 #update exposure defs
 results[which(results$Exposure == "CES-D Wave 4"), "Exposure"] <- 
   "Elevated CES-D Wave 4" 
 results[which(results$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated CES-D Wave 9" 
+  "Elevated CES-D Wave 9"
+results[which(results$Exposure == "CES-D Wave 4 2"), "Exposure"] <- 
+  "Elevated CES-D Wave 4"
+results[which(results$Exposure == "CES-D Wave 9 2"), "Exposure"] <- 
+  "Elevated CES-D Wave 9"
+results[which(results$Exposure == "Elevated Average CES-D 2"), "Exposure"] <- 
+  "Elevated Average CES-D"
+results[which(results$Exposure == "Elevated CES-D Count 2"), "Exposure"] <- 
+  "Elevated CES-D Count"
 results$Exposure <- 
   factor(results$Exposure, 
          levels = c("Elevated CES-D Wave 4", "Elevated CES-D Wave 9" , 
                     "Elevated Average CES-D", "Elevated CES-D Count"))
 
-#---- **make plot ----
-ggplot(results %>% filter(!Type %in% c("MCAR")), 
-       # & 
-       #   !Missingness %in% c("30%")),
-       # !Exposure %in% c("Elevated Average CES-D", 
-       #                  "Elevated CES-D Count")), 
+#---- **plot: all ----
+ggplot(results, 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-  # geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3, 
-  #               position = position_dodge(0.75)) + 
+  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3,
+                position = position_dodge(0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
@@ -482,7 +486,98 @@ ggplot(results %>% filter(!Type %in% c("MCAR")),
   ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_CC_MAR", runs, ".jpeg"), 
+              "manuscript/figures/effect_ests_CC_all_", runs, ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **plot: all (no CI) ----
+ggplot(results, 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CC_all_noCI_", runs, ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **plot: MCAR ----
+ggplot(results %>% filter(Type == "MCAR"), 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3,
+                position = position_dodge(0.75)) +
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CC_MCAR_", runs, ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **plot: MAR ----
+ggplot(results %>% filter(Type %in% c("MAR", "MAR 2")), 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3,
+                position = position_dodge(0.75)) +
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CC_MAR_", runs, ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **plot: MNAR ----
+ggplot(results %>% filter(Type == "MNAR"), 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3,
+                position = position_dodge(0.75)) +
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CC_MNAR_", runs, ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **plot: MNAR (no CI) ----
+ggplot(results %>% filter(Type == "MNAR"), 
+       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
+  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/effect_ests_CC_MNAR_no_CI_", runs, ".jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 # #---- table 1 ----

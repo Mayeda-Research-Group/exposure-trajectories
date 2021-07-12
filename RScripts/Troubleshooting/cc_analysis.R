@@ -424,13 +424,15 @@ for(combo in 1:nrow(all_combos)){
   #Storing results
   table_effect_ests[which(table_effect_ests$Method == "CC" & 
                             table_effect_ests$Missingness == percent & 
-                            table_effect_ests$Type == mechanism), 
-                    c("Exposure", "beta", "SD", "mean_LCI", "mean_UCI", 
+                            grepl(mechanism, table_effect_ests$Type)), 
+                    c("Type", "Exposure", "beta", "SD", "mean_LCI", "mean_UCI", 
                       "truth_capture", "people_dropped")] <- 
-    formatted %>% group_by(Exposure) %>%
+    formatted %>% group_by(Type, Exposure) %>%
     summarize_at(.vars = c("beta", "SD", "LCI", "UCI", "capture_truth", 
-                           "people_dropped"), ~mean(., na.rm = TRUE))
+                           "people_dropped"), ~mean(., na.rm = TRUE)) %>% 
+    arrange(Type)
 }
+
 end <- Sys.time() - start
 
 #save output

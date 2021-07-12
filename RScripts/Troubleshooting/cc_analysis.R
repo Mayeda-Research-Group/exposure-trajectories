@@ -79,7 +79,7 @@ beta_mat <- #effect sizes
 avg_miss <- function(data, mechanism, mask_percent){
   #---- mask data ----
   data_wide <- mask(data, mechanism, mask_percent, beta_0_table, beta_mat)
-
+  
   #---- percent missing per wave ----
   return(apply(data_wide[, paste0("r", seq(4, 9), "cesd")], 2,
                function(x) mean(is.na(x))))
@@ -88,20 +88,29 @@ avg_miss <- function(data, mechanism, mask_percent){
 #---- **run sim ----
 mechanisms <- c("MCAR", "MAR", "MNAR")
 percents <- c("10%", "20%", "30%")
-all_combos <- expand_grid(mechanisms, percents)
+all_combos <- expand_grid(mechanisms, percents) 
+all_combos %<>% 
+  cbind(., as.data.frame(matrix(nrow = nrow(all_combos), ncol = 6))) %>% 
+  set_colnames(c("Mechanism", "Percent", paste0("wave", seq(4, 9))))
 
 for(combo in 1:nrow(all_combos)){
-  mechanism = all_combos[[combo, "mechanisms"]]
-  percent = all_combos[[combo, "percents"]]
-
-  assign(paste0("results_", mechanism, percent),
-         rowMeans(replicate(100, avg_miss(CESD_data_wide,
-                                          mechanism = mechanism,
-                                          mask_percent = percent))))
+  mechanism = all_combos[[combo, "Mechanism"]]
+  percent = all_combos[[combo, "Percent"]]
+  
+  all_combos[combo, paste0("wave", seq(4, 9))] <- 
+    rowMeans(replicate(100, avg_miss(CESD_data_wide,
+                                     mechanism = mechanism,
+                                     mask_percent = percent)))
 }
 
+#---- **save results ----
+all_combos %>% 
+  write_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
+                   "inducing_missingness_troubleshooting/model_method/", 
+                   "avg_missing_model_method.csv"))
+
 #---- shell table ----
-mechanisms <- c("MAR")
+mechanisms <- c("MCAR", "MAR", "MNAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -308,18 +317,18 @@ for(combo in 1:nrow(all_combos)){
   #Formatting data
   formatted <- do.call(rbind, multi_runs)
   
-  #Plot betas
-  for(exposure in table_effect_ests$Exposure){
-    ggsave(filename = here::here("RScripts", "Troubleshooting", 
-                                 paste0(mechanism, "_", 
-                                        str_remove_all(percent, "%"), 
-                                        "_", exposure, "_", runs, ".jpeg")), 
-           ggplot(data = formatted %>% filter(Exposure == exposure)) + 
-             geom_histogram(aes(x = beta)) + theme_minimal() + 
-             ggtitle(paste0(mechanism, " ", percent, ": ", exposure, 
-                            " (", runs, " runs)")), 
-           width = 10, height = 8, units = "in")
-  }
+  # #Plot betas
+  # for(exposure in table_effect_ests$Exposure){
+  #   ggsave(filename = here::here("RScripts", "Troubleshooting", 
+  #                                paste0(mechanism, "_", 
+  #                                       str_remove_all(percent, "%"), 
+  #                                       "_", exposure, "_", runs, ".jpeg")), 
+  #          ggplot(data = formatted %>% filter(Exposure == exposure)) + 
+  #            geom_histogram(aes(x = beta)) + theme_minimal() + 
+  #            ggtitle(paste0(mechanism, " ", percent, ": ", exposure, 
+  #                           " (", runs, " runs)")), 
+  #          width = 10, height = 8, units = "in")
+  # }
   
   #Storing results
   table_effect_ests[which(table_effect_ests$Method == "CC" & 
@@ -602,8 +611,8 @@ for(wave in 3:8){
 }
 
 write_csv(adjusted_table, paste0(path_to_dropbox, 
-                              "/exposure_trajectories/data/", 
-                              "death2018_on_chronic_conditions_cesd.csv"))
+                                 "/exposure_trajectories/data/", 
+                                 "death2018_on_chronic_conditions_cesd.csv"))
 
 #---- distribution of chronic conditions ----
 chronic_conditions_data <- CESD_data_wide %>% 

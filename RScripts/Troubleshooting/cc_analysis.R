@@ -121,9 +121,11 @@ table_effect_ests <-
   set_colnames(c("Exposure", "Method", "Type", "Missingness")) %>% 
   rbind(expand_grid(exposures, "CC", mechanisms, percents) %>% 
           set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
+  rbind(expand_grid(paste0(exposures, " 2"), "CC", "MAR 2", percents) %>% 
+          set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>%
   mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, 
-         "truth_capture" = NA, "people_dropped" = NA)
-
+         "truth_capture" = NA, "people_dropped" = NA) 
+  
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
@@ -209,6 +211,14 @@ cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
                "UCI" = NA, "Missingness" = mask_percent, 
                "Type" = mechanism, "capture_truth" = NA, "people_dropped" = NA)
   
+  if(mechanism == "MAR"){
+    cc_results %<>% 
+      rbind(., data.frame("Exposure" = paste0(exposures, " 2"), "beta" = NA, 
+                          "SD" = NA, "LCI" = NA, "UCI" = NA, 
+                          "Missingness" = mask_percent, "Type" = "MAR 2", 
+                          "capture_truth" = NA, "people_dropped" = NA)) 
+  }
+  
   #---- mask data ----
   data_wide <- mask(data, mechanism, mask_percent, beta_0_table, beta_mat)
   
@@ -293,6 +303,85 @@ cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
                                          c("estimate", "std.error", 
                                            "conf.low", "conf.high")])
   
+  #---- MAR 2nd version ----
+  if(mechanism == "MAR"){
+    #---- **CES-D Wave 4 ----
+    TTEmodel_CESD4 <- 
+      coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+              ed_cat + r4drinking_cat + smoker + r4BMI + hispanic + 
+              black + other + female + r4age_y_int + r4cesd_elevated, 
+            data = data_wide)
+    
+    cc_results[which(cc_results$Exposure == "CES-D Wave 4 2"), 
+               "people_dropped"] <- (1 - TTEmodel_CESD4$n/nrow(data))
+    
+    TTEmodel_CESD4_results <- tidy(TTEmodel_CESD4, 
+                                   exponentiate = FALSE, conf.int = TRUE)
+    
+    cc_results[which(cc_results$Exposure == "CES-D Wave 4 2"), 
+               c("beta", "SD", "LCI", "UCI")] <- 
+      c(TTEmodel_CESD4_results[nrow(TTEmodel_CESD4_results), 
+                               c("estimate", "std.error", 
+                                 "conf.low", "conf.high")])
+    #---- **CES-D Wave 9 ----
+    TTEmodel_CESD9 <- 
+      coxph(Surv(survtime, observed) ~ r9not_married_partnered + r9widowed + 
+              ed_cat + r9drinking_cat + smoker + r9BMI + hispanic + black + 
+              other + female + r9age_y_int + r9cesd_elevated, data = data_wide)
+    
+    cc_results[which(cc_results$Exposure == "CES-D Wave 9 2"), 
+               "people_dropped"] <- (1 - TTEmodel_CESD9$n/nrow(data))
+    
+    TTEmodel_CESD9_results <- tidy(TTEmodel_CESD9, 
+                                   exponentiate = FALSE, conf.int = TRUE)
+    
+    cc_results[which(cc_results$Exposure == "CES-D Wave 9 2"), 
+               c("beta", "SD", "LCI", "UCI")] <- 
+      c(TTEmodel_CESD9_results[nrow(TTEmodel_CESD9_results), 
+                               c("estimate", "std.error", 
+                                 "conf.low", "conf.high")])
+    
+    #---- **Total Count Elevated CES-D ----
+    TTEmodel_total_CESD <- 
+      coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+              ed_cat + r4drinking_cat + smoker + r4BMI + hispanic + black + 
+              other + female + r4age_y_int + total_elevated_cesd, 
+            data = data_wide)
+    
+    cc_results[which(cc_results$Exposure == "Elevated CES-D Count 2"), 
+               "people_dropped"] <- (1 - TTEmodel_total_CESD$n/nrow(data))
+    
+    TTEmodel_total_CESD_results <- tidy(TTEmodel_total_CESD, 
+                                        exponentiate = FALSE, conf.int = TRUE)
+    
+    cc_results[which(cc_results$Exposure == "Elevated CES-D Count 2"), 
+               c("beta", "SD", "LCI", "UCI")] <- 
+      c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
+                                    c("estimate", "std.error", 
+                                      "conf.low", "conf.high")])
+    
+    #---- **Elevated Average CES-D ----
+    TTEmodel_elevated_avg_CESD <- 
+      coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+              ed_cat + r4drinking_cat + smoker + r4BMI + hispanic + black + 
+              other + female + r4age_y_int + avg_cesd_elevated, 
+            data = data_wide)
+    
+    cc_results[which(cc_results$Exposure == "Elevated Average CES-D 2"), 
+               "people_dropped"] <- (1 - TTEmodel_elevated_avg_CESD$n/nrow(data))
+    
+    TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD, 
+                                               exponentiate = FALSE, 
+                                               conf.int = TRUE)
+    
+    cc_results[which(cc_results$Exposure == "Elevated Average CES-D 2"), 
+               c("beta", "SD", "LCI", "UCI")] <- 
+      c(TTEmodel_elevated_avg_CESD_results[
+        nrow(TTEmodel_elevated_avg_CESD_results), 
+        c("estimate", "std.error", 
+          "conf.low", "conf.high")])
+  }
+  
   #---- truth capture ----
   cc_results$capture_truth <- 
     (truth$beta > cc_results$LCI)*(truth$beta < cc_results$UCI)
@@ -303,8 +392,10 @@ cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
 
 #---- **run sim ----
 start <- Sys.time()
-all_combos <- expand_grid(mechanisms, percents)
-runs = 1000
+all_combos <- 
+  expand_grid(mechanisms[which(!mechanisms == "MAR 2")], percents) %>% 
+  set_colnames(c("mechanisms", "percents"))
+runs = 2
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]
@@ -346,7 +437,7 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC_MNAR", runs, "_", 
+                        "tables/results_CC", runs, "_", 
                         format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----

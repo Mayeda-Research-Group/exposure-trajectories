@@ -395,7 +395,7 @@ start <- Sys.time()
 all_combos <- 
   expand_grid(mechanisms[which(!mechanisms == "MAR 2")], percents) %>% 
   set_colnames(c("mechanisms", "percents"))
-runs = 2
+runs = 1000
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]

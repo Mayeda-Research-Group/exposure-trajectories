@@ -13,10 +13,6 @@ options(scipen = 999)
 
 set.seed(20200819)
 
-#---- source scripts ----
-source(here::here("RScripts", "mask.R"))
-source(here::here("RScripts", "mask_impute_pool.R"))
-
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
 # Yingyan's directory: C:/Users/yingyan_wu
@@ -27,6 +23,10 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 
 #Changing directories here will change them throughout the script
 path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+
+#---- source scripts ----
+source(here::here("RScripts", "mask.R"))
+source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- read in analytical sample ----
 CESD_data_wide <- 

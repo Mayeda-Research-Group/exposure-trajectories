@@ -111,8 +111,8 @@ all_combos %>%
                    "avg_missing_model_method.csv"))
 
 #---- shell table ----
-mechanisms <- c("MCAR", "MAR", "MNAR")
-#mechanisms <- c("MCAR")
+#mechanisms <- c("MCAR", "MAR", "MNAR")
+mechanisms <- c("MCAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -442,7 +442,7 @@ end <- Sys.time() - start
 write_csv(table_effect_ests, 
           file = paste0(path_to_dropbox,
                         "/exposure_trajectories/manuscript/",
-                        "tables/results_CC", runs, "_", 
+                        "tables/results_CC_MCAR", runs, "_", 
                         format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----

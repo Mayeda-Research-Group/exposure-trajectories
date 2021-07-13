@@ -38,6 +38,36 @@ CESD_data_wide <-
 # #Check column types
 # sapply(CESD_data_wide, class)
 
+#---- masking: optimized betas table ----
+mechanisms <- c("MAR", "MNAR")
+percents <- c(10, 20, 30)
+
+beta_0_table <- expand_grid(mechanisms, percents) %>% 
+  mutate("beta0" = 0)
+
+for(mechanism in mechanisms){
+  for(percent in percents){
+    optimized <- 
+      read_rds(file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                             "optimized_masking_intercepts/optim_", mechanism, 
+                             percent, ".RDS"))
+    
+    beta_0_table[which(beta_0_table$mechanisms == mechanism & 
+                         beta_0_table$percents == percent), "beta0"] <- 
+      optimized$minimum
+  }
+}
+
+#---- masking: beta matrix ----
+beta_mat <- #effect sizes
+  matrix(c(log(1.10), log(1.05), log(1.05), log(1.25), log(1.10), log(1.25)), 
+         nrow = 1) %>% 
+  #MAR
+  set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
+                 #MNAR
+                 "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
+  set_rownames(c("beta"))
+
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
 num_runs <- 10

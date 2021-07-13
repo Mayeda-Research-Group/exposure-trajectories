@@ -1,6 +1,6 @@
 mask_impute_pool <- 
-  function(data_wide, exposures, mechanism, method, mask_percent, truth, 
-           save = "no"){
+  function(data_wide, exposures, mechanism, method, mask_percent, beta_0_table,
+           beta_mat, truth, save = "no"){
     
     #---- create shell for output ----
     pooled_effect_ests <- 
@@ -9,7 +9,7 @@ mask_impute_pool <-
                  "Type" = mechanism, "capture_truth" = NA)
     
     #---- create incomplete data ----
-    data_wide <- mask(data_wide, mechanism, mask_percent)
+    data_wide <- mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
     
     time_updated_vars <- c("not_married_partnered", "widowed", "drinking_cat", 
                            "memrye_impute", "stroke_impute", "hearte_impute", 

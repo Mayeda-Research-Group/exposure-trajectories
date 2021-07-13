@@ -45,7 +45,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
                "Elevated CES-D Count")
 
 #all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("FCS")
+methods <- c("PMM")
 mechanisms <- c("MNAR")
 mask_props <- c(.10, 0.20, 0.30)
 
@@ -140,7 +140,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          rep(c("conf.low", "conf.high"), 2))])
 
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
+truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
+  group_by(Exposure) %>% slice(n = 1)
 
 # #---- all combos ----
 # all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
@@ -157,7 +158,7 @@ truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 # end <- Sys.time() - start
 
 #---- create cluster ----
-plan(multisession, gc = FALSE)
+plan(multisession, gc = FALSE, workers = 10)
 
 #---- get pooled effect estimates ----
 start <- Sys.time()

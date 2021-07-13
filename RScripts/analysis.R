@@ -39,6 +39,7 @@ CESD_data_wide <-
 # sapply(CESD_data_wide, class)
 
 #---- masking: optimized betas table ----
+#don't need MCAR
 mechanisms <- c("MAR", "MNAR")
 percents <- c(10, 20, 30)
 

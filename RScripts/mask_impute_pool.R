@@ -327,7 +327,7 @@ mask_impute_pool <-
           
           subset[, 2] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 2])
           subset[, 3] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 3])
-          subset[, "sum"] <- rowSums(subset[, 2:3])
+          subset[, "sum"] <- rowSums(subset[, 2:3], na.rm = TRUE)
           
           for(row in 1:nrow(subset)){
             if(!is.na(subset[row, 1])){

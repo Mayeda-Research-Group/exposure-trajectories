@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/yingyan_wu"
-path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -50,7 +50,8 @@ number_waves <- seq(1, 13, by = 1)
 hrs_tracker <-
   read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
                   "trk2018tr_r.sas7bdat")) %>%
-  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE") %>%
+  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE", 
+         paste0(c("F", "G", "H", "J", "K", "L"), "ALIVE")) %>%
   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
   mutate_at("HHIDPN", as.numeric)
 
@@ -263,10 +264,17 @@ for (j in 1:length(seq(2, 13))) {
 }
 
 hrs_samp[, colnames(cesd_mat)] <- cesd_mat
+
+# CESD missingness proportion
+cesd_missing <- cesd_mat %>%
+  select(contains("missing")) %>%
+  colSums(is.na(.))
+ cesd_missing/nrow(hrs_samp) 
 # Sanity check
 # table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
 # table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
 # table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
+
 
 #---- death ----
 hrs_samp %<>% mutate("death2018" = ifelse(is.na(raddate), 0, 1))
@@ -877,7 +885,7 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # table(test[, 7])
 # sum(table(test[, 7]))
 
-#---- self-reported health ----
+# #---- self-reported health ----
 # #Variable check
 # self_reported_health <- hrs_samp %>%
 #   dplyr::select(paste0("r", seq(4, 9), "shlt"))
@@ -885,64 +893,141 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 
 # #---- Preliminary models ----
 # # DO NOT DELETE DURING CODE CLEAN-UP
-# # logit(P(missing CESD this wave)) = 
-# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD + 
+# # logit(P(missing CESD this wave)) =
+# # \beta_0 + \beta_1*age at current wave + \beta_2*value of previous CESD +
 # # \beta_3* chronic condition count (at last wave)
 # 
-# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~ 
-#                                    r4age_y_int + r3cesd + r3conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# #num missing cesd among those sampled
+# wave4_sampled <- hrs_samp %>% filter(!is.na(FALIVE))
+# mean(wave4_sampled$r4cesd_missing)
+# summary(r4cesdmissing_mod <- glm(r4cesd_missing ~
+#                                    r4age_y_int + r3cesd + r3conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave4_sampled))
 # r4results <- tidy(r4cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~ 
-#                                    r5age_y_int + r4cesd + r4conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# wave5_sampled <- hrs_samp %>% filter(!is.na(GALIVE))
+# mean(wave5_sampled$r5cesd_missing)
+# summary(r5cesdmissing_mod <- glm(r5cesd_missing ~
+#                                    r5age_y_int + r4cesd + r4conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave5_sampled))
 # r5results <- tidy(r5cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~ 
-#                                    r6age_y_int + r5cesd + r5conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# wave6_sampled <- hrs_samp %>% filter(!is.na(HALIVE))
+# mean(wave6_sampled$r6cesd_missing)
+# summary(r6cesdmissing_mod <- glm(r6cesd_missing ~
+#                                    r6age_y_int + r5cesd + r5conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave6_sampled))
 # r6results <- tidy(r6cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~ 
-#                                    r7age_y_int + r6cesd + r6conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# wave7_sampled <- hrs_samp %>% filter(!is.na(JALIVE))
+# mean(wave7_sampled$r7cesd_missing)
+# summary(r7cesdmissing_mod <- glm(r7cesd_missing ~
+#                                    r7age_y_int + r6cesd + r6conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave7_sampled))
 # r7results <- tidy(r7cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~ 
-#                                    r8age_y_int + r7cesd + r7conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# wave8_sampled <- hrs_samp %>% filter(!is.na(KALIVE))
+# mean(wave8_sampled$r8cesd_missing)
+# summary(r8cesdmissing_mod <- glm(r8cesd_missing ~
+#                                    r8age_y_int + r7cesd + r7conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave8_sampled))
 # r8results <- tidy(r8cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
-# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~ 
-#                                    r9age_y_int + r8cesd + r8conde_impute,
-#                                  family = binomial(link = "logit"), 
-#                                  data = hrs_samp))
+# wave9_sampled <- hrs_samp %>% filter(!is.na(LALIVE))
+# mean(wave9_sampled$r9cesd_missing)
+# summary(r9cesdmissing_mod <- glm(r9cesd_missing ~
+#                                    r9age_y_int + r8cesd + r8conde_impute +
+#                                    death2018 - 1,
+#                                  family = binomial(link = "logit"),
+#                                  data = wave9_sampled))
 # r9results <- tidy(r9cesdmissing_mod, exponentiate = TRUE, conf.int = TRUE)
 # 
 # results_tbl <- tibble(
-#   variables = c("Intercept", "age at current wave", "previous CESD value",
-#                 "Previous chronic condition count"),
+#   variables = c("age at current wave", "previous CESD value",
+#                 "previous chronic condition count", "death2018"),
 #   r4beta = round(r4results$estimate, 4),
 #   r5beta = round(r5results$estimate, 4),
 #   r6beta = round(r6results$estimate, 4),
 #   r7beta = round(r7results$estimate, 4),
 #   r8beta = round(r8results$estimate, 4),
 #   r9beta = round(r9results$estimate, 4)
-# ) 
+# )
 # 
 # results_tbl %>%
-#   kbl(caption = "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
+#   kbl(caption =
+#         "Exponentiated betas of the CESD missing model (wave 4 - 9)") %>%
 #   kable_classic(full_width = F, html_font = "Arial")
 # 
 # write_csv(results_tbl, paste0(path_to_dropbox,
 #                               "/exposure_trajectories/data/",
-#                               "CESD_missing_model_betas.csv"))
+#                               "CESD_missing_model_betas_in_sampled.csv"))
+# 
+# #---- **predict outcome?? ----
+# # DO NOT DELETE DURING CODE CLEAN-UP
+# summary(r4outcome_mod <- glm(death2018 ~
+#                                r4age_y_int + r3cesd + r3conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r4outcome_results <- tidy(r4outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r5outcome_mod <- glm(death2018 ~
+#                                r5age_y_int + r4cesd + r4conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r5outcome_results <- tidy(r5outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r6outcome_mod <- glm(death2018 ~
+#                                r6age_y_int + r5cesd + r5conde_impute,
+#                              family = binomial(link = "logit"),
+#                              data = hrs_samp))
+# r6outcome_results <- tidy(r6outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r7outcome_mod <- glm(death2018 ~
+#                                    r7age_y_int + r6cesd + r6conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r7outcome_results <- tidy(r7outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r8outcome_mod <- glm(death2018 ~
+#                                    r8age_y_int + r7cesd + r7conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r8outcome_results <- tidy(r8outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# summary(r9outcome_mod <- glm(death2018 ~
+#                                    r9age_y_int + r8cesd + r8conde_impute,
+#                                  family = binomial(link = "logit"),
+#                                  data = hrs_samp))
+# r9outcome_results <- tidy(r9outcome_mod, exponentiate = TRUE, conf.int = TRUE)
+# 
+# results_tbl <- tibble(
+#   variables = c("Intercept", "age at current wave", "previous CESD value",
+#                 "Previous chronic condition count"),
+#   r4beta = round(r4outcome_results$estimate, 4),
+#   r5beta = round(r5outcome_results$estimate, 4),
+#   r6beta = round(r6outcome_results$estimate, 4),
+#   r7beta = round(r7outcome_results$estimate, 4),
+#   r8beta = round(r8outcome_results$estimate, 4),
+#   r9beta = round(r9outcome_results$estimate, 4)
+# )
+# 
+# results_tbl %>%
+#   kbl(caption = "Exponentiated betas association with death2018 missing model (wave 4 - 9)") %>%
+#   kable_classic(full_width = F, html_font = "Arial")
+# 
+# write_csv(results_tbl, paste0(path_to_dropbox,
+#                               "/exposure_trajectories/data/",
+#                               "predict_death2018_betas.csv"))
 
 #---- Dropping people ----
 # 1. full HRSsample (n = 43398)
@@ -989,14 +1074,14 @@ hrs_samp %<>% filter(missing_bmi == 0)
 subset <- hrs_samp %>% dplyr::select(contains("drinking"))
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
-# # 9. Drop those without self-reported health
-# drop <- rowSums(is.na(hrs_samp %>%
-#                         dplyr::select(paste0("r", seq(4, 9), "shlt"))))
-# # table(drop)
-# hrs_samp[, "drop"] <- drop
-# # #Sanity check
-# # table(hrs_samp$drop, useNA = "ifany")
-# hrs_samp %<>% filter(drop == 0)
+# 9. Drop those without self-reported health
+drop <- rowSums(is.na(hrs_samp %>%
+                        dplyr::select(paste0("r", seq(4, 9), "shlt"))))
+# table(drop)
+hrs_samp[, "drop"] <- drop
+# #Sanity check
+# table(hrs_samp$drop, useNA = "ifany")
+hrs_samp %<>% filter(drop == 0)
 
 #9. Drop people missing wave-updated ever/never chronic conditions
 conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke",
@@ -1031,7 +1116,7 @@ vars <- c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"),
           paste0("r", seq(3, 9), "conde_impute"), "smoker", 
           paste0("r", seq(4, 9), "BMI"), "hispanic", "white", "black", "other", 
           "female", paste0("r", seq(4, 9), "age_y_int"), "death2018", 
-          paste0("r", seq(3, 9), "cesd"), paste0("r", seq(4, 9), "shlt"), 
+          paste0("r", seq(3, 9), "cesd"), paste0("r", seq(3, 9), "shlt"), 
           "age_death_y")
 
 hrs_samp %<>% dplyr::select(all_of(vars))

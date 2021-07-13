@@ -47,6 +47,7 @@ for(wave in seq(4, 9)){
 
 #---- average missingess per wave ----
 #---- **optimized betas table ----
+#Don't need MCAR
 mechanisms <- c("MAR", "MNAR")
 percents <- c(10, 20, 30)
 
@@ -111,6 +112,7 @@ all_combos %>%
 
 #---- shell table ----
 mechanisms <- c("MCAR", "MAR", "MNAR")
+#mechanisms <- c("MCAR")
 percents <- c("10%", "20%", "30%")
 
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -121,8 +123,8 @@ table_effect_ests <-
   set_colnames(c("Exposure", "Method", "Type", "Missingness")) %>% 
   rbind(expand_grid(exposures, "CC", mechanisms, percents) %>% 
           set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>% 
-  rbind(expand_grid(paste0(exposures, " 2"), "CC", "MAR 2", percents) %>% 
-          set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>%
+  # rbind(expand_grid(paste0(exposures, " 2"), "CC", "MAR 2", percents) %>% 
+  #         set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>%
   mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, 
          "truth_capture" = NA, "people_dropped" = NA) 
   
@@ -202,7 +204,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          "conf.low", "conf.high")])
 
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MAR")
+truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
+  group_by(Exposure) %>% slice(n = 1)
 
 #---- cc analysis ----
 cc <- function(data, mechanism, mask_percent, truth, beta_0_table, beta_mat){
@@ -395,7 +398,7 @@ start <- Sys.time()
 all_combos <- 
   expand_grid(mechanisms[which(!mechanisms == "MAR 2")], percents) %>% 
   set_colnames(c("mechanisms", "percents"))
-runs = 1000
+runs = 5000
 
 for(combo in 1:nrow(all_combos)){
   mechanism = all_combos[[combo, "mechanisms"]]

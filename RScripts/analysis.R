@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "mice", "broom", "ResourceSelection", 
+p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
        "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
 devtools::install_github(repo = "amices/mice")
 library(mice)
@@ -12,10 +12,6 @@ library(mice)
 options(scipen = 999)
 
 set.seed(20200819)
-
-#---- source scripts ----
-source(here::here("RScripts", "mask.R"))
-source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
@@ -26,7 +22,11 @@ source(here::here("RScripts", "mask_impute_pool.R"))
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+
+#---- source scripts ----
+source(here::here("RScripts", "mask.R"))
+source(here::here("RScripts", "mask_impute_pool.R"))
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
@@ -35,21 +35,58 @@ CESD_data_wide <-
                   "CESD_data_wide.csv"), 
            col_types = cols(HHIDPN = col_character())) 
 
+for(wave in seq(4, 9)){
+  CESD_data_wide %<>% 
+    mutate(!!paste0("r", wave, "cesd_death2018") := 
+             !!sym(paste0("r", wave, "cesd"))*death2018, 
+           !!paste0("r", wave - 1, "cesd_conde_impute") := 
+             !!sym(paste0("r", wave - 1, "cesd"))*
+             !!sym(paste0("r", wave - 1, "conde_impute")))
+}
+
 # #Check column types
 # sapply(CESD_data_wide, class)
 
+#---- masking: optimized betas table ----
+#don't need MCAR
+mechanisms <- c("MAR", "MNAR")
+percents <- c(10, 20, 30)
+
+beta_0_table <- expand_grid(mechanisms, percents) %>% 
+  mutate("beta0" = 0)
+
+for(mechanism in mechanisms){
+  for(percent in percents){
+    optimized <- 
+      read_rds(file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                             "optimized_masking_intercepts/optim_", mechanism, 
+                             percent, ".RDS"))
+    
+    beta_0_table[which(beta_0_table$mechanisms == mechanism & 
+                         beta_0_table$percents == percent), "beta0"] <- 
+      optimized$minimum
+  }
+}
+
+#---- masking: beta matrix ----
+beta_mat <- #effect sizes
+  matrix(c(log(1.10), log(1.05), log(1.05), log(1.25), log(1.10), log(1.25)), 
+         nrow = 1) %>% 
+  #MAR
+  set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
+                 #MNAR
+                 "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
+  set_rownames(c("beta"))
+
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs
-num_runs <- 2
+num_runs <- 10
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Count")
-# #all methods: "JMVN", "FCS", "PMM", "LMM"
-# methods <- c("LMM")
-# mechanisms <- c("MCAR")
-# mask_props <- c(0.10)
 
-methods <- c("JMVN", "PMM", "FCS")
-mechanisms <- c("MCAR", "MAR", "MNAR")
+#all methods: "JMVN", "FCS", "PMM", "LMM"
+methods <- c("PMM")
+mechanisms <- c("MNAR")
 mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
@@ -143,7 +180,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                        c("estimate", "std.error",
                                          rep(c("conf.low", "conf.high"), 2))])
 
-truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
+truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
+  group_by(Exposure) %>% slice(n = 1)
 
 # #---- all combos ----
 # all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
@@ -160,7 +198,7 @@ truth <- table_effect_ests %>% filter(Method == "Truth", Type == "MCAR")
 # end <- Sys.time() - start
 
 #---- create cluster ----
-plan(multisession, gc = FALSE)
+plan(multisession, gc = FALSE, workers = 10)
 
 #---- get pooled effect estimates ----
 start <- Sys.time()
@@ -175,7 +213,9 @@ for(i in which(!table_effect_ests$Method == "Truth")){
       future_replicate(num_runs, 
                 mask_impute_pool(CESD_data_wide, exposures, 
                                  mechanism = mechanism, method = method, 
-                                 mask_percent = mask_percent,
+                                 mask_percent = mask_percent, 
+                                 beta_mat = beta_mat, 
+                                 beta_0_table = beta_0_table,
                                  truth = truth, save = "no"), 
                 simplify = FALSE)
     #Formatting data

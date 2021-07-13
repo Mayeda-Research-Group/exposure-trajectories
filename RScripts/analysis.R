@@ -3,9 +3,9 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "mice", "broom", "ResourceSelection", 
+p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
        "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
-#devtools::install_github(repo = "amices/mice")
+devtools::install_github(repo = "amices/mice")
 library(mice)
 
 #No scientific notation
@@ -49,13 +49,13 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
 
 #all methods: "JMVN", "FCS", "PMM", "LMM"
 
-methods <- c("LMM")
-mechanisms <- c("MCAR")
-mask_props <- c(0.10)
+methods <- c("FCS")
+mechanisms <- c("MNAR")
+#mask_props <- c(0.10)
 
 # methods <- c("JMVN", "PMM", "FCS")
-# mechanisms <- c("MCAR", "MAR", "MNAR")
-# mask_props <- c(.10, 0.20, 0.30)
+#mechanisms <- c("MCAR", "MAR", "MNAR")
+mask_props <- c(.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 

@@ -127,7 +127,7 @@ table_effect_ests <-
   #         set_colnames(c("Exposure", "Method", "Type", "Missingness"))) %>%
   mutate("beta" = NA, "SD" = NA, "mean_LCI" = NA, "mean_UCI" = NA, 
          "truth_capture" = NA, "people_dropped" = NA) 
-  
+
 #---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
@@ -448,6 +448,41 @@ write_csv(table_effect_ests,
 #---- make figure ----
 #or read in the data
 results <- table_effect_ests
+results_1000 <- read_csv(paste0(path_to_dropbox,
+                                "/exposure_trajectories/manuscript/",
+                                "tables/results_CC1000_20210712.csv"))
+results_MCAR5000 <- read_csv(paste0(path_to_dropbox,
+                                    "/exposure_trajectories/manuscript/",
+                                    "tables/results_CC_MCAR5000", 
+                                    "_20210713.csv"))
+
+#---- calculating absolute bias ----
+#---- **MCAR 1000 ----
+results_MCAR1000 <- results_1000 %>% filter(Type == "MCAR") %>% 
+  group_by(Exposure) %>% arrange(Exposure) %>% 
+  mutate(bias = abs(beta - first(beta)))
+
+bias_1000 <- results_MCAR1000 %>% 
+  dplyr::select(c("Exposure", "Missingness", "bias")) %>% 
+  pivot_wider(names_from = "Exposure", values_from = "bias")
+
+write_csv(bias_1000, 
+          file = paste0(path_to_dropbox,
+                        "/exposure_trajectories/manuscript/",
+                        "tables/bias_1000_", format(now(), "%Y%m%d"), ".csv"))
+
+#---- **MCAR 5000 ----
+results_MCAR5000 %<>% group_by(Exposure) %>% arrange(Exposure) %>% 
+  mutate(bias = abs(beta - first(beta)))
+
+bias_5000 <- results_MCAR5000 %>% 
+  dplyr::select(c("Exposure", "Missingness", "bias")) %>% 
+  pivot_wider(names_from = "Exposure", values_from = "bias")
+
+write_csv(bias_5000, 
+          file = paste0(path_to_dropbox,
+                        "/exposure_trajectories/manuscript/",
+                        "tables/bias_5000_", format(now(), "%Y%m%d"), ".csv"))
 
 #---- **formatting the data ----
 mask_props <- unique(results$Missingness)[-1] #Don't want 0%

@@ -446,8 +446,8 @@ write_csv(table_effect_ests,
                         format(now(), "%Y%m%d"), ".csv"))
 
 #---- make figure ----
-#or read in the data
 results <- table_effect_ests
+#or read in the data
 results_1000 <- read_csv(paste0(path_to_dropbox,
                                 "/exposure_trajectories/manuscript/",
                                 "tables/results_CC1000_20210712.csv"))
@@ -471,6 +471,17 @@ write_csv(bias_1000,
                         "/exposure_trajectories/manuscript/",
                         "tables/bias_1000_", format(now(), "%Y%m%d"), ".csv"))
 
+#---- table of people dropped ----
+missingness <- results_1000 %>% 
+  dplyr::select(c("Exposure", "Missingness", "Type", "people_dropped")) %>% 
+  filter(!Type == "MAR 2") %>%
+  pivot_wider(names_from = "Exposure", values_from = "people_dropped") 
+
+write_csv(missingness, 
+          file = paste0(path_to_dropbox,
+                        "/exposure_trajectories/manuscript/",
+                        "tables/people_dropped_", format(now(), "%Y%m%d"), ".csv"))
+  
 #---- **MCAR 5000 ----
 results_MCAR5000 %<>% group_by(Exposure) %>% arrange(Exposure) %>% 
   mutate(bias = abs(beta - first(beta)))

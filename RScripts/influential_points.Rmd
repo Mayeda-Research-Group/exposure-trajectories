@@ -79,20 +79,39 @@ tidy(TTEmodel_CESD4, exponentiate = FALSE, conf.int = TRUE)
 # highleverage(TTEmodel_CESD4)
 
 #---- Influential observations ----
-ggcoxdiagnostics(TTEmodel_CESD4, type = "dfbeta",
-                 linear.predictions = FALSE, ggtheme = theme_bw())
-# Another attempt to visualize the dfbetas
-# (threshold <- 2/sqrt(nrow(CESD_data_wide)))
+(threshold <- 2/sqrt(nrow(CESD_data_wide)))
+# An attempt to visualize the dfbetas
+# dfbeta function is not for coxph settings
 # dfbetas1 <- as.data.frame(dfbetas(TTEmodel_CESD4))
 
+#---- ** dfbeta ----
+dfbeta_residual_cesd4 <- as.data.frame(resid(TTEmodel_CESD4, type = "dfbeta"))
+colnames(dfbeta_residual_cesd4) <- names(stats::coef(TTEmodel_CESD4))
+dfbeta_residual_cesd4 %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
+  mutate(obsid = 1:nrow(dfbeta_residual_cesd4)) %>%
+  select(obsid, HHIDPN, everything())
+
+# Plot
+ggcoxdiagnostics(TTEmodel_CESD4, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "DFBETA residuals plot (E: CESD wave 4)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "dfbeta_cesd4.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
 ggcoxdiagnostics(TTEmodel_CESD4, type = "deviance",
-                linear.predictions = FALSE, ggtheme = theme_bw())
+                linear.predictions = FALSE, ggtheme = theme_bw(),
+                title = "Deviance residuals plot (E: CESD wave 4)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "deviance_cesd4.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
 ```
 
 ```{r CES-D wave 9}
-#---- **CES-D Wave 9 ----
+#---- CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
   coxph(Surv(survtime, observed) ~ r9not_married_partnered + r9widowed + 
           ed_cat + r9drinking_cat + r9memrye_impute + r9stroke_impute + 
@@ -102,27 +121,70 @@ TTEmodel_CESD9 <-
 # summary(TTEmodel_CESD9)
 tidy(TTEmodel_CESD9, exponentiate = FALSE, conf.int = TRUE)
 
-#---- High-leverage points ----
-# Can't run in a coxph setting
-# highleverage <- function(fit) {
-#   p <- length(coefficients(fit))
-#   n <- length(fitted(fit))
-#   ratio <- p/n
-#   plot(hatvalues(fit), main = "Index Plot of Ratio")
-#   abline(h=c(2,3)*ratio, col="red",  lty=2)
-#   identify(1:n, hatvalues(fit), names(hatvalues(fit)))
-# }
-# highleverage(TTEmodel_CESD4)
-
 #---- Influential observations ----
-ggcoxdiagnostics(TTEmodel_CESD9, type = "dfbeta",
-                 linear.predictions = FALSE, ggtheme = theme_bw())
+#---- **dfbeta ----
+dfbeta_residual_cesd9 <- as.data.frame(resid(TTEmodel_CESD9, type = "dfbeta"))
+colnames(dfbeta_residual_cesd9) <- names(stats::coef(TTEmodel_CESD9))
+dfbeta_residual_cesd9 %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
+  mutate(obsid = 1:nrow(dfbeta_residual_cesd9)) %>%
+  select(obsid, HHIDPN, everything())
 
+# Plots
+ggcoxdiagnostics(TTEmodel_CESD9, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "DFBETA residuals plot (E: CESD wave 9)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "dfbeta_cesd9.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
 ggcoxdiagnostics(TTEmodel_CESD9, type = "deviance",
-                linear.predictions = FALSE, ggtheme = theme_bw())
+                linear.predictions = FALSE, ggtheme = theme_bw(),
+                title = "Deviance residuals plot (E: CESD wave 9)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "deviance_cesd9.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 ```
 
+
+```{r elevated average CESD}
+#---- Elevated Average CES-D ----
+TTEmodel_elevated_avg_CESD <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + avg_cesd_elevated, data = CESD_data_wide)
+# summary(TTEmodel_elevated_avg_CESD)
+tidy(TTEmodel_elevated_avg_CESD, exponentiate = FALSE, conf.int = TRUE)
+
+#---- **dfbeta ----
+dfbeta_residual_avf_cesd <- as.data.frame(resid(TTEmodel_elevated_avg_CESD, 
+                                                type = "dfbeta"))
+colnames(dfbeta_residual_avf_cesd) <- 
+  names(stats::coef(TTEmodel_elevated_avg_CESD))
+dfbeta_residual_avf_cesd %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
+  mutate(obsid = 1:nrow(dfbeta_residual_avf_cesd)) %>%
+  select(obsid, HHIDPN, everything())
+
+# plots
+ggcoxdiagnostics(TTEmodel_elevated_avg_CESD, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "DFBETA residuals plot (E: Elevated avg CESD)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "dfbeta_elevated_avg_cesd.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
+
+ggcoxdiagnostics(TTEmodel_elevated_avg_CESD, type = "deviance",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "Deviance residuals plot (E: Elevated avg CESD)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "deviance_elevated_avg_cesd.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
+```
 
 ```{r}
 #---- **Total Count Elevated CES-D ----
@@ -133,24 +195,31 @@ TTEmodel_total_CESD <-
           r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
           r4age_y_int + total_elevated_cesd, data = CESD_data_wide)
 # summary(TTEmodel_total_CESD)
+tidy(TTEmodel_total_CESD, exponentiate = FALSE, conf.int = TRUE)
 
-#---- **Elevated Average CES-D ----
-TTEmodel_elevated_avg_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
-          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
-          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
-          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
-          r4age_y_int + avg_cesd_elevated, data = CESD_data_wide)
-# summary(TTEmodel_elevated_avg_CESD)
-
-ggcoxdiagnostics(TTEmodel_CESD9, type = "dfbeta",
-                 linear.predictions = FALSE, ggtheme = theme_bw())
-
-ggcoxdiagnostics(TTEmodel_elevated_avg_CESD, type = "dfbeta",
-                 linear.predictions = FALSE, ggtheme = theme_bw())
+#---- Influential observations ----
+#---- ** dfbeta ----
+dfbeta_residual_total_cesd <- as.data.frame(resid(TTEmodel_total_CESD, 
+                                                  type = "dfbeta"))
+colnames(dfbeta_residual_total_cesd) <- names(stats::coef(TTEmodel_total_CESD))
+dfbeta_residual_total_cesd %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
+  mutate(obsid = 1:nrow(dfbeta_residual_total_cesd)) %>%
+  select(obsid, HHIDPN, everything())
 
 ggcoxdiagnostics(TTEmodel_total_CESD, type = "dfbeta",
-                 linear.predictions = FALSE, ggtheme = theme_bw())
-```
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "DFBETA residuals plot (E: Elevated CESD count)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "dfbeta_cesd_total_cesd.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
+ggcoxdiagnostics(TTEmodel_total_CESD, type = "deviance",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "Deviance residuals plot (E: Elevated CESD count)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "deviance_total_cesd.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
+```
 

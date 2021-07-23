@@ -1,0 +1,156 @@
+---
+title: "Influencial points checking"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages + options, include=FALSE}
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("tidyverse", "magrittr", "plyr", "haven", "here", "broom",
+       "survival", "survminer")
+
+#No scientific notation
+options(scipen = 999)
+
+set.seed(20200819)
+```
+
+```{r directories + source scripts, include=FALSE}
+#---- note ----
+# Since the difference between win and OS, put substituted directory here
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+# MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
+
+#Changing directories here will change them throughout the script
+path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
+
+#---- source scripts ----
+# source(here::here("RScripts", "mask.R"))
+# source(here::here("RScripts", "mask_impute_pool.R"))
+```
+
+```{r load the data}
+CESD_data_wide <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
+                  "CESD_data_wide.csv"), 
+           col_types = cols(HHIDPN = col_character())) 
+
+for(wave in seq(4, 9)){
+  CESD_data_wide %<>% 
+    mutate(!!paste0("r", wave, "cesd_death2018") := 
+             !!sym(paste0("r", wave, "cesd"))*death2018, 
+           !!paste0("r", wave - 1, "cesd_conde_impute") := 
+             !!sym(paste0("r", wave - 1, "cesd"))*
+             !!sym(paste0("r", wave - 1, "conde_impute")))
+}
+```
+
+### CESD wave 4
+```{r CESD wave 4}
+TTEmodel_CESD4 <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + r4cesd_elevated, data = CESD_data_wide)
+# summary(TTEmodel_CESD4)
+tidy(TTEmodel_CESD4, exponentiate = FALSE, conf.int = TRUE)
+
+#---- High-leverage points ----
+# Can't run in a coxph setting
+# highleverage <- function(fit) {
+#   p <- length(coefficients(fit))
+#   n <- length(fitted(fit))
+#   ratio <- p/n
+#   plot(hatvalues(fit), main = "Index Plot of Ratio")
+#   abline(h=c(2,3)*ratio, col="red",  lty=2)
+#   identify(1:n, hatvalues(fit), names(hatvalues(fit)))
+# }
+# highleverage(TTEmodel_CESD4)
+
+#---- Influential observations ----
+ggcoxdiagnostics(TTEmodel_CESD4, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+# Another attempt to visualize the dfbetas
+# (threshold <- 2/sqrt(nrow(CESD_data_wide)))
+# dfbetas1 <- as.data.frame(dfbetas(TTEmodel_CESD4))
+
+
+ggcoxdiagnostics(TTEmodel_CESD4, type = "deviance",
+                linear.predictions = FALSE, ggtheme = theme_bw())
+
+```
+
+```{r CES-D wave 9}
+#---- **CES-D Wave 9 ----
+TTEmodel_CESD9 <- 
+  coxph(Surv(survtime, observed) ~ r9not_married_partnered + r9widowed + 
+          ed_cat + r9drinking_cat + r9memrye_impute + r9stroke_impute + 
+          r9hearte_impute + r9lunge_impute + r9cancre_impute + r9hibpe_impute + 
+          r9diabe_impute + smoker + r9BMI + hispanic + black + other + female + 
+          r9age_y_int + r9cesd_elevated, data = CESD_data_wide)
+# summary(TTEmodel_CESD9)
+tidy(TTEmodel_CESD9, exponentiate = FALSE, conf.int = TRUE)
+
+#---- High-leverage points ----
+# Can't run in a coxph setting
+# highleverage <- function(fit) {
+#   p <- length(coefficients(fit))
+#   n <- length(fitted(fit))
+#   ratio <- p/n
+#   plot(hatvalues(fit), main = "Index Plot of Ratio")
+#   abline(h=c(2,3)*ratio, col="red",  lty=2)
+#   identify(1:n, hatvalues(fit), names(hatvalues(fit)))
+# }
+# highleverage(TTEmodel_CESD4)
+
+#---- Influential observations ----
+ggcoxdiagnostics(TTEmodel_CESD9, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+
+
+ggcoxdiagnostics(TTEmodel_CESD9, type = "deviance",
+                linear.predictions = FALSE, ggtheme = theme_bw())
+```
+
+
+```{r}
+#---- **Total Count Elevated CES-D ----
+TTEmodel_total_CESD <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + total_elevated_cesd, data = CESD_data_wide)
+# summary(TTEmodel_total_CESD)
+
+#---- **Elevated Average CES-D ----
+TTEmodel_elevated_avg_CESD <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + avg_cesd_elevated, data = CESD_data_wide)
+# summary(TTEmodel_elevated_avg_CESD)
+
+ggcoxdiagnostics(TTEmodel_CESD9, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+
+ggcoxdiagnostics(TTEmodel_elevated_avg_CESD, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+
+ggcoxdiagnostics(TTEmodel_total_CESD, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+```
+
+

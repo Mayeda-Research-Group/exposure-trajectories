@@ -55,8 +55,14 @@ for(wave in seq(4, 9)){
 }
 ```
 
+## Influence points dx
+Large magnitude of the score residual of an individual with respect to a particular covariate indicates heavy influence of that individual in the estimation of the regression effect of that covariate
+
+Large magnitude of the deviance residual for an observation indicates that it is a potential outlier to the model.
+
 ### CESD wave 4
 ```{r CESD wave 4}
+#---- CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
   coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
@@ -78,13 +84,12 @@ tidy(TTEmodel_CESD4, exponentiate = FALSE, conf.int = TRUE)
 # }
 # highleverage(TTEmodel_CESD4)
 
-#---- Influential observations ----
+#---- ** dfbeta ----
 (threshold <- 2/sqrt(nrow(CESD_data_wide)))
 # An attempt to visualize the dfbetas
 # dfbeta function is not for coxph settings
 # dfbetas1 <- as.data.frame(dfbetas(TTEmodel_CESD4))
 
-#---- ** dfbeta ----
 dfbeta_residual_cesd4 <- as.data.frame(resid(TTEmodel_CESD4, type = "dfbeta"))
 colnames(dfbeta_residual_cesd4) <- names(stats::coef(TTEmodel_CESD4))
 dfbeta_residual_cesd4 %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
@@ -95,11 +100,14 @@ dfbeta_residual_cesd4 %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
 ggcoxdiagnostics(TTEmodel_CESD4, type = "dfbeta",
                  linear.predictions = FALSE, ggtheme = theme_bw(),
                  title = "DFBETA residuals plot (E: CESD wave 4)")
+  # geom_hline(aes(yintercept = threshold), color = "red") +
+  # geom_hline(aes(yintercept = -threshold), color = "red")
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/influential_points_dx/", 
               "dfbeta_cesd4.jpeg"), 
        device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
+#---- Deviance residuals ----
 ggcoxdiagnostics(TTEmodel_CESD4, type = "deviance",
                 linear.predictions = FALSE, ggtheme = theme_bw(),
                 title = "Deviance residuals plot (E: CESD wave 4)")
@@ -108,10 +116,18 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "deviance_cesd4.jpeg"), 
        device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
-```
+#---- **Score residuals----
+ggcoxdiagnostics(TTEmodel_CESD4, type = "score",
+                 linear.predictions = FALSE, ggtheme = theme_bw(),
+                 title = "score residuals plot (E: CESD wave 4)")
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/influential_points_dx/", 
+              "deviance_cesd4.jpeg"), 
+       device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 
+```
+### CES-D Wave 9
 ```{r CES-D wave 9}
-#---- CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
   coxph(Surv(survtime, observed) ~ r9not_married_partnered + r9widowed + 
           ed_cat + r9drinking_cat + r9memrye_impute + r9stroke_impute + 
@@ -121,7 +137,6 @@ TTEmodel_CESD9 <-
 # summary(TTEmodel_CESD9)
 tidy(TTEmodel_CESD9, exponentiate = FALSE, conf.int = TRUE)
 
-#---- Influential observations ----
 #---- **dfbeta ----
 dfbeta_residual_cesd9 <- as.data.frame(resid(TTEmodel_CESD9, type = "dfbeta"))
 colnames(dfbeta_residual_cesd9) <- names(stats::coef(TTEmodel_CESD9))
@@ -145,11 +160,13 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/influential_points_dx/", 
               "deviance_cesd9.jpeg"), 
        device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
+
+# Score?
+
 ```
 
-
+### Elevated average CESD
 ```{r elevated average CESD}
-#---- Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
   coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
@@ -160,12 +177,12 @@ TTEmodel_elevated_avg_CESD <-
 tidy(TTEmodel_elevated_avg_CESD, exponentiate = FALSE, conf.int = TRUE)
 
 #---- **dfbeta ----
-dfbeta_residual_avf_cesd <- as.data.frame(resid(TTEmodel_elevated_avg_CESD, 
+dfbeta_residual_avg_cesd <- as.data.frame(resid(TTEmodel_elevated_avg_CESD, 
                                                 type = "dfbeta"))
-colnames(dfbeta_residual_avf_cesd) <- 
+colnames(dfbeta_residual_avg_cesd) <- 
   names(stats::coef(TTEmodel_elevated_avg_CESD))
-dfbeta_residual_avf_cesd %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
-  mutate(obsid = 1:nrow(dfbeta_residual_avf_cesd)) %>%
+dfbeta_residual_avg_cesd %<>% cbind(CESD_data_wide %>% select(HHIDPN)) %>%
+  mutate(obsid = 1:nrow(dfbeta_residual_avg_cesd)) %>%
   select(obsid, HHIDPN, everything())
 
 # plots
@@ -186,8 +203,8 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
 ```
 
-```{r}
-#---- **Total Count Elevated CES-D ----
+### Elevated CES-D count
+```{r Total count of elevated CES-D}
 TTEmodel_total_CESD <- 
   coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
           ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
@@ -197,7 +214,6 @@ TTEmodel_total_CESD <-
 # summary(TTEmodel_total_CESD)
 tidy(TTEmodel_total_CESD, exponentiate = FALSE, conf.int = TRUE)
 
-#---- Influential observations ----
 #---- ** dfbeta ----
 dfbeta_residual_total_cesd <- as.data.frame(resid(TTEmodel_total_CESD, 
                                                   type = "dfbeta"))
@@ -221,5 +237,77 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/influential_points_dx/", 
               "deviance_total_cesd.jpeg"), 
        device = "jpeg", dpi = 300, width = 11, height = 9, units = "in")
+```
+
+### Influential points
+```{r influential points}
+# CES-D wave 4
+cesd4_point <- dfbeta_residual_cesd4 %>% 
+  filter((obsid < 2500 | obsid > 5000) & r4cesd_elevated < -0.01) %>%
+  print()
+# CES-D wave 9
+cesd9_point <- dfbeta_residual_cesd9 %>% 
+  filter(obsid < 2500 & r9cesd_elevated < -0.015) %>%
+  print()
+
+# CES-D elevated avg CES-D
+cesd_elevated_avg <- dfbeta_residual_avg_cesd %>% 
+  filter((obsid < 2500 | obsid > 7500) & avg_cesd_elevated < -0.01) %>%
+  print()
+
+influential_df <- 
+  full_join(cesd4_point, cesd9_point, by = c("obsid", "HHIDPN")) %>%
+  full_join(., cesd_elevated_avg, by = c("obsid", "HHIDPN"))
+write_csv(influential_df, paste0(path_to_dropbox,
+                           "/exposure_trajectories/",
+                           "inducing_missingness_troubleshooting/",
+                           "model_method/",
+                           "influential_df.csv"))
+```
+
+### Cox ph assumptions
+```{r}
+
+(testph1 <- cox.zph(TTEmodel_CESD4, transform = "km", global = T)) 
+# Global P = 0.0016, violate to the assumption of proportional hazards
+ggcoxzph(testph1)
+
+(testph2 <- cox.zph(TTEmodel_CESD9, transform = "km", global = T)) 
+# Global P = 0.00000000055, violate to the assumption of proportional hazards
+ggcoxzph(testph2)
+
+(testph3 <- cox.zph(TTEmodel_elevated_avg_CESD, transform = "km", global = T)) 
+# Global P = 0.0022, violate to the assumption of proportional hazards
+ggcoxzph(testph3)
+
+(testph4 <- cox.zph(TTEmodel_total_CESD, transform = "km", global = T)) 
+# Global P = 0.0016, violate to the assumption of proportional hazards
+ggcoxzph(testph4)
+
+# KM curve
+ph_cesd4 <- surv_fit(Surv(survtime, observed) ~ 
+                    r4cesd_elevated, data = CESD_data_wide)
+ggsurvplot(ph_cesd4, 
+           data = CESD_data_wide)
+
+ph_cesd_9 <- surv_fit(Surv(survtime, observed) ~ 
+                       r9cesd_elevated, data = CESD_data_wide)
+ggsurvplot(ph_cesd_9, 
+           data = CESD_data_wide)
+
+ph_elevated_avg_cesd <- surv_fit(Surv(survtime, observed) ~ 
+                                   avg_cesd_elevated, data = CESD_data_wide)
+ggsurvplot(ph_elevated_avg_cesd, 
+           data = CESD_data_wide)
+
+ph_total_elevated_cesd <- surv_fit(Surv(survtime, observed) ~ 
+                                    total_elevated_cesd, data = CESD_data_wide)
+ggsurvplot(ph_total_elevated_cesd, 
+           data = CESD_data_wide)
+# But the KM curve showed that the PH assumptions were not violated???
+```
+### Influence plots
+```{r}
+
 ```
 

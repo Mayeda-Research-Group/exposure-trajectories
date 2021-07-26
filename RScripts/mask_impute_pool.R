@@ -11,7 +11,8 @@ mask_impute_pool <-
     #---- create incomplete data ----
     data_wide <- mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
     
-    time_updated_vars <- c("not_married_partnered", "widowed", "drinking_cat", 
+    time_updated_vars <- c("married_partnered", "not_married_partnered", 
+                           "widowed", "drinking_cat", 
                            "memrye_impute", "stroke_impute", "hearte_impute", 
                            "lunge_impute", "cancre_impute", "hibpe_impute", 
                            "diabe_impute", "cesd", "BMI")
@@ -81,7 +82,7 @@ mask_impute_pool <-
       
       #Don't use these as predictors
       predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
-                  paste0("r", seq(4, 9), "married_partnered"),
+                  #paste0("r", seq(4, 9), "married_partnered"),
                   paste0("r", seq(4, 9), "shlt"),"age_death_y", "white", 
                   "observed", "r3cesd", "r4cesd_elevated", "r9cesd_elevated", 
                   "avg_cesd", "avg_cesd_elevated", "total_elevated_cesd")] <- 0
@@ -120,8 +121,8 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            #m = 2, maxit = 5,
-                           m = as.numeric(sub("%","", mask_percent)), 
-                           maxit = max_it[method, mask_percent], 
+                           m = as.numeric(sub("%","", mask_percent)),
+                           maxit = max_it[method, mask_percent],
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
@@ -325,25 +326,28 @@ mask_impute_pool <-
           subset[subset < 0] <- 0
           subset[subset > 1] <- 1
           
-          subset[, 2] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 2])
-          subset[, 3] <- rbinom(n = nrow(subset), size = 1, prob = subset[, 3])
-          subset[, "sum"] <- rowSums(subset[, 2:3], na.rm = TRUE)
+          for(column in 1:3){
+            subset[, column] <- 
+              rbinom(n = nrow(subset), size = 1, prob = subset[, column])
+          }
+          
+          subset[, "sum"] <- rowSums(subset, na.rm = TRUE)
           
           for(row in 1:nrow(subset)){
-            if(!is.na(subset[row, 1])){
+            if(subset[row, "sum"] == 1){
               next
-            } else if(subset[row, "sum"] == 0){
-              subset[row, 1] <- 1
-            } else if(subset[row, "sum"] == 1){
-              subset[row, 1] <- 0
-            } else{
-              subset[row, 1] <- 0
-              this_cat <- sample(c(2, 3), size = 1)
+            } else if(subset[row, "sum"] %in% c(0, 3)){
+              this_cat <- sample(c(1, 2, 3), size = 1)
+              subset[row, ] <- 0
               subset[row, this_cat] <- 1
-              subset[row, (which(c(2,3) != this_cat) + 1)] <- 0
+            } else{
+              which_cols <- which(subset[row, ] == 1)
+              this_cat <- sample(which_cols, size = 1)
+              subset[row, ] <- 0
+              subset[row, this_cat] <- 1
             }
           }
-          complete_data[, colnames(subset)] <- subset
+          complete_data[, colnames(subset[, 1:3])] <- subset[, 1:3]
         }
         
         #---- **post process: binary vars ----
@@ -357,6 +361,7 @@ mask_impute_pool <-
         subset <- complete_data[, cols]
         subset[subset < 0] <- 0
         subset[subset > 1] <- 1
+        subset[is.na(subset)] <- 0.5
         
         for(col in cols){
           complete_data[, col] <- 

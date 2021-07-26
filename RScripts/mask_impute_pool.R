@@ -195,7 +195,8 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       impute_method <- make.method(data_wide)
-      impute_method[c(paste0("r", seq(4, 9), "not_married_partnered"),
+      impute_method[c(paste0("r", seq(4, 9), "married_partnered"), 
+                      paste0("r", seq(4, 9), "not_married_partnered"),
                       paste0("r", seq(4, 9), "widowed"),
                       paste0("r", seq(4, 9), "memrye_impute"),
                       paste0("r", seq(4, 9), "stroke_impute"),
@@ -210,7 +211,7 @@ mask_impute_pool <-
                       paste0("r", seq(4, 9), "cesd"))] <- "norm"
       
       impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
-                      paste0("r", seq(4, 9), "married_partnered"),
+                      #paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 
                       "avg_cesd_elevated")] <- ""
@@ -233,8 +234,8 @@ mask_impute_pool <-
       
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
-                           m = as.numeric(sub("%","", mask_percent)), 
-                           maxit = max_it[method, mask_percent], 
+                           m = as.numeric(sub("%","", mask_percent)),
+                           maxit = max_it[method, mask_percent],
                            #m = 2, maxit = 5,
                            method = "pmm", donors = 5, 
                            predictorMatrix = predict, 
@@ -261,7 +262,7 @@ mask_impute_pool <-
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
-
+      
       #stop <- Sys.time() - start
       
       # #look at convergence
@@ -313,6 +314,7 @@ mask_impute_pool <-
       set_names(exposures)
     
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
+    #for(i in 1:2){
       complete_data <- complete(data_imputed, action = i)
       
       if(method == "JMVN"){
@@ -376,23 +378,32 @@ mask_impute_pool <-
           cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
           subset <- complete_data[, cols]
           
-          subset[, "sum"] <- rowSums(subset[, 2:3])
+          #fix impossible probs
+          subset[subset < 0] <- 0
+          subset[subset > 1] <- 1
+          
+          for(column in 1:3){
+            subset[, column] <- 
+              rbinom(n = nrow(subset), size = 1, prob = subset[, column])
+          }
+          
+          subset[, "sum"] <- rowSums(subset, na.rm = TRUE)
           
           for(row in 1:nrow(subset)){
-            if(!is.na(subset[row, 1])){
+            if(subset[row, "sum"] == 1){
               next
-            } else if(subset[row, "sum"] == 0){
-              subset[row, 1] <- 1
-            } else if(subset[row, "sum"] == 1){
-              subset[row, 1] <- 0
-            } else{
-              subset[row, 1] <- 0
-              this_cat <- sample(c(2, 3), size = 1)
+            } else if(subset[row, "sum"] %in% c(0, 3)){
+              this_cat <- sample(c(1, 2, 3), size = 1)
+              subset[row, ] <- 0
               subset[row, this_cat] <- 1
-              subset[row, (which(c(2,3) != this_cat) + 1)] <- 0
+            } else{
+              which_cols <- which(subset[row, ] == 1)
+              this_cat <- sample(which_cols, size = 1)
+              subset[row, ] <- 0
+              subset[row, this_cat] <- 1
             }
           }
-          complete_data[, colnames(subset)] <- subset
+          complete_data[, colnames(subset[, 1:3])] <- subset[, 1:3]
         }
       }
       

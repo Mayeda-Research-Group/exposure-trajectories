@@ -496,6 +496,8 @@ write_csv(bias_5000,
                         "tables/bias_5000_", format(now(), "%Y%m%d"), ".csv"))
 
 #---- **formatting the data ----
+results <- results_1000
+runs = 1000
 mask_props <- unique(results$Missingness)[-1] #Don't want 0%
 results %<>% mutate_at(c("Missingness"), as.factor) 
 results$Method <- factor(results$Method, levels = c("Truth", "CC"))
@@ -532,7 +534,8 @@ ggplot(results,
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
-  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+  ggtitle(paste0("Mean 95% CI* of beta across ", runs, " runs")) + 
+  labs(subtitle = paste0("*Calculated by averaging CI across runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_CC_all_", runs, ".jpeg"), 
@@ -556,6 +559,8 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- **plot: MCAR ----
+results <- results_1000
+runs = 1000
 ggplot(results %>% filter(Type == "MCAR"), 
        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
@@ -564,11 +569,12 @@ ggplot(results %>% filter(Type == "MCAR"),
                 position = position_dodge(0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  scale_color_manual(values = c("#B4DAE5FF", "#F0D77BFF")) +
+  scale_y_discrete(limits = rev(levels(as.factor(results$Missingness)))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
-  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+  ggtitle(paste0("Mean 95% CI* of beta across ", runs, " runs")) + 
+  labs(subtitle = paste0("*Calculated by averaging CI across runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_CC_MCAR_", runs, ".jpeg"), 
@@ -583,11 +589,12 @@ ggplot(results %>% filter(Type %in% c("MAR", "MAR 2")),
                 position = position_dodge(0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  scale_color_manual(values = c("#B4DAE5FF", "#F0D77BFF")) +
+  scale_y_discrete(limits = rev(levels(as.factor(results$Missingness)))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
-  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+  ggtitle(paste0("Mean 95% CI* of beta across ", runs, " runs")) + 
+  labs(subtitle = paste0("*Calculated by averaging CI across runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_CC_MAR_", runs, ".jpeg"), 
@@ -606,7 +613,8 @@ ggplot(results %>% filter(Type == "MNAR"),
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free") + 
-  ggtitle(paste0("Mean 95% CI of beta across ", runs, " runs"))
+  ggtitle(paste0("Mean 95% CI* of beta across ", runs, " runs")) + 
+  labs(subtitle = paste0("*Calculated by averaging CI across runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_CC_MNAR_", runs, ".jpeg"), 

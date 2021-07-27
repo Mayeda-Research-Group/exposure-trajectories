@@ -153,7 +153,8 @@ mask_impute_pool <-
                       paste0("r", seq(4, 9), "BMI"), 
                       paste0("r", seq(4, 9), "cesd"))] <- "norm"
       
-      impute_method[c(paste0("r", seq(4, 9), "shlt"), "r3cesd",
+      impute_method[c(paste0("r", seq(3, 9), "shlt"), "r3cesd", 
+                      "r3cesd_conde_impute",
                       #paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 

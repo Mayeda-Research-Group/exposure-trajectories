@@ -235,9 +235,9 @@ mask_impute_pool <-
       #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
-                           m = as.numeric(sub("%","", mask_percent)), 
+                           # m = 2, maxit = 5,
+                           m = as.numeric(sub("%","", mask_percent)),
                            maxit = max_it[method, mask_percent],
-                           #m = 1, maxit = 5,
                            method = "2l.lmer", predictorMatrix = predict, 
                            where = is.na(data_long), 
                            blocks = as.list(rownames(predict)), 

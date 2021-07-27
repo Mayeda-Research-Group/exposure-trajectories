@@ -179,9 +179,9 @@ mask_impute_pool <-
       #start <- Sys.time()
       
       data_imputed <- mice(data = data_wide, 
-                           m = 2, maxit = 5,
-                           # m = as.numeric(sub("%","", mask_percent)), 
-                           # maxit = max_it[method, mask_percent],
+                           #m = 2, maxit = 5,
+                           m = as.numeric(sub("%","", mask_percent)),
+                           maxit = max_it[method, mask_percent],
                            method = impute_method,
                            predictorMatrix = predict, where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)),

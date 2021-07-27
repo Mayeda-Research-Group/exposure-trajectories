@@ -197,7 +197,7 @@ mask_impute_pool <-
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
-  
+      
       # data_wide %<>% 
       #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
       #                    paste0("r", seq(4, 9), "not_married_partnered"),
@@ -293,45 +293,20 @@ mask_impute_pool <-
     model_list <- vector(mode = "list", length = length(exposures)) %>% 
       set_names(exposures)
     
-    for(i in 1:(as.numeric(sub("%","", mask_percent)))){
-    #for(i in 1:2){
+    #for(i in 1:(as.numeric(sub("%","", mask_percent)))){
+    for(i in 1:2){
       complete_data <- complete(data_imputed, action = i)
       
-      if(method == "JMVN"){
-        #---- **post process: dummy vars ----
-        for(wave in seq(4, 9)){
-          vars <- c("married_partnered", "not_married_partnered", "widowed")
-          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
-          subset <- complete_data[, cols]
-          
-          #fix impossible probs
-          subset[subset < 0] <- 0
-          subset[subset > 1] <- 1
-          
-          for(column in 1:3){
-            subset[, column] <- 
-              rbinom(n = nrow(subset), size = 1, prob = subset[, column])
-          }
-          
-          subset[, "sum"] <- rowSums(subset, na.rm = TRUE)
-          
-          for(row in 1:nrow(subset)){
-            if(subset[row, "sum"] == 1){
-              next
-            } else if(subset[row, "sum"] %in% c(0, 3)){
-              this_cat <- sample(c(1, 2, 3), size = 1)
-              subset[row, ] <- 0
-              subset[row, this_cat] <- 1
-            } else{
-              which_cols <- which(subset[row, ] == 1)
-              this_cat <- sample(which_cols, size = 1)
-              subset[row, ] <- 0
-              subset[row, this_cat] <- 1
-            }
-          }
-          complete_data[, colnames(subset[, 1:3])] <- subset[, 1:3]
-        }
-        
+      if(method == "LMM"){
+        #---- **LMM: long --> wide ----
+        complete_data %<>% 
+          pivot_wider(id_cols = c("HHIDPN", all_of(time_invariant_vars)), 
+                      names_from = wave, 
+                      values_from = c("age_y_int", all_of(time_updated_vars)), 
+                      names_glue = "{wave}{.value}")
+      }
+      
+      if(method %in% c("JMVN", "LMM")){
         #---- **post process: binary vars ----
         waves <- seq(4, 9)
         vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
@@ -347,99 +322,43 @@ mask_impute_pool <-
         
         for(col in cols){
           complete_data[, col] <- 
-            rbinom(n = nrow(complete_data), size = 1, prob = subset[, col])
-        }
-      }
-      
-      if(method %in% c("FCS", "PMM")){
-        #---- **post process: dummy vars ----
-        for(wave in seq(4, 9)){
-          vars <- c("married_partnered", "not_married_partnered", "widowed")
-          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
-          subset <- complete_data[, cols]
-          
-          #fix impossible probs
-          subset[subset < 0] <- 0
-          subset[subset > 1] <- 1
-          
-          for(column in 1:3){
-            subset[, column] <- 
-              rbinom(n = nrow(subset), size = 1, prob = subset[, column])
-          }
-          
-          subset[, "sum"] <- rowSums(subset, na.rm = TRUE)
-          
-          for(row in 1:nrow(subset)){
-            if(subset[row, "sum"] == 1){
-              next
-            } else if(subset[row, "sum"] %in% c(0, 3)){
-              this_cat <- sample(c(1, 2, 3), size = 1)
-              subset[row, ] <- 0
-              subset[row, this_cat] <- 1
-            } else{
-              which_cols <- which(subset[row, ] == 1)
-              this_cat <- sample(which_cols, size = 1)
-              subset[row, ] <- 0
-              subset[row, this_cat] <- 1
-            }
-          }
-          complete_data[, colnames(subset[, 1:3])] <- subset[, 1:3]
-        }
-      }
-      
-      if(method == "LMM"){
-        #---- **long --> wide ----
-        complete_data %<>% 
-          pivot_wider(id_cols = c("HHIDPN", all_of(time_invariant_vars)), 
-                      names_from = wave, 
-                      values_from = c("age_y_int", all_of(time_updated_vars)), 
-                      names_glue = "{wave}{.value}")
-        
-        #---- **post process: dummy vars ----
-        for(wave in seq(4, 9)){
-          vars <- c("not_married_partnered", "widowed")
-          cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
-          subset <- complete_data[, cols]
-          
-          #fix impossible probs
-          subset[subset < 0] <- 0
-          subset[subset > 1] <- 1
-          
-          subset[, 1] <- rbinom(n = nrow(subset), size = 1, 
-                                prob = unlist(subset[, 1]))
-          subset[, 2] <- rbinom(n = nrow(subset), size = 1, 
-                                prob = unlist(subset[, 2]))
-          subset[, "sum"] <- rowSums(subset[, 1:2])
-          
-          for(row in 1:nrow(subset)){
-            if(subset[row, "sum"] == 0 | subset[row, "sum"] == 1){
-              next
-            } else{
-              this_cat <- sample(c(1, 2), size = 1)
-              subset[row, this_cat] <- 1
-              subset[row, (which(c(1,2) != this_cat))] <- 0
-            }
-          }
-          complete_data[, colnames(subset)] <- subset
-        }
-        
-        #---- **post process: binary vars ----
-        waves <- seq(4, 9)
-        vars <- c("memrye_impute", "stroke_impute", "hearte_impute", 
-                  "lunge_impute", "cancre_impute", "hibpe_impute", 
-                  "diabe_impute")
-        cols <- apply(expand.grid("r", waves, vars), 1, paste, collapse = "")
-        
-        #fix impossible probs
-        subset <- complete_data[, cols]
-        subset[subset < 0] <- 0
-        subset[subset > 1] <- 1
-        
-        for(col in cols){
-          complete_data[, col] <- 
             rbinom(n = nrow(complete_data), size = 1, 
                    prob = unlist(subset[, col]))
         }
+      }
+      
+      #---- **post process: dummy vars ----
+      for(wave in seq(4, 9)){
+        vars <- c("married_partnered", "not_married_partnered", "widowed")
+        cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
+        subset <- complete_data[, cols]
+        
+        #fix impossible probs
+        subset[subset < 0] <- 0
+        subset[subset > 1] <- 1
+        
+        for(column in 1:3){
+          subset[, column] <- 
+            rbinom(n = nrow(subset), size = 1, prob = subset[, column])
+        }
+        
+        subset[, "sum"] <- rowSums(subset, na.rm = TRUE)
+        
+        for(row in 1:nrow(subset)){
+          if(subset[row, "sum"] == 1){
+            next
+          } else if(subset[row, "sum"] %in% c(0, 3)){
+            this_cat <- sample(c(1, 2, 3), size = 1)
+            subset[row, ] <- 0
+            subset[row, this_cat] <- 1
+          } else{
+            which_cols <- which(subset[row, ] == 1)
+            this_cat <- sample(which_cols, size = 1)
+            subset[row, ] <- 0
+            subset[row, this_cat] <- 1
+          }
+        }
+        complete_data[, colnames(subset[, 1:3])] <- subset[, 1:3]
       }
       
       #---- **post-process: exposures ----

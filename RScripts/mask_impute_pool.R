@@ -293,8 +293,8 @@ mask_impute_pool <-
     model_list <- vector(mode = "list", length = length(exposures)) %>% 
       set_names(exposures)
     
-    #for(i in 1:(as.numeric(sub("%","", mask_percent)))){
-    for(i in 1:2){
+    for(i in 1:(as.numeric(sub("%","", mask_percent)))){
+    #for(i in 1:2){
       complete_data <- complete(data_imputed, action = i)
       
       if(method == "LMM"){

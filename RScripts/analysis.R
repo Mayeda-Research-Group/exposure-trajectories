@@ -192,7 +192,7 @@ all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 
 #---- create one set of imputations for plot ----
 start <- Sys.time()
-single_run <- apply(all_combos[1, ], 1, function(x)
+single_run <- apply(all_combos[2:nrow(all_combos), ], 1, function(x)
   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
                    mechanism = x["mechanisms"],
                    method = x["methods"],

@@ -22,7 +22,7 @@ set.seed(20200819)
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))
@@ -183,19 +183,22 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
   group_by(Exposure) %>% slice(n = 1)
 
-# #---- all combos ----
-# all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
-#   mutate("mask_percent" = paste0(100*mask_props, "%"))
+#---- all combos ----
+methods <- c("JMVN")
+mechanisms <- c("MCAR", "MAR", "MNAR")
+mask_props <- c(.10, 0.20, 0.30)
+all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
+  mutate("mask_percent" = paste0(100*mask_props, "%"))
 
-# #---- create one set of imputations for plot ----
-# start <- Sys.time()
-# single_run <- apply(all_combos[1, ], 1, function(x)
-#   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
-#                    mechanism = x["mechanisms"],
-#                    method = x["methods"],
-#                    mask_percent = x["mask_percent"], truth = truth,
-#                    save = "yes"))
-# end <- Sys.time() - start
+#---- create one set of imputations for plot ----
+start <- Sys.time()
+single_run <- apply(all_combos[2:nrow(all_combos), ], 1, function(x)
+  mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
+                   mechanism = x["mechanisms"],
+                   method = x["methods"],
+                   mask_percent = x["mask_percent"], beta_0_table = beta_0_table, 
+                   beta_mat = beta_mat, truth = truth, save = "yes"))
+end <- Sys.time() - start
 
 #---- create cluster ----
 plan(multisession, gc = FALSE, workers = 10)
@@ -211,13 +214,13 @@ for(i in which(!table_effect_ests$Method == "Truth")){
     
     multi_runs <- 
       future_replicate(num_runs, 
-                mask_impute_pool(CESD_data_wide, exposures, 
-                                 mechanism = mechanism, method = method, 
-                                 mask_percent = mask_percent, 
-                                 beta_mat = beta_mat, 
-                                 beta_0_table = beta_0_table,
-                                 truth = truth, save = "no"), 
-                simplify = FALSE)
+                       mask_impute_pool(CESD_data_wide, exposures, 
+                                        mechanism = mechanism, method = method, 
+                                        mask_percent = mask_percent, 
+                                        beta_mat = beta_mat, 
+                                        beta_0_table = beta_0_table,
+                                        truth = truth, save = "no"), 
+                       simplify = FALSE)
     #Formatting data
     formatted <- do.call(rbind, multi_runs)
     

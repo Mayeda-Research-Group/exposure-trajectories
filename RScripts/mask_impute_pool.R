@@ -198,21 +198,6 @@ mask_impute_pool <-
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
-      
-      # data_wide %<>% 
-      #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-      #                    paste0("r", seq(4, 9), "not_married_partnered"),
-      #                    paste0("r", seq(4, 9), "widowed"),
-      #                    paste0("r", seq(4, 9), "memrye_impute"), 
-      #                    paste0("r", seq(4, 9), "stroke_impute"),
-      #                    paste0("r", seq(4, 9), "hearte_impute"),
-      #                    paste0("r", seq(4, 9), "lunge_impute"), 
-      #                    paste0("r", seq(4, 9), "cancre_impute"), 
-      #                    paste0("r", seq(4, 9), "hibpe_impute"), 
-      #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-      #                    "hispanic", "black", "other", "female", "death2018")), 
-      #             as.factor)
-      
       #start <- Sys.time()
       data_imputed <- mice(data = data_wide, 
                            m = as.numeric(sub("%","", mask_percent)),

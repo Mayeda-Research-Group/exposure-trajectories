@@ -4,7 +4,8 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
+       "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools", 
+       "miceFast")
 devtools::install_github(repo = "amices/mice")
 library(mice)
 

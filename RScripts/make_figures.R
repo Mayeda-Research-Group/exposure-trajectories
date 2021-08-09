@@ -19,6 +19,11 @@ options(scipen = 999)
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
+#---- color palette ----
+# The palette with grey:
+cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
+               "#D55E00", "#CC79A7")
+
 #---- Figure 2: results ----
 #---- **read in data ----
 methods <- c("JMVN", "PMM", "FCS")
@@ -53,7 +58,7 @@ ggplot(results %>% filter(Type == "MNAR"),
                 position = position_dodge(0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
+  scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 

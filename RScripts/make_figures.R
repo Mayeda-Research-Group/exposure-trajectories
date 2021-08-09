@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "ghibli", "openxlsx", "magrittr")
+p_load("here", "tidyverse", "openxlsx", "magrittr")
 
 #No scientific notation
 options(scipen = 999)

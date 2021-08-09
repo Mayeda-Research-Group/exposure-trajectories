@@ -110,9 +110,9 @@ mask_impute_pool <-
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
-                     "10%" = c(20, 20, 20, 5),
-                     "20%" = c(25, 20, 20, 5),
-                     "30%" = c(25, 25, 25, 5)) %>% 
+                     "10%" = c(10, 10, 10, 5),
+                     "20%" = c(15, 10, 10, 5),
+                     "30%" = c(15, 15, 15, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
@@ -126,6 +126,7 @@ mask_impute_pool <-
                            method = "norm", predictorMatrix = predict, 
                            where = is.na(data_wide), 
                            blocks = as.list(rownames(predict)), seed = 20210126)
+      
       #stop <- Sys.time() - start
       
       # #look at convergence
@@ -223,6 +224,28 @@ mask_impute_pool <-
                            blocks = as.list(rownames(predict)), 
                            seed = 20210126)
       #stop <- Sys.time() - start
+      
+      #---- TEST DIFF ----
+      fast_PMM <- function(predictor_matrix, data_wide, m, maxit){
+        
+        #start by filling in other covariates with the mean
+        #keeps track of where you need to impute
+        where <- is.na(data_wide)  
+        avgs <- colMeans(data_wide[, -1], na.rm = TRUE) %>% as.data.frame()
+        
+        #plug in averages to missing slots in data_wide
+        #
+        #make list to store imputed matrices
+        for(run in 1:m){
+        for(var in rownames(predict)){
+          wherever where = 1
+        }
+          list[m] <- imputed matrix
+        }
+        
+        return(list(imputed matrices))
+        
+      }
       
       # #look at convergence
       # #10% missing needs maxit = 20

@@ -190,15 +190,15 @@ mask_props <- c(.10, 0.20, 0.30)
 all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
   mutate("mask_percent" = paste0(100*mask_props, "%"))
 
-#---- create one set of imputations for plot ----
-start <- Sys.time()
-single_run <- apply(all_combos[2:nrow(all_combos), ], 1, function(x)
-  mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
-                   mechanism = x["mechanisms"],
-                   method = x["methods"],
-                   mask_percent = x["mask_percent"], beta_0_table = beta_0_table, 
-                   beta_mat = beta_mat, truth = truth, save = "yes"))
-end <- Sys.time() - start
+# #---- create one set of imputations for plot ----
+# start <- Sys.time()
+# single_run <- apply(all_combos[2:nrow(all_combos), ], 1, function(x)
+#   mask_impute_pool(data_wide = CESD_data_wide, exposures = exposures,
+#                    mechanism = x["mechanisms"],
+#                    method = x["methods"],
+#                    mask_percent = x["mask_percent"], beta_0_table = beta_0_table, 
+#                    beta_mat = beta_mat, truth = truth, save = "yes"))
+# end <- Sys.time() - start
 
 #---- create cluster ----
 plan(multisession, gc = FALSE, workers = 10)

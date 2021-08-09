@@ -1,4 +1,4 @@
-fast_PMM <- function(predictor_matrix, data_wide, m, maxit){
+fast_impute <- function(predictor_matrix, data_wide, method, m, maxit){
   #---- where matrix ----
   where <- is.na(data_wide)*1  
   impute_vars <- rownames(predictor_matrix)
@@ -43,6 +43,27 @@ fast_PMM <- function(predictor_matrix, data_wide, m, maxit){
       }
     }
     data_wide[, colnames(subset[, 1:3])] <- subset[, 1:3]
+  }
+  
+  #---- imputation ----
+  for(run in 1:m){
+    for(iter in 1:maxit){
+      for(var in impute_vars){
+        data_wide[where[, var] == 1, var] <- NA
+        test <- 
+          fill_NA_N(data_wide, model = "pmm", posit_y = var, 
+                    posit_x = names(
+                      predictor_matrix[var, 
+                                       which(predictor_matrix[var, ] == 1)]))
+        
+        test_mice <- mice(data = data_wide, 
+                          m = 1, maxit = 5, method = "pmm", donors = 5, 
+                          predictorMatrix = predict, 
+                          where = is.na(data_wide), 
+                          blocks = as.list(rownames(predict)), 
+                          seed = 20210126)
+      }
+    }
   }
   
   

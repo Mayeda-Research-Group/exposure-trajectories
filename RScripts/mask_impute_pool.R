@@ -210,28 +210,6 @@ mask_impute_pool <-
                            seed = 20210126)
       #stop <- Sys.time() - start
       
-      #---- TEST DIFF ----
-      fast_PMM <- function(predictor_matrix, data_wide, m, maxit){
-        
-        #start by filling in other covariates with the mean
-        #keeps track of where you need to impute
-        where <- is.na(data_wide)  
-        avgs <- colMeans(data_wide[, -1], na.rm = TRUE) %>% as.data.frame()
-        
-        #plug in averages to missing slots in data_wide
-        #
-        #make list to store imputed matrices
-        for(run in 1:m){
-        for(var in rownames(predict)){
-          wherever where = 1
-        }
-          list[m] <- imputed matrix
-        }
-        
-        return(list(imputed matrices))
-        
-      }
-      
       # #look at convergence
       # #10% missing needs maxit = 20
       # #20% missing needs maxit = 20

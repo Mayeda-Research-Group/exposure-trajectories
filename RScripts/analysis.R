@@ -34,7 +34,7 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) 
+           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
 
 for(wave in seq(4, 9)){
   CESD_data_wide %<>% 

@@ -81,10 +81,12 @@ fast_impute <-
                               var, which(predictor_matrix[var, ] == 1)]))))
           } else{
             imputed_data[, var] <- 
-              as.numeric(fill_NA(imputed_data, model = "lm_bayes", posit_y = var, 
-                      posit_x = names(
-                        predictor_matrix[
-                          var, which(predictor_matrix[var, ] == 1)])))
+              as.numeric(fill_NA(imputed_data, model = "lm_bayes", 
+                                 posit_y = var, 
+                                 posit_x = names(
+                                   predictor_matrix[
+                                     var, 
+                                     which(predictor_matrix[var, ] == 1)])))
           }
           
           if(exists("trace_data")){

@@ -1,4 +1,5 @@
-fast_impute <- function(predictor_matrix, data_wide, method, m, maxit){
+fast_impute <- 
+  function(predictor_matrix, data_wide, method, m, maxit, save = "no"){
   #---- where matrix ----
   where <- is.na(data_wide)*1  
   impute_vars <- rownames(predictor_matrix)
@@ -45,54 +46,59 @@ fast_impute <- function(predictor_matrix, data_wide, method, m, maxit){
     data_wide[, colnames(subset[, 1:3])] <- subset[, 1:3]
   }
   
+  #---- pre-allocate chain storage ---- 
+  if(save == "yes"){
+    expand.grid()
+  }
+  
   #---- imputation loop ----
   for(run in 1:m){
     for(iter in 1:maxit){
       for(var in impute_vars){
         data_wide[where[, var] == 1, var] <- NA
-        # #---- **PMM ----
-        # if(method == "PMM"){
-        #   test <-
-        #     fill_NA_N(data_wide, model = "pmm", posit_y = var,
-        #               posit_x = names(
-        #                 predictor_matrix[var,
-        #                                  which(predictor_matrix[var, ] == 1)]))
-        #   
-        #   test_mice <- mice(data = data_wide,
-        #                     m = 1, maxit = 5, method = "pmm", donors = 5,
-        #                     predictorMatrix = predict,
-        #                     where = is.na(data_wide),
-        #                     blocks = as.list(rownames(predict)),
-        #                     seed = 20210126)
-        # }
-        
-        #---- **JMVN ----
-        if(method == "JMVN"){
-          test <-
-            fill_NA(data_wide, model = "lm_pred", posit_y = var,
-                      posit_x = names(
-                        predictor_matrix[var,
-                                         which(predictor_matrix[var, ] == 1)]))
+        #---- **PMM ----
+        if(method == "PMM"){
+          #fastMice will only do PMM is the outcome variable is factored
+          data_wide[, var] <- as.factor(data_wide[, var])
           
+          data_wide[, var] <- 
+            as.numeric(as.character(
+              fill_NA_N(data_wide, model = "pmm", posit_y = var, k = 10,
+                        posit_x = names(
+                          predictor_matrix[
+                            var, which(predictor_matrix[var, ] == 1)]))))
         }
+        
+        
+      }
+      
+      #---- **JMVN ----
+      if(method == "JMVN"){
+        test_JMVN <-
+          fill_NA(data_wide, model = "lm_bayes", posit_y = var,
+                  posit_x = names(
+                    predictor_matrix[var,
+                                     which(predictor_matrix[var, ] == 1)]))
+        
       }
     }
   }
-  
-  
-  
-  
-  
-  
-  
-  #make list to store imputed matrices
-  for(run in 1:m){
-    for(var in rownames(predict)){
-      wherever where = 1
-    }
-    list[m] <- imputed matrix
+}
+
+
+
+
+
+
+
+#make list to store imputed matrices
+for(run in 1:m){
+  for(var in rownames(predict)){
+    wherever where = 1
   }
-  
-  return(list(imputed matrices))
-  
+  list[m] <- imputed matrix
+}
+
+return(list(imputed matrices))
+
 }

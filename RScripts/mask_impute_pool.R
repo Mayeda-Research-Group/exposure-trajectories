@@ -206,17 +206,15 @@ mask_impute_pool <-
       #---- ****PMM ----
       #Predictive Mean Matching
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, 
-                           m = as.numeric(sub("%","", mask_percent)),
-                           maxit = max_it[method, mask_percent],
-                           #m = 2, maxit = 5,
-                           method = "pmm", donors = 5, 
-                           predictorMatrix = predict, 
-                           where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), 
-                           seed = 20210126)
+      data_imputed <- fast_impute(predictor_matrix = predict, data_wide, method, 
+                                  mechanism, mask_percent, 
+                                  #m = 2, maxit = 5,
+                                  m = as.numeric(sub("%","", mask_percent)),
+                                  maxit = max_it[method, mask_percent],
+                                  save = save)
       #stop <- Sys.time() - start
       
+      #from the mice package
       # #look at convergence
       # #10% missing needs maxit = 20
       # #20% missing needs maxit = 20
@@ -225,7 +223,6 @@ mask_impute_pool <-
       
     } else if(method == "LMM"){
       #---- ****LMM ----
-      #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
                            # m = 2, maxit = 5,

@@ -9,13 +9,14 @@ mask_impute_pool <-
                  "Type" = mechanism, "capture_truth" = NA)
     
     #---- create incomplete data ----
-    data_wide <- mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
+    data_wide <- 
+      mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
     
     time_updated_vars <- c("married_partnered", "not_married_partnered", 
-                           "widowed", "drinking_cat", 
-                           "memrye_impute", "stroke_impute", "hearte_impute", 
-                           "lunge_impute", "cancre_impute", "hibpe_impute", 
-                           "diabe_impute", "cesd", "BMI")
+                           "widowed", "drinking_cat", "memrye_impute", 
+                           "stroke_impute", "hearte_impute", "lunge_impute", 
+                           "cancre_impute", "hibpe_impute", "diabe_impute", 
+                           "cesd", "BMI")
     
     time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker", 
@@ -80,18 +81,12 @@ mask_impute_pool <-
         set_rownames(blocks) %>% 
         set_colnames(colnames(data_wide))
       
-      #Don't use these as predictors
-      predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
-                  #paste0("r", seq(4, 9), "married_partnered"),
-                  paste0("r", seq(4, 9), "shlt"),"age_death_y", "white", 
-                  "observed", "r3cesd", "r4cesd_elevated", "r9cesd_elevated", 
-                  "avg_cesd", "avg_cesd_elevated", "total_elevated_cesd")] <- 0
-      
       #---- ****time-updated var models ----
       for(var in time_updated_vars){
         #can't predict itself
         predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
           (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+        
         
         #can't predict in the same wave (all missing)
         predictors <- time_updated_vars[which(time_updated_vars != var)]
@@ -106,28 +101,41 @@ mask_impute_pool <-
                 paste0("r", seq(4, 9), "age_y_int")] <- 
           diag(x = 1, nrow = 6, ncol = 6)
       }
+      
+      #Don't use these as predictors
+      predict[, c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"), 
+                  paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
+                  paste0("r", seq(3, 9), "shlt"), "age_death_y", 
+                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+                  "avg_cesd", "avg_cesd_elevated", "observed", 
+                  paste0("r", seq(4, 9), "cesd_death2018"), 
+                  paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
+      
+      # #Sanity check
+      # colSums(predict)
     }
     
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
-                     "10%" = c(20, 20, 20, 5),
-                     "20%" = c(25, 20, 20, 5),
-                     "30%" = c(25, 25, 25, 5)) %>% 
+                     "10%" = c(10, 10, 10, 5),
+                     "20%" = c(15, 10, 10, 5),
+                     "30%" = c(15, 15, 15, 5)) %>% 
       column_to_rownames("Method")
     
     #---- ****JMVN ----
     if(method == "JMVN"){
       #Joint multivariate normal
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, 
-                           #m = 2, maxit = 5,
-                           m = as.numeric(sub("%","", mask_percent)),
-                           maxit = max_it[method, mask_percent],
-                           method = "norm", predictorMatrix = predict, 
-                           where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), seed = 20210126)
+      data_imputed <- fast_impute(predictor_matrix = predict, data_wide, method, 
+                                  mechanism, mask_percent, 
+                                  #m = 2, maxit = 5,
+                                  m = as.numeric(sub("%","", mask_percent)),
+                                  maxit = max_it[method, mask_percent],
+                                  save = save)
+      
       #stop <- Sys.time() - start
       
+      #this is from mice package
       # #look at convergence
       #   #10% missing needs maxit = 20
       #   #20% missing needs maxit = 20
@@ -197,33 +205,16 @@ mask_impute_pool <-
     } else if(method == "PMM"){
       #---- ****PMM ----
       #Predictive Mean Matching
-      
-      # data_wide %<>% 
-      #   mutate_at(vars(c(paste0("r", seq(4, 9), "married_partnered"),
-      #                    paste0("r", seq(4, 9), "not_married_partnered"),
-      #                    paste0("r", seq(4, 9), "widowed"),
-      #                    paste0("r", seq(4, 9), "memrye_impute"), 
-      #                    paste0("r", seq(4, 9), "stroke_impute"),
-      #                    paste0("r", seq(4, 9), "hearte_impute"),
-      #                    paste0("r", seq(4, 9), "lunge_impute"), 
-      #                    paste0("r", seq(4, 9), "cancre_impute"), 
-      #                    paste0("r", seq(4, 9), "hibpe_impute"), 
-      #                    paste0("r", seq(4, 9), "diabe_impute"), "smoker", 
-      #                    "hispanic", "black", "other", "female", "death2018")), 
-      #             as.factor)
-      
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, 
-                           m = as.numeric(sub("%","", mask_percent)),
-                           maxit = max_it[method, mask_percent],
-                           #m = 2, maxit = 5,
-                           method = "pmm", donors = 5, 
-                           predictorMatrix = predict, 
-                           where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), 
-                           seed = 20210126)
+      data_imputed <- fast_impute(predictor_matrix = predict, data_wide, method, 
+                                  mechanism, mask_percent, 
+                                  #m = 2, maxit = 5,
+                                  m = as.numeric(sub("%","", mask_percent)),
+                                  maxit = max_it[method, mask_percent],
+                                  save = save)
       #stop <- Sys.time() - start
       
+      #from the mice package
       # #look at convergence
       # #10% missing needs maxit = 20
       # #20% missing needs maxit = 20
@@ -232,7 +223,6 @@ mask_impute_pool <-
       
     } else if(method == "LMM"){
       #---- ****LMM ----
-      #impute with Bayesian longitudinal model (allowing for heteroskedasticity)
       #start <- Sys.time()
       data_imputed <- mice(data = data_long, 
                            # m = 2, maxit = 5,
@@ -294,8 +284,13 @@ mask_impute_pool <-
       set_names(exposures)
     
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
-    #for(i in 1:2){
-      complete_data <- complete(data_imputed, action = i)
+      #for(i in 1:2){
+      #---- **complete data ----
+      if(method %in% c("JMVN", "PMM")){
+        complete_data <- data_imputed[[i]]
+      } else{
+        complete_data <- complete(data_imputed, action = i)
+      }
       
       if(method == "LMM"){
         #---- **LMM: long --> wide ----
@@ -318,7 +313,6 @@ mask_impute_pool <-
         subset <- complete_data[, cols]
         subset[subset < 0] <- 0
         subset[subset > 1] <- 1
-        subset[is.na(subset)] <- 0.5
         
         for(col in cols){
           complete_data[, col] <- 

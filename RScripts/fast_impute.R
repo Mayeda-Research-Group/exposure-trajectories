@@ -133,10 +133,10 @@ fast_impute <-
     return(impute_list)
   }
 
-#---- function testing ----
-test <- fast_impute(predictor_matrix = predict, data_wide, method = "JMVN",
-                    mechanism = "MNAR", mask_percent = "10%", m = 2, maxit = 5,
-                    save = "yes")
+# #---- function testing ----
+# test <- fast_impute(predictor_matrix = predict, data_wide, method = "JMVN",
+#                     mechanism = "MNAR", mask_percent = "10%", m = 2, maxit = 5,
+#                     save = "yes")
 
 
 

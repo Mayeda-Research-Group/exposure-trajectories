@@ -54,21 +54,30 @@ fast_impute <-
         set_colnames(apply(expand.grid(seq(1:m), seq(1:maxit), seq(1, 2)), 
                            1, paste, collapse = ":")) %>% 
         set_rownames(impute_vars)
+      
+      write_csv(where, 
+                file = here::here("MI datasets", 
+                                  paste0(tolower(method), "_", tolower(mechanism), 
+                                         as.numeric(sub("%","", mask_percent)))))
     }
+    
+    #---- pre-allocate list of imputed datasets ----
+    impute_list <- list()
     
     #---- imputation loop ----
     for(run in 1:m){
+      imputed_data <- data_wide
       for(iter in 1:maxit){
         for(var in impute_vars){
-          data_wide[where[, var] == 1, var] <- NA
+          imputed_data[where[, var] == 1, var] <- NA
           #---- **PMM ----
           if(method == "PMM"){
             #fastMice will only do PMM is the outcome variable is factored
-            data_wide[, var] <- as.factor(data_wide[, var])
+            imputed_data[, var] <- as.factor(imputed_data[, var])
             
-            data_wide[, var] <- 
+            imputed_data[, var] <- 
               as.numeric(as.character(
-                fill_NA_N(data_wide, model = "pmm", posit_y = var, k = 10,
+                fill_NA_N(imputed_data, model = "pmm", posit_y = var, k = 10,
                           posit_x = names(
                             predictor_matrix[
                               var, which(predictor_matrix[var, ] == 1)]))))
@@ -76,28 +85,35 @@ fast_impute <-
             if(exists("trace")){
               #in the third slot: 1 = mean, 2 = sd
               trace[var, paste0(c(run, iter, 1), collapse = ":")] <- 
-                mean(data_wide[where[, var] == 1, var])
+                mean(imputed_data[where[, var] == 1, var])
               trace[var, paste0(c(run, iter, 2), collapse = ":")] <- 
-                sd(data_wide[where[, var] == 1, var])
+                sd(imputed_data[where[, var] == 1, var])
             }
           }
         }
       }
+      impute_list[[run]] <- imputed_data
     }
-        
-  #       #---- **JMVN ----
-  #       if(method == "JMVN"){
-  #         test_JMVN <-
-  #           fill_NA(data_wide, model = "lm_bayes", posit_y = var,
-  #                   posit_x = names(
-  #                     predictor_matrix[var,
-  #                                      which(predictor_matrix[var, ] == 1)]))
-  #         
-  #       }
-  #     }
-  #   }
-  # }
-  # 
+    
+    #---- save results ----
+    
+    #---- return ----
+    return(impute_list)
+  }
+
+#       #---- **JMVN ----
+#       if(method == "JMVN"){
+#         test_JMVN <-
+#           fill_NA(data_wide, model = "lm_bayes", posit_y = var,
+#                   posit_x = names(
+#                     predictor_matrix[var,
+#                                      which(predictor_matrix[var, ] == 1)]))
+#         
+#       }
+#     }
+#   }
+# }
+# 
 
 
 

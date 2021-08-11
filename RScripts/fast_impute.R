@@ -114,7 +114,8 @@ fast_impute <-
                                   paste0("where_", tolower(method), "_", 
                                          tolower(mechanism), 
                                          as.numeric(sub("%","", 
-                                                        mask_percent)))))
+                                                        mask_percent)), 
+                                         ".csv")))
       
       #trace_data plots data
       write_csv(as.data.frame(trace_data), 
@@ -122,7 +123,8 @@ fast_impute <-
                                   paste0("trace_data_", tolower(method), "_", 
                                          tolower(mechanism), 
                                          as.numeric(sub("%","", 
-                                                        mask_percent)))))
+                                                        mask_percent)),
+                                         ".csv")))
     }
     
     #---- return ----

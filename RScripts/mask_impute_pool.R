@@ -9,7 +9,8 @@ mask_impute_pool <-
                  "Type" = mechanism, "capture_truth" = NA)
     
     #---- create incomplete data ----
-    data_wide <- mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
+    data_wide <- 
+      mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
     
     time_updated_vars <- c("married_partnered", "not_married_partnered", 
                            "widowed", "drinking_cat", 
@@ -81,11 +82,13 @@ mask_impute_pool <-
         set_colnames(colnames(data_wide))
       
       #Don't use these as predictors
-      predict[, c("HHIDPN", paste0("r", seq(3, 9), "conde_impute"),
-                  #paste0("r", seq(4, 9), "married_partnered"),
-                  paste0("r", seq(4, 9), "shlt"),"age_death_y", "white", 
-                  "observed", "r3cesd", "r4cesd_elevated", "r9cesd_elevated", 
-                  "avg_cesd", "avg_cesd_elevated", "total_elevated_cesd")] <- 0
+      predict[, c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"), 
+                  paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
+                  paste0("r", seq(3, 9), "shlt"), "age_death_y", 
+                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+                  "avg_cesd", "avg_cesd_elevated", "observed", 
+                  paste0("r", seq(4, 9), "cesd_death2018"), 
+                  paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
       
       #---- ****time-updated var models ----
       for(var in time_updated_vars){
@@ -280,7 +283,7 @@ mask_impute_pool <-
       set_names(exposures)
     
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
-    #for(i in 1:2){
+      #for(i in 1:2){
       complete_data <- complete(data_imputed, action = i)
       
       if(method == "LMM"){

@@ -287,6 +287,7 @@ mask_impute_pool <-
       set_names(exposures)
     
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
+      #for(i in 1:2){
       #---- **complete data ----
       if(method %in% c("JMVN", "PMM")){
         complete_data <- data_imputed[[i]]

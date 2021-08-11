@@ -13,10 +13,10 @@ mask_impute_pool <-
       mask(data_wide, mechanism, mask_percent, beta_0_table, beta_mat)
     
     time_updated_vars <- c("married_partnered", "not_married_partnered", 
-                           "widowed", "drinking_cat", 
-                           "memrye_impute", "stroke_impute", "hearte_impute", 
-                           "lunge_impute", "cancre_impute", "hibpe_impute", 
-                           "diabe_impute", "cesd", "BMI")
+                           "widowed", "drinking_cat", "memrye_impute", 
+                           "stroke_impute", "hearte_impute", "lunge_impute", 
+                           "cancre_impute", "hibpe_impute", "diabe_impute", 
+                           "cesd", "BMI")
     
     time_invariant_vars <- c("ed_cat", "black", "hispanic", "other", 
                              "female", "survtime", "death2018", "smoker", 
@@ -81,20 +81,12 @@ mask_impute_pool <-
         set_rownames(blocks) %>% 
         set_colnames(colnames(data_wide))
       
-      #Don't use these as predictors
-      predict[, c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"), 
-                  paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
-                  paste0("r", seq(3, 9), "shlt"), "age_death_y", 
-                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-                  "avg_cesd", "avg_cesd_elevated", "observed", 
-                  paste0("r", seq(4, 9), "cesd_death2018"), 
-                  paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
-      
       #---- ****time-updated var models ----
       for(var in time_updated_vars){
         #can't predict itself
         predict[paste0("r", seq(4, 9), var), paste0("r", seq(4, 9), var)] <- 
           (diag(x = 1, nrow = 6, ncol = 6) == 0)*1
+        
         
         #can't predict in the same wave (all missing)
         predictors <- time_updated_vars[which(time_updated_vars != var)]
@@ -109,6 +101,18 @@ mask_impute_pool <-
                 paste0("r", seq(4, 9), "age_y_int")] <- 
           diag(x = 1, nrow = 6, ncol = 6)
       }
+      
+      #Don't use these as predictors
+      predict[, c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"), 
+                  paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
+                  paste0("r", seq(3, 9), "shlt"), "age_death_y", 
+                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
+                  "avg_cesd", "avg_cesd_elevated", "observed", 
+                  paste0("r", seq(4, 9), "cesd_death2018"), 
+                  paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
+      
+      # #Sanity check
+      # colSums(predict)
     }
     
     #---- **run imputation ----
@@ -122,16 +126,16 @@ mask_impute_pool <-
     if(method == "JMVN"){
       #Joint multivariate normal
       #start <- Sys.time()
-      data_imputed <- mice(data = data_wide, 
-                           #m = 2, maxit = 5,
-                           m = as.numeric(sub("%","", mask_percent)),
-                           maxit = max_it[method, mask_percent],
-                           method = "norm", predictorMatrix = predict, 
-                           where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)), seed = 20210126)
+      data_imputed <- fast_impute(predictor_matrix = predict, data_wide, method, 
+                                  mechanism, mask_percent, 
+                                  m = 2, maxit = 5,
+                                  # m = as.numeric(sub("%","", mask_percent)), 
+                                  # maxit = max_it[method, mask_percent], 
+                                  save = save)
       
       #stop <- Sys.time() - start
       
+      #this is from mice package
       # #look at convergence
       #   #10% missing needs maxit = 20
       #   #20% missing needs maxit = 20

@@ -1,6 +1,4 @@
-fast_impute <- 
-  function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, 
-           maxit, save = "no"){
+fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, maxit, save = "no"){
     #---- where matrix ----
     where <- is.na(data_wide)*1  
     impute_vars <- rownames(predictor_matrix)
@@ -102,7 +100,7 @@ fast_impute <-
                                        as.numeric(sub("%","", 
                                                       mask_percent)))))
       #where matrix
-      write_csv(where, 
+      write_csv(as.data.frame(where), 
                 file = here::here("MI datasets", 
                                   paste0("where_", tolower(method), "_", 
                                          tolower(mechanism), 
@@ -110,14 +108,13 @@ fast_impute <-
                                                         mask_percent)))))
       
       #trace plots data
-      write_csv(trace, 
+      write_csv(as.data.frame(trace), 
                 file = here::here("MI datasets", 
                                   paste0("trace_", tolower(method), "_", 
                                          tolower(mechanism), 
                                          as.numeric(sub("%","", 
                                                         mask_percent)))))
     }
-    
     #---- return ----
     return(impute_list)
   }

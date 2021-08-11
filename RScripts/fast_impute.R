@@ -103,13 +103,6 @@ fast_impute <-
     
     #---- save results ----
     if(save == "yes"){
-      #imputation sets
-      saveRDS(impute_list, 
-              file = here::here("MI datasets", 
-                                paste0(tolower(method), "_", 
-                                       tolower(mechanism), 
-                                       as.numeric(sub("%","", 
-                                                      mask_percent)))))
       #where matrix
       write_csv(as.data.frame(where), 
                 file = here::here("MI datasets", 

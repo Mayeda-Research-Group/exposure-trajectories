@@ -315,7 +315,6 @@ mask_impute_pool <-
         subset <- complete_data[, cols]
         subset[subset < 0] <- 0
         subset[subset > 1] <- 1
-        subset[is.na(subset)] <- 0.5
         
         for(col in cols){
           complete_data[, col] <- 

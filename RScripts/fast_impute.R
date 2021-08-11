@@ -1,4 +1,7 @@
-fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, maxit, save = "no"){
+fast_impute <- 
+  function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, 
+           maxit, save = "no"){
+    
     #---- where matrix ----
     where <- is.na(data_wide)*1  
     impute_vars <- rownames(predictor_matrix)
@@ -50,7 +53,7 @@ fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_per
     if(save == "yes"){
       #colnames are imputation number:iteration number:stat number
       #stat number: 1 = mean; 2 = sd
-      trace <- matrix(nrow = length(impute_vars), ncol = 2*m*maxit) %>% 
+      trace_data <- matrix(nrow = length(impute_vars), ncol = 2*m*maxit) %>% 
         set_colnames(apply(expand.grid(seq(1:m), seq(1:maxit), seq(1, 2)), 
                            1, paste, collapse = ":")) %>% 
         set_rownames(impute_vars)
@@ -76,14 +79,20 @@ fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_per
                           posit_x = names(
                             predictor_matrix[
                               var, which(predictor_matrix[var, ] == 1)]))))
-            
-            if(exists("trace")){
-              #in the third slot: 1 = mean, 2 = sd
-              trace[var, paste0(c(run, iter, 1), collapse = ":")] <- 
-                mean(imputed_data[where[, var] == 1, var])
-              trace[var, paste0(c(run, iter, 2), collapse = ":")] <- 
-                sd(imputed_data[where[, var] == 1, var])
-            }
+          } else{
+            imputed_data[, var] <- 
+              as.numeric(fill_NA(imputed_data, model = "lm_bayes", posit_y = var, 
+                      posit_x = names(
+                        predictor_matrix[
+                          var, which(predictor_matrix[var, ] == 1)])))
+          }
+          
+          if(exists("trace_data")){
+            #in the third slot: 1 = mean, 2 = sd
+            trace_data[var, paste0(c(run, iter, 1), collapse = ":")] <- 
+              mean(imputed_data[where[, var] == 1, var])
+            trace_data[var, paste0(c(run, iter, 2), collapse = ":")] <- 
+              sd(imputed_data[where[, var] == 1, var])
           }
         }
       }
@@ -91,7 +100,7 @@ fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_per
     }
     
     #---- save results ----
-    if(save = "yes"){
+    if(save == "yes"){
       #imputation sets
       saveRDS(impute_list, 
               file = here::here("MI datasets", 
@@ -107,28 +116,36 @@ fast_impute <- function(predictor_matrix, data_wide, method, mechanism, mask_per
                                          as.numeric(sub("%","", 
                                                         mask_percent)))))
       
-      #trace plots data
-      write_csv(as.data.frame(trace), 
+      #trace_data plots data
+      write_csv(as.data.frame(trace_data), 
                 file = here::here("MI datasets", 
-                                  paste0("trace_", tolower(method), "_", 
+                                  paste0("trace_data_", tolower(method), "_", 
                                          tolower(mechanism), 
                                          as.numeric(sub("%","", 
                                                         mask_percent)))))
     }
+    
     #---- return ----
     return(impute_list)
   }
 
-#       #---- **JMVN ----
-#       if(method == "JMVN"){
-#         test_JMVN <-
-#           fill_NA(data_wide, model = "lm_bayes", posit_y = var,
-#                   posit_x = names(
-#                     predictor_matrix[var,
-#                                      which(predictor_matrix[var, ] == 1)]))
-#         
-#       }
-#     }
-#   }
-# }
-# 
+#---- function testing ----
+test <- fast_impute(predictor_matrix = predict, data_wide, method = "JMVN",
+                    mechanism = "MNAR", mask_percent = "10%", m = 2, maxit = 5,
+                    save = "yes")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

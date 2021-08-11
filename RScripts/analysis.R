@@ -4,7 +4,8 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "broom", "ResourceSelection", 
-       "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
+       "survival", "openxlsx", "lubridate", "future.apply", "lme4", "devtools", 
+       "miceFast")
 devtools::install_github(repo = "amices/mice")
 library(mice)
 
@@ -27,13 +28,14 @@ path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))
 source(here::here("RScripts", "mask_impute_pool.R"))
+source(here::here("RScripts", "fast_impute.R"))
 
 #---- read in analytical sample ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) 
+           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
 
 for(wave in seq(4, 9)){
   CESD_data_wide %<>% 
@@ -189,7 +191,7 @@ truth <- table_effect_ests %>% filter(Method == "Truth") %>%
 # mask_props <- c(.10, 0.20, 0.30)
 # all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
 #   mutate("mask_percent" = paste0(100*mask_props, "%"))
-# 
+
 # #---- create one set of imputations for plot ----
 # start <- Sys.time()
 # single_run <- apply(all_combos[2:nrow(all_combos), ], 1, function(x)

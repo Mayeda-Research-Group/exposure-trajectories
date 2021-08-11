@@ -28,6 +28,7 @@ path_to_dropbox <- "~/Dropbox/Projects"
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))
 source(here::here("RScripts", "mask_impute_pool.R"))
+source(here::here("RScripts", "fast_impute.R"))
 
 #---- read in analytical sample ----
 CESD_data_wide <- 

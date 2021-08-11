@@ -128,9 +128,9 @@ mask_impute_pool <-
       #start <- Sys.time()
       data_imputed <- fast_impute(predictor_matrix = predict, data_wide, method, 
                                   mechanism, mask_percent, 
-                                  m = 2, maxit = 5,
-                                  # m = as.numeric(sub("%","", mask_percent)), 
-                                  # maxit = max_it[method, mask_percent], 
+                                  #m = 2, maxit = 5,
+                                  m = as.numeric(sub("%","", mask_percent)),
+                                  maxit = max_it[method, mask_percent],
                                   save = save)
       
       #stop <- Sys.time() - start

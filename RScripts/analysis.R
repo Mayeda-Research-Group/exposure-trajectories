@@ -184,12 +184,12 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
 truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
   group_by(Exposure) %>% slice(n = 1)
 
-#---- all combos ----
-methods <- c("JMVN")
-mechanisms <- c("MCAR", "MAR", "MNAR")
-mask_props <- c(.10, 0.20, 0.30)
-all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
-  mutate("mask_percent" = paste0(100*mask_props, "%"))
+# #---- all combos ----
+# methods <- c("JMVN")
+# mechanisms <- c("MCAR", "MAR", "MNAR")
+# mask_props <- c(.10, 0.20, 0.30)
+# all_combos <- expand_grid(mechanisms, methods, mask_props) %>%
+#   mutate("mask_percent" = paste0(100*mask_props, "%"))
 
 # #---- create one set of imputations for plot ----
 # start <- Sys.time()

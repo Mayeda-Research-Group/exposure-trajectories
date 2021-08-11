@@ -87,9 +87,9 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
                "Elevated CES-D Count")
 
 #all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("LMM")
+methods <- c("JMVN")
 mechanisms <- c("MNAR")
-mask_props <- c(0.30)
+mask_props <- c(0.10, 0.20, 0.30)
 
 table_effect_ests <- 
   data.frame(expand_grid(exposures, "Truth", mechanisms, "0%")) %>% 

@@ -1,5 +1,6 @@
 fast_impute <- 
-  function(predictor_matrix, data_wide, method, m, maxit, save = "no"){
+  function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, 
+           maxit, save = "no"){
     #---- where matrix ----
     where <- is.na(data_wide)*1  
     impute_vars <- rownames(predictor_matrix)
@@ -16,7 +17,8 @@ fast_impute <-
       round(data_wide[, impute_vars[grep("drinking", impute_vars)]])
     
     #---- **draw: binary vars ----
-    data_wide[, impute_vars[-grep(pattern = "cesd|BMI|drinking", impute_vars)]] <- 
+    data_wide[, 
+              impute_vars[-grep(pattern = "cesd|BMI|drinking", impute_vars)]] <- 
       apply(data_wide[, impute_vars[-grep(pattern = "cesd|BMI|drinking", 
                                           impute_vars)]] , 2, 
             function(x) rbinom(n = length(x), size = 1, prob = x))
@@ -54,11 +56,6 @@ fast_impute <-
         set_colnames(apply(expand.grid(seq(1:m), seq(1:maxit), seq(1, 2)), 
                            1, paste, collapse = ":")) %>% 
         set_rownames(impute_vars)
-      
-      write_csv(where, 
-                file = here::here("MI datasets", 
-                                  paste0(tolower(method), "_", tolower(mechanism), 
-                                         as.numeric(sub("%","", mask_percent)))))
     }
     
     #---- pre-allocate list of imputed datasets ----
@@ -96,6 +93,30 @@ fast_impute <-
     }
     
     #---- save results ----
+    if(save = "yes"){
+      #imputation sets
+      saveRDS(impute_list, 
+              file = here::here("MI datasets", 
+                                paste0(tolower(method), "_", 
+                                       tolower(mechanism), 
+                                       as.numeric(sub("%","", 
+                                                      mask_percent)))))
+      #where matrix
+      write_csv(where, 
+                file = here::here("MI datasets", 
+                                  paste0("where_", tolower(method), "_", 
+                                         tolower(mechanism), 
+                                         as.numeric(sub("%","", 
+                                                        mask_percent)))))
+      
+      #trace plots data
+      write_csv(trace, 
+                file = here::here("MI datasets", 
+                                  paste0("trace_", tolower(method), "_", 
+                                         tolower(mechanism), 
+                                         as.numeric(sub("%","", 
+                                                        mask_percent)))))
+    }
     
     #---- return ----
     return(impute_list)
@@ -114,20 +135,3 @@ fast_impute <-
 #   }
 # }
 # 
-
-
-
-
-
-
-#make list to store imputed matrices
-for(run in 1:m){
-  for(var in rownames(predict)){
-    wherever where = 1
-  }
-  list[m] <- imputed matrix
-}
-
-return(list(imputed matrices))
-
-}

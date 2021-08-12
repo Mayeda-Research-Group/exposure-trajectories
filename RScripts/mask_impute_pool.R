@@ -74,6 +74,10 @@ mask_impute_pool <-
         (diag(x = 1, nrow = length(time_updated_vars), 
               ncol = length(time_updated_vars)) == 0)*1
       
+      #specify when to use married_partnered
+      predict[, "married_partnered"] <- 0
+      predict[c("not_married_partnered", "widowed"), "married_partnered"] <- 1
+      
     } else{
       blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
                         paste, collapse = ""))

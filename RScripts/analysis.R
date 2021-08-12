@@ -23,7 +23,7 @@ set.seed(20200819)
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))
@@ -35,7 +35,8 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
+           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() %>% 
+  mutate("intercept" = 1)
 
 for(wave in seq(4, 9)){
   CESD_data_wide %<>% 

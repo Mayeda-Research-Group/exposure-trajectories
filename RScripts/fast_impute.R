@@ -76,17 +76,17 @@ fast_impute <-
             imputed_data[, var] <- 
               as.numeric(as.character(
                 fill_NA_N(imputed_data, model = "pmm", posit_y = var, k = 10,
-                          posit_x = names(
+                          posit_x = c("intercept", names(
                             predictor_matrix[
-                              var, which(predictor_matrix[var, ] == 1)]))))
+                              var, which(predictor_matrix[var, ] == 1)])))))
           } else{
             imputed_data[, var] <- 
               as.numeric(fill_NA(imputed_data, model = "lm_bayes", 
                                  posit_y = var, 
-                                 posit_x = names(
+                                 posit_x = c("intercept", names(
                                    predictor_matrix[
                                      var, 
-                                     which(predictor_matrix[var, ] == 1)])))
+                                     which(predictor_matrix[var, ] == 1)]))))
           }
           
           if(exists("trace_data")){

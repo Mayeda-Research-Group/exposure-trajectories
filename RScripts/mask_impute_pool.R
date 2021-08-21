@@ -108,7 +108,6 @@ mask_impute_pool <-
       
       #Don't use these as predictors
       predict[, c("HHIDPN", "intercept", 
-                  paste0("r", seq(4, 9), "married_partnered"), 
                   paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
                   paste0("r", seq(3, 9), "shlt"), "age_death_y", 
                   "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
@@ -177,7 +176,6 @@ mask_impute_pool <-
       
       impute_method[c(paste0("r", seq(3, 9), "shlt"), "r3cesd", 
                       "r3cesd_conde_impute",
-                      #paste0("r", seq(4, 9), "married_partnered"),
                       "age_death_y", "r4cesd_elevated", "r9cesd_elevated", 
                       "total_elevated_cesd", "avg_cesd", 
                       "avg_cesd_elevated")] <- ""
@@ -309,11 +307,13 @@ mask_impute_pool <-
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
       #for(i in 1:2){
       #---- **complete data ----
-      if(method %in% c("JMVN", "PMM")){
-        complete_data <- data_imputed[[i]]
-      } else{
-        complete_data <- complete(data_imputed, action = i)
-      }
+      # if(method %in% c("JMVN", "PMM")){
+      #   complete_data <- data_imputed[[i]]
+      # } else{
+      #   complete_data <- complete(data_imputed, action = i)
+      # }
+      #
+      complete_data <- complete(data_imputed, action = i)
       
       if(method == "LMM"){
         #---- **LMM: long --> wide ----

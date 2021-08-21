@@ -307,13 +307,12 @@ mask_impute_pool <-
     for(i in 1:(as.numeric(sub("%","", mask_percent)))){
       #for(i in 1:2){
       #---- **complete data ----
-      # if(method %in% c("JMVN", "PMM")){
-      #   complete_data <- data_imputed[[i]]
-      # } else{
-      #   complete_data <- complete(data_imputed, action = i)
-      # }
-      #
-      complete_data <- complete(data_imputed, action = i)
+      if(method %in% c("JMVN", "PMM")){
+        #complete_data <- data_imputed[[i]]
+        complete_data <- complete(data_imputed, action = i)
+      } else{
+        complete_data <- complete(data_imputed, action = i)
+      }
       
       if(method == "LMM"){
         #---- **LMM: long --> wide ----

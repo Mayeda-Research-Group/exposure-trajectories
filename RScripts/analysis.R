@@ -23,7 +23,7 @@ set.seed(20200819)
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))
@@ -88,7 +88,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
                "Elevated CES-D Count")
 
 #all methods: "JMVN", "FCS", "PMM", "LMM"
-methods <- c("JMVN")
+methods <- c("PMM")
 mechanisms <- c("MNAR")
 mask_props <- c(0.10, 0.20, 0.30)
 

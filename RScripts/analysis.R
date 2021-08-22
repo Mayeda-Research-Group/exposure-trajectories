@@ -23,7 +23,7 @@ set.seed(20200819)
 # MRG desktop directory: C:/Users/cshaw/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/cshaw/Dropbox/Projects"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "mask.R"))

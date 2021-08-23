@@ -448,37 +448,8 @@ mask_impute_pool <-
       (truth$beta < pooled_effect_ests$UCI)
     
     #---- return values ----
-    return(pooled_effect_ests)
+    write_csv(pooled_effect_ests, 
+              paste0("exposure_trajectories/results/", 
+                     mechanism,"_", method, "_", mask_percent, ".csv"), 
+              append = TRUE)
   }
-
-# #---- testing ----
-# #Single run
-# test <- mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                          mechanism = "MCAR", method = "PMM", truth = truth,
-#                          mask_percent = "10%", save = "yes")
-# #Multiple runs
-# test_2 <- replicate(2, mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                                                mechanism = "MCAR",
-#                                                method = "PMM",
-#                                                mask_percent = "10%",
-#                                                num_impute = 2, save = "no"),
-#                     simplify = FALSE)
-# 
-# #Formatting data
-# formatted <- do.call(rbind, test_2)
-# 
-# #Summarizing results
-# results <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = c("beta", "LCI", "UCI"), .funs = mean)
-# 
-# results2 <- formatted %>% group_by(Exposure) %>%
-#   summarize_at(.vars = "beta", ~ quantile(.x, 0.025))
-# 
-# #---- code optimization ----
-# library("profvis")
-# profvis::profvis(
-#   mask_impute_pool(CESD_data_wide, exposures = exposures,
-#                    mechanism = "MNAR", method = "PMM",
-#                    mask_percent = "10%", truth = truth, save = "no"))
-# 
-# 

@@ -269,7 +269,7 @@ hrs_samp[, colnames(cesd_mat)] <- cesd_mat
 cesd_missing <- cesd_mat %>%
   select(contains("missing")) %>%
   colSums(is.na(.))
- cesd_missing/nrow(hrs_samp) 
+cesd_missing/nrow(hrs_samp) 
 # Sanity check
 # table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
 # table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
@@ -1181,9 +1181,21 @@ hrs_samp %<>% mutate(survtime = age_death_y - r9age_y_int) %>%
 # #Sanity check
 # View(hrs_samp %>% dplyr::select("age_death_y", "survtime", "observed"))
 
+#---- extra variables ----
+#intercept for fast mice methods
+hrs_samp %<>% mutate("intercept" = 1)
+
+#variables for missingness mechanisms
+for(wave in seq(4, 9)){
+  hrs_samp %<>% 
+    dplyr::mutate(!!paste0("r", wave, "cesd_death2018") := 
+                    !!sym(paste0("r", wave, "cesd"))*death2018, 
+                  !!paste0("r", wave - 1, "cesd_conde_impute") := 
+                    !!sym(paste0("r", wave - 1, "cesd"))*
+                    !!sym(paste0("r", wave - 1, "conde_impute")))
+}
+
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
                            "CESD_data_wide.csv"))
-
-

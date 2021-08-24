@@ -35,17 +35,7 @@ CESD_data_wide <-
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() %>% 
-  mutate("intercept" = 1)
-
-for(wave in seq(4, 9)){
-  CESD_data_wide %<>% 
-    mutate(!!paste0("r", wave, "cesd_death2018") := 
-             !!sym(paste0("r", wave, "cesd"))*death2018, 
-           !!paste0("r", wave - 1, "cesd_conde_impute") := 
-             !!sym(paste0("r", wave - 1, "cesd"))*
-             !!sym(paste0("r", wave - 1, "conde_impute")))
-}
+           col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
 
 # #Check column types
 # sapply(CESD_data_wide, class)

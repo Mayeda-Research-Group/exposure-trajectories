@@ -180,7 +180,8 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" &
                                          rep(c("conf.low", "conf.high"), 2))])
 
 truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
-  group_by(Exposure) %>% slice(n = 1)
+  group_by(Exposure) %>% slice(n = 1) %>% 
+  write_csv(paste0(path_to_dropbox, "/exposure_trajectories/data/truth.csv"))
 
 # #---- all combos ----
 # methods <- c("JMVN")

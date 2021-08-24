@@ -1,6 +1,23 @@
-mask_impute_pool <- 
-  function(data_wide, exposures, mechanism, method, mask_percent, beta_0_table,
-           beta_mat, truth, save = "no"){
+mask_impute_pool <- function(mechanism, method, mask_percent, save = "no"){
+    
+    #---- source scripts ----
+    source(here::here("exposure_trajectories", "RScripts", "mask.R"))
+    
+    #---- read in data ----
+    data_wide <- 
+      read_csv(here::here("exposure_trajectories", "data", 
+                          "CESD_data_wide.csv")) %>% as.data.frame()
+    beta_0_table <- read_csv(here::here("exposure_trajectories", "data", 
+                                        "beta_0_table.csv"))
+    beta_mat <- read_csv(here::here("exposure_trajectories", "data", 
+                                    "beta_mat.csv")) %>% as.data.frame() %>% 
+      set_rownames("beta")
+    truth <- read_csv(here::here("exposure_trajectories", "data", 
+                                 "truth.csv")) %>% mutate_at()
+    
+    #---- exposures ----
+    exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
+                   "Elevated CES-D Count")
     
     #---- create shell for output ----
     pooled_effect_ests <- 

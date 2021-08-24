@@ -13,7 +13,8 @@ mask_impute_pool <- function(mechanism, method, mask_percent, save = "no"){
                                     "beta_mat.csv")) %>% as.data.frame() %>% 
       set_rownames("beta")
     truth <- read_csv(here::here("exposure_trajectories", "data", 
-                                 "truth.csv")) %>% mutate_at()
+                                 "truth.csv")) %>% 
+      dplyr::mutate("Type" = mechanism)
     
     #---- exposures ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 

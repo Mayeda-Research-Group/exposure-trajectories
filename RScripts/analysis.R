@@ -61,6 +61,9 @@ for(mechanism in mechanisms){
   }
 }
 
+write_csv(beta_0_table, paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                               "beta_0_table.csv"))
+
 #---- masking: beta matrix ----
 beta_mat <- #effect sizes
   matrix(c(log(1.10), log(1.05), log(1.05), log(1.25), log(1.10), log(1.25)), 
@@ -70,6 +73,9 @@ beta_mat <- #effect sizes
                  #MNAR
                  "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
   set_rownames(c("beta"))
+
+write_csv(as.data.frame(beta_mat), 
+          paste0(path_to_dropbox, "/exposure_trajectories/data/beta_mat.csv"))
 
 #---- Table 2 shell: Effect Estimates ----
 #Number of simulation runs

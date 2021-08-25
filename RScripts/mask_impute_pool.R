@@ -13,17 +13,20 @@ mask_impute_pool <-
   #No scientific notation
   options(scipen = 999)
   #---- source scripts ----
-  source("exposure_trajectories/RScripts/mask.R")
+  source(paste0(directory, "exposure_trajectories/RScripts/mask.R"))
   
   #---- read in data ----
   data_wide <- 
-    read_csv(paste0("exposure_trajectories/data/CESD_data_wide.csv")) %>% 
+    read_csv(paste0(directory, 
+                    "exposure_trajectories/data/CESD_data_wide.csv")) %>% 
     as.data.frame()
-  beta_0_table <- read_csv("exposure_trajectories/data/beta_0_table.csv")
-  beta_mat <- read_csv("exposure_trajectories/data/beta_mat.csv") %>% 
+  beta_0_table <- 
+    read_csv(paste0(directory, "exposure_trajectories/data/beta_0_table.csv"))
+  beta_mat <- 
+    read_csv(paste0(directory, "exposure_trajectories/data/beta_mat.csv")) %>% 
     as.data.frame() %>% set_rownames("beta")
   truth <- 
-    read_csv("exposure_trajectories/data/truth.csv") %>% 
+    read_csv(paste0(directory, "exposure_trajectories/data/truth.csv")) %>% 
     dplyr::mutate("Type" = mechanism)
   
   #---- exposures ----
@@ -413,8 +416,8 @@ mask_impute_pool <-
   
   #---- return values ----
   write_csv(pooled_effect_ests, 
-            paste0("exposure_trajectories/results/", mechanism,"_", method, "_", 
-                   mask_percent, ".csv"), append = TRUE)
+            paste0(directory, "exposure_trajectories/results/", mechanism,"_", 
+                   method, "_", mask_percent, ".csv"), append = TRUE)
   }
 
 mask_impute_pool(mechanism = mechanism, method = method, 

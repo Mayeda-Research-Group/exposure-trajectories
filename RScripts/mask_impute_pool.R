@@ -6,7 +6,8 @@ mask_impute_pool <-
   }
   
   p_load("tidyverse", "magrittr", "broom", "ResourceSelection", "survival", 
-         "openxlsx", "lubridate", "future.apply", "lme4", "devtools")
+         "openxlsx", "lubridate", "future.apply", "lme4", "devtools", 
+         "miceFast")
   devtools::install_github(repo = "amices/mice")
   library(mice)
   
@@ -14,6 +15,7 @@ mask_impute_pool <-
   options(scipen = 999)
   #---- source scripts ----
   source(paste0(directory, "exposure_trajectories/RScripts/mask.R"))
+  source(paste0(directory, "exposure_trajectories/RScripts/fast_impute.R"))
   
   #---- read in data ----
   data_wide <- 

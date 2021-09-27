@@ -1129,7 +1129,7 @@ hrs_samp %<>% dplyr::select(all_of(vars))
 colSums(is.na(hrs_samp))
 
 #---- Exposures ----
-#---- **E1a Def: CESD at HRS wave 4 (1998) ----
+#---- **E1 Def: CESD at HRS wave 4 (1998) ----
 #Effect of E1a on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
   mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0))
@@ -1137,7 +1137,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(hrs_samp$r4cesd, hrs_samp$r4cesd_elevated, useNA = "ifany")
 
-#---- **E1b Def: CESD at HRS wave 9 (2008) ----
+#---- **E2 Def: CESD at HRS wave 9 (2008) ----
 #Effect of E1a on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
   mutate("r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0))
@@ -1145,7 +1145,7 @@ hrs_samp %<>%
 # #Sanity check
 # table(hrs_samp$r9cesd, hrs_samp$r9cesd_elevated, useNA = "ifany")
 
-#---- **E2 Def: Cumulative Exposure (number occasions) ----
+#---- **E3a Def: Cumulative Exposure (number occasions) ----
 #Number of occasions with elevated depressive symptoms in HRS waves 4-9
 elevated_cesd <- hrs_samp %>% 
   dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
@@ -1159,7 +1159,17 @@ hrs_samp %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
 # head(hrs_samp$total_elevated_cesd)
 # table(hrs_samp$total_elevated_cesd, useNA = "ifany")
 
-#---- **E3 Def: Cumulative Exposure (average CESD score) ----
+#---- **E3b Def: Cumulative Exposure (proportion of occasions) ----
+#Number of occasions with elevated depressive symptoms in HRS waves 4-9
+hrs_samp %<>% mutate("prop_elevated_cesd" = 
+                       rowSums(elevated_cesd)/ncol(elevated_cesd))
+
+# #Sanity check
+# head(elevated_cesd)
+# head(hrs_samp$prop_elevated_cesd)
+# table(hrs_samp$prop_elevated_cesd, useNA = "ifany")
+
+#---- **E4 Def: Cumulative Exposure (average CESD score) ----
 hrs_samp %<>% 
   mutate("avg_cesd" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 

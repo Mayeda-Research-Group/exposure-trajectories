@@ -81,7 +81,7 @@ write_csv(as.data.frame(beta_mat),
 #Number of simulation runs
 num_runs <- 10
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
-               "Elevated CES-D Count")
+               "Elevated CES-D Count", "Elevated CES-D Prop")
 
 #all methods: "JMVN", "FCS", "PMM", "LMM"
 methods <- c("PMM")
@@ -156,6 +156,25 @@ table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Count" &
                   c("beta", "SD", "mean_LCI", "mean_UCI", "LCI_beta", 
                     "UCI_beta")] <- 
   c(TTEmodel_total_CESD_results[nrow(TTEmodel_total_CESD_results), 
+                                c("estimate", "std.error", 
+                                  rep(c("conf.low", "conf.high"), 2))])
+
+#---- **Prop Elevated CES-D ----
+TTEmodel_prop_CESD <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + prop_elevated_cesd, data = CESD_data_wide)
+
+TTEmodel_prop_CESD_results <- tidy(TTEmodel_prop_CESD, 
+                                    exponentiate = FALSE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Prop" & 
+                          table_effect_ests$Method == "Truth"), 
+                  c("beta", "SD", "mean_LCI", "mean_UCI", "LCI_beta", 
+                    "UCI_beta")] <- 
+  c(TTEmodel_prop_CESD_results[nrow(TTEmodel_prop_CESD_results), 
                                 c("estimate", "std.error", 
                                   rep(c("conf.low", "conf.high"), 2))])
 

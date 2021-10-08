@@ -71,7 +71,7 @@ mask_impute_pool <-
         mutate_at("HHIDPN", as.integer)
     }
     
-    #Sanity check-- table of num missings per masking proportion
+    # #Sanity check-- table of num missings per masking proportion
     # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
     #   set_colnames(c("Mask Prop", seq(0, 6)))
     # missings[, "Mask Prop"] <- 100*mask_props

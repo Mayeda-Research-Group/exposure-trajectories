@@ -33,7 +33,7 @@ mask_impute_pool <-
     
     #---- exposures ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
-                   "Elevated CES-D Count", "Elevated CES-D Prop")
+                   "Elevated CES-D Prop")
     
     #---- create shell for output ----
     pooled_effect_ests <- 

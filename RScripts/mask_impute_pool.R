@@ -267,7 +267,7 @@ mask_impute_pool <-
     
     #---- fitted models ----
     #---- **CC ----
-    if(method == "CC"){
+    if(method %in% c("CC", "Exposed", "Unexposed")){
       #---- ****post-process: exposures ----
       complete_data <- data_wide 
       
@@ -294,6 +294,28 @@ mask_impute_pool <-
                    mutate_all(function(x) ifelse(x > 4, 1, 0)), na.rm = TRUE) 
       complete_data[which(complete_data$avg_indicator == 0), 
                     "prop_elevated_cesd"] <- NA
+      
+      if(method == "Exposed"){
+        complete_data[which(is.na(complete_data$r4cesd_elevated)), 
+                      "r4cesd_elevated"] <- 1
+        complete_data[which(is.na(complete_data$r9cesd_elevated)), 
+                      "r9cesd_elevated"] <- 1
+        complete_data[which(is.na(complete_data$avg_cesd_elevated)), 
+                      "avg_cesd_elevated"] <- 1
+        complete_data[which(is.na(complete_data$prop_elevated_cesd)), 
+                      "prop_elevated_cesd"] <- 1
+      }
+      
+      if(method == "Unexposed"){
+        complete_data[which(is.na(complete_data$r4cesd_elevated)), 
+                      "r4cesd_elevated"] <- 0
+        complete_data[which(is.na(complete_data$r9cesd_elevated)), 
+                      "r9cesd_elevated"] <- 0
+        complete_data[which(is.na(complete_data$avg_cesd_elevated)), 
+                      "avg_cesd_elevated"] <- 0
+        complete_data[which(is.na(complete_data$prop_elevated_cesd)), 
+                      "prop_elevated_cesd"] <- 0
+      }
       
       #---- ****models ----
       model_list <- vector(mode = "list", length = length(exposures)) %>% 

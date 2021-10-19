@@ -272,8 +272,8 @@ mask_impute_pool <-
       complete_data <- data_wide 
       
       complete_data %<>% 
-        mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-               "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0))
+        mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+               "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0))
       
       #indicate where to take averages
       indicator <- complete_data %>% 
@@ -286,12 +286,12 @@ mask_impute_pool <-
                    dplyr::select(paste0("r", seq(4, 9), "cesd")), na.rm = TRUE) 
       complete_data[which(complete_data$avg_indicator == 0), "avg_cesd"] <- NA
       complete_data %<>% 
-        mutate("avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+        mutate("avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
       
       complete_data[, "prop_elevated_cesd"] <- 
         rowMeans(complete_data %>% 
                    dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                   mutate_all(function(x) ifelse(x > 4, 1, 0)), na.rm = TRUE) 
+                   mutate_all(function(x) ifelse(x >= 4, 1, 0)), na.rm = TRUE) 
       complete_data[which(complete_data$avg_indicator == 0), 
                     "prop_elevated_cesd"] <- NA
       
@@ -439,15 +439,15 @@ mask_impute_pool <-
         
         #---- ****post-process: exposures ----
         complete_data %<>% 
-          mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-                 "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+          mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+                 "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
                  "total_elevated_cesd" = 
                    complete_data %>% 
                    dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                   mutate_all(function(x) ifelse(x > 4, 1, 0)) %>% rowSums(), 
+                   mutate_all(function(x) ifelse(x >= 4, 1, 0)) %>% rowSums(), 
                  "avg_cesd" = complete_data %>% 
                    dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% rowMeans(), 
-                 "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+                 "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
         
         # #Sanity check
         # View(complete_data %>% dplyr::select(contains("cesd")))

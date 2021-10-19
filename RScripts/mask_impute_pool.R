@@ -273,11 +273,7 @@ mask_impute_pool <-
       
       complete_data %<>% 
         mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-               "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
-               "total_elevated_cesd" = 
-                 complete_data %>% 
-                 dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                 mutate_all(function(x) ifelse(x > 4, 1, 0)) %>% rowSums())
+               "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0))
       
       #indicate where to take averages
       indicator <- complete_data %>% 
@@ -322,15 +318,6 @@ mask_impute_pool <-
                          r9cancre_impute + r9hibpe_impute + r9diabe_impute + 
                          smoker + r9BMI + hispanic + black + other + female + 
                          r9age_y_int + r9cesd_elevated))
-        } else if(exposure == "Elevated CES-D Count"){
-          model_list[[exposure]] <- 
-            with(complete_data, 
-                 coxph(Surv(survtime, observed) ~ r4not_married_partnered + 
-                         r4widowed + ed_cat + r4drinking_cat + r4memrye_impute + 
-                         r4stroke_impute + r4hearte_impute + r4lunge_impute + 
-                         r4cancre_impute + r4hibpe_impute + r4diabe_impute + 
-                         smoker + r4BMI + hispanic + black + other + female + 
-                         r4age_y_int + total_elevated_cesd))
         } else if(exposure == "Elevated CES-D Prop"){
           model_list[[exposure]] <- 
             with(complete_data, 
@@ -487,7 +474,7 @@ mask_impute_pool <-
     
     #---- pooling models ----
     for(exposure in exposures){
-      if(method == "CC"){
+      if(method %in% c("CC", "Exposed", "Unexposed")){
         pooled_model <- broom::tidy(model_list[[exposure]])
       } else{
         pooled_model <- summary(pool(model_list[[exposure]]))

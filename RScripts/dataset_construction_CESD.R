@@ -1131,7 +1131,8 @@ colSums(is.na(hrs_samp))
 #---- **E1 Def: CESD at HRS wave 4 (1998) ----
 #Effect of E1a on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
-  mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0))
+  mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+         "r4cesd_elevated_sens" = ifelse(r4cesd >= 1, 1, 0)) 
 
 # #Sanity check
 # table(hrs_samp$r4cesd, hrs_samp$r4cesd_elevated, useNA = "ifany")
@@ -1139,29 +1140,21 @@ hrs_samp %<>%
 #---- **E2 Def: CESD at HRS wave 9 (2008) ----
 #Effect of E1a on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
-  mutate("r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0))
+  mutate("r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
+         "r9cesd_elevated_sens" = ifelse(r9cesd >= 1, 1, 0))
 
 # #Sanity check
 # table(hrs_samp$r9cesd, hrs_samp$r9cesd_elevated, useNA = "ifany")
 
-#---- **E3a Def: Cumulative Exposure (number occasions) ----
+#---- **E3 Def: Cumulative Exposure (proportion of occasions) ----
 #Number of occasions with elevated depressive symptoms in HRS waves 4-9
-elevated_cesd <- hrs_samp %>% 
-  dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd"))
-
-elevated_cesd <- (elevated_cesd >= 4)*1
-
-hrs_samp %<>% mutate("total_elevated_cesd" = rowSums(elevated_cesd))
-
-# #Sanity check
-# head(elevated_cesd)
-# head(hrs_samp$total_elevated_cesd)
-# table(hrs_samp$total_elevated_cesd, useNA = "ifany")
-
-#---- **E3b Def: Cumulative Exposure (proportion of occasions) ----
-#Number of occasions with elevated depressive symptoms in HRS waves 4-9
-hrs_samp %<>% mutate("prop_elevated_cesd" = 
-                       rowSums(elevated_cesd)/ncol(elevated_cesd))
+hrs_samp %<>% 
+  mutate("prop_elevated_cesd" = hrs_samp %>% 
+           dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+           mutate_all(function(x) ifelse(x >= 4, 1, 0)) %>% rowMeans(),
+         "prop_elevated_cesd_sens" = hrs_samp %>% 
+           dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+           mutate_all(function(x) ifelse(x >= 1, 1, 0)) %>% rowMeans())
 
 # #Sanity check
 # head(elevated_cesd)
@@ -1173,7 +1166,8 @@ hrs_samp %<>%
   mutate("avg_cesd" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
            rowMeans(), 
-         "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
+         "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0), 
+         "avg_cesd_elevated_sens" = ifelse(avg_cesd >= 1, 1, 0))
 
 # #Sanity check
 # View(hrs_samp %<>% 

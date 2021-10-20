@@ -275,7 +275,6 @@ cesd_missing/nrow(hrs_samp)
 # table(cesd_mat$r13cesd, cesd_mat$r13cesd_missing, useNA = "ifany")
 # table(cesd_mat$r6cesd, cesd_mat$r6cesd_missing, useNA = "ifany")
 
-
 #---- death ----
 hrs_samp %<>% mutate("death2018" = ifelse(is.na(raddate), 0, 1))
 

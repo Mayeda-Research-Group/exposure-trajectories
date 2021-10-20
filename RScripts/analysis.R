@@ -292,4 +292,3 @@ write_csv(table_effect_ests,
                         "tables/results_", method, "_", num_runs, 
                         "_", format(now(), "%Y%m%d"),
                         ".csv"))
-

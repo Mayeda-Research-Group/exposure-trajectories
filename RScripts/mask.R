@@ -31,7 +31,7 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       #---- MNAR ----
       for(wave in seq(4, 9)){
         subset %<>% 
-          mutate(!!paste0("r", wave, "pcesd") := 
+          dplyr::mutate(!!paste0("r", wave, "pcesd") := 
                    expit(beta_mat[, "death2018"]*death2018 + 
                            beta_mat[, "cesdcurrent"]*
                            !!sym(paste0("r", wave, "cesd")) + 

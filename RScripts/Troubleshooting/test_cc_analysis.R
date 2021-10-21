@@ -32,7 +32,7 @@ CESD_data_wide <-
            col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
 
 beta_0_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                               "beta_0_table.csv"))
+                                "beta_0_table.csv"))
 
 beta_mat <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/", 
                             "data/beta_mat.csv"))
@@ -140,11 +140,32 @@ test_cc_analysis <- function(data, mechanism, mask_percent){
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Prop")
 
-MCAR_10 <- replicate(5, 
-                     test_cc_analysis(data = CESD_data_wide, mechanism = "MCAR", 
-                                      mask_percent = "10%"), 
-                     simplify = FALSE) %>% do.call(rbind, .) %>% 
-  mutate("run" = rep(seq(1, 5), each = 4), .)
+num_runs <- 1
+mechanisms <- c("MCAR", "MAR", "MNAR")
+percents <- c("10%", "20%", "30%")
+
+for(mech in mechanisms){
+  for(percent in percents){
+    if(!exists("results")){
+      results <- 
+        replicate(num_runs, 
+                  test_cc_analysis(data = CESD_data_wide, 
+                                   mechanism = mech, mask_percent = percent), 
+                  simplify = FALSE) %>% do.call(rbind, .) %>% 
+        mutate("run" = rep(seq(1, num_runs), each = 4), .)
+    } else{
+      results <-
+        rbind(results,  
+              replicate(num_runs, 
+                        test_cc_analysis(data = CESD_data_wide, 
+                                         mechanism = mech, 
+                                         mask_percent = percent), 
+                        simplify = FALSE) %>% do.call(rbind, .) %>% 
+                mutate("run" = rep(seq(1, num_runs), each = 4), .))
+    }
+  }
+}
+
 
 MCAR_10_avg <- MCAR_10 %>% group_by(Exposure) %>%
   summarize_at(.vars = c("beta", "SD", "LCI", "UCI"), .funs = mean)

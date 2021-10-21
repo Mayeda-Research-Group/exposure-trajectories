@@ -32,10 +32,10 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       for(wave in seq(4, 9)){
         subset %<>% 
           mutate(!!paste0("r", wave, "pcesd") := 
-                   expit(beta_mat["beta", "death2018"]*death2018 + 
-                           beta_mat["beta", "cesdcurrent"]*
+                   expit(beta_mat[, "death2018"]*death2018 + 
+                           beta_mat[, "cesdcurrent"]*
                            !!sym(paste0("r", wave, "cesd")) + 
-                           beta_mat["beta", "death2018_cesdcurrent"]*
+                           beta_mat[, "death2018_cesdcurrent"]*
                            !!sym(paste0("r", wave, "cesd_death2018")) + 
                            as.numeric(beta_0_table[which(
                              beta_0_table$mechanisms == mechanism & 
@@ -46,17 +46,17 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       #---- MAR ----
       for(wave in seq(4, 9)){
         subset %<>% 
-          mutate(!!paste0("r", wave, "pcesd") := 
-                   expit(beta_mat["beta", "cesdpre"]*
-                           !!sym(paste0("r", wave - 1, "cesd")) + 
-                           beta_mat["beta", "condepre"]*
-                           !!sym(paste0("r", wave - 1, "conde_impute")) + 
-                           beta_mat["beta", "cesdpre_condepre"]*
-                           !!sym(paste0("r", wave - 1, "cesd_conde_impute")) + 
-                           as.numeric(beta_0_table[which(
-                             beta_0_table$mechanisms == mechanism & 
-                               beta_0_table$percents == mask_prop*100), 
-                             "beta0"])))
+          dplyr::mutate(!!paste0("r", wave, "pcesd") := 
+                          expit(beta_mat[, "cesdpre"]*
+                                  !!sym(paste0("r", wave - 1, "cesd")) + 
+                                  beta_mat[, "condepre"]*
+                                  !!sym(paste0("r", wave - 1, "conde_impute")) + 
+                                  beta_mat[, "cesdpre_condepre"]*
+                                  !!sym(paste0("r", wave - 1, "cesd_conde_impute")) + 
+                                  as.numeric(beta_0_table[which(
+                                    beta_0_table$mechanisms == mechanism & 
+                                      beta_0_table$percents == mask_prop*100), 
+                                    "beta0"])))
       }
     }
     

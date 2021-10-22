@@ -32,10 +32,10 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       for(wave in seq(4, 9)){
         subset %<>% 
           dplyr::mutate(!!paste0("r", wave, "pcesd") := 
-                   expit(beta_mat[, "death2018"]*death2018 + 
-                           beta_mat[, "cesdcurrent"]*
+                   expit(as.numeric(beta_mat[, "death2018"])*death2018 + 
+                           as.numeric(beta_mat[, "cesdcurrent"])*
                            !!sym(paste0("r", wave, "cesd")) + 
-                           beta_mat[, "death2018_cesdcurrent"]*
+                           as.numeric(beta_mat[, "death2018_cesdcurrent"])*
                            !!sym(paste0("r", wave, "cesd_death2018")) + 
                            as.numeric(beta_0_table[which(
                              beta_0_table$mechanisms == mechanism & 
@@ -47,11 +47,11 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       for(wave in seq(4, 9)){
         subset %<>% 
           dplyr::mutate(!!paste0("r", wave, "pcesd") := 
-                          expit(beta_mat[, "cesdpre"]*
+                          expit(as.numeric(beta_mat[, "cesdpre"])*
                                   !!sym(paste0("r", wave - 1, "cesd")) + 
-                                  beta_mat[, "condepre"]*
+                                  as.numeric(beta_mat[, "condepre"])*
                                   !!sym(paste0("r", wave - 1, "conde_impute")) + 
-                                  beta_mat[, "cesdpre_condepre"]*
+                                  as.numeric(beta_mat[, "cesdpre_condepre"])*
                                   !!sym(paste0("r", wave - 1, "cesd_conde_impute")) + 
                                   as.numeric(beta_0_table[which(
                                     beta_0_table$mechanisms == mechanism & 
@@ -59,7 +59,6 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
                                     "beta0"])))
       }
     }
-    
     subset %<>% dplyr::select(contains("pcesd", ignore.case = FALSE))
     subset[is.na(subset)] <- 0
     

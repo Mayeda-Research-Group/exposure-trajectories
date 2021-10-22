@@ -140,7 +140,7 @@ test_cc_analysis <- function(data, mechanism, mask_percent){
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Prop")
 
-num_runs <- 1
+num_runs <- 3
 mechanisms <- c("MCAR", "MAR", "MNAR")
 percents <- c("10%", "20%", "30%")
 
@@ -166,6 +166,10 @@ for(mech in mechanisms){
   }
 }
 
+write_csv(results, 
+          paste0(path_to_dropbox, 
+                 "/exposure_trajectories/inducing_missingness_troubleshooting/", 
+                 "CC_analysis_", num_runs, "_runs.csv"))
 
 MCAR_10_avg <- MCAR_10 %>% group_by(Exposure) %>%
   summarize_at(.vars = c("beta", "SD", "LCI", "UCI"), .funs = mean)

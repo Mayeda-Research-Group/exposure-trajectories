@@ -4,7 +4,7 @@ if (!require("pacman")){
 }
 
 p_load("here", "tidyverse", "magrittr", "broom", "survival", "gcookbook", 
-       "stringr")
+       "stringr", "ggrepel")
 
 #No scientific notation
 options(scipen = 999)
@@ -248,7 +248,66 @@ average_results <- test_results %>% group_by(Exposure, Type, Missingness) %>%
 
 average_results %<>% 
   mutate("xaxis" = 
-           as.numeric(str_sub(average_results$Missingness, end = -2))/100) 
+           as.numeric(str_sub(average_results$Missingness, end = -2))/100) %>% 
+  mutate("avg_missing" = 
+           case_when(Missingness == "0%" ~ "0%", 
+                     Type == "MCAR" & 
+                       Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") ~ 
+                       Missingness, 
+                     Type %in% c("MCAR", "MAR") & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "10%" ~ "2%", 
+                     Type == "MCAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "20%" ~ "10%", 
+                     Type == "MCAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "30%" ~ "26%", 
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 4" & 
+                       Missingness == "10%" ~ "7.5%", 
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 9" & 
+                       Missingness == "10%" ~ "11%",
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 4" & 
+                       Missingness == "20%" ~ "16%", 
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 9" & 
+                       Missingness == "20%" ~ "21%", 
+                     Type == "MAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "20%" ~ "11%", 
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 4" & 
+                       Missingness == "30%" ~ "25%", 
+                     Type == "MAR" & 
+                       Exposure == "CES-D Wave 9" & 
+                       Missingness == "30%" ~ "30%", 
+                     Type == "MAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "30%" ~ "26%", 
+                     Type == "MNAR" & 
+                       Exposure == "CES-D Wave 4" & 
+                       Missingness == "10%" ~ "9.5%", 
+                     Type == "MNAR" & 
+                       Exposure == "CES-D Wave 9" & 
+                       Missingness == "10%" ~ Missingness, 
+                     Type == "MNAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "10%" ~ "2.5%", 
+                     Type == "MNAR" & 
+                       Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") &
+                       Missingness %in% c("20%", "30%") ~ Missingness, 
+                     Type == "MNAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") &
+                       Missingness == "20%" ~ "12%", 
+                     Type == "MNAR" & 
+                       !Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") & 
+                       Missingness == "30%" ~ "26%"))
+
+average_results$Type <- 
+  factor(average_results$Type, levels = c("MCAR", "MAR", "MNAR"))
 
 #---- **plot ----
 for(exposure in unique(average_results$Exposure)){
@@ -284,13 +343,14 @@ ggplot(data = average_results, aes(x = xaxis, y = SE)) +
   ggtitle("SE by percent missing, exposure, missingness mechanism") +
   scale_x_continuous("Missing Percent", breaks = c(seq(0, 0.30, by = 0.10)), 
                      labels = paste0(seq(0, 30, by = 10), "%")) + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure))
+  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
+  geom_label_repel(aes(x = xaxis, y = SE, label = avg_missing), size = 3) 
 
 ggsave(filename = 
          paste0(path_to_dropbox, "/exposure_trajectories/", 
                 "inducing_missingness_troubleshooting/", 
-                "CC_analysis_plots/CC_analysis_", type, "_", exposure, 
-                ".jpeg"), width = 6, height = 4, units = "in")
+                "CC_analysis_plots/CC_analysis_combined.jpeg"), 
+       width = 9, height = 8, units = "in")
 
 #---- OLD ----
 #---- check masking ----

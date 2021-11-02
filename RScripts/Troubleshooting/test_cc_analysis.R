@@ -199,7 +199,7 @@ exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D",
 
 num_runs <- 5
 mechanisms <- c("MCAR", "MAR", "MNAR")
-percents <- paste0(seq(0, 75, by = 5), "%")
+percents <- paste0(seq(0, 30, by = 10), "%")
 for(mech in mechanisms){
   for(percent in percents){
     if(!exists("test_results")){
@@ -227,21 +227,24 @@ write_csv(test_results,
                  "/exposure_trajectories/inducing_missingness_troubleshooting/", 
                  "CC_analysis_", num_runs, "_runs.csv"))
 
-SE_summary <- test_results %>% group_by(Exposure, Type) %>%
-  summarize_at(.vars = c("SE"), .funs = c(min, max)) %>% 
-  set_colnames(c("Exposure", "Type", "min_SE_full", "max_SE_full"))
+# SE_summary <- test_results %>% group_by(Exposure, Type) %>%
+#   summarize_at(.vars = c("SE"), .funs = c(min, max)) %>% 
+#   set_colnames(c("Exposure", "Type", "min_SE_full", "max_SE_full"))
 
 average_results <- test_results %>% group_by(Exposure, Type, Missingness) %>%
   summarize_at(.vars = c("beta", "SE", "LCI", "UCI"), .funs = mean) %>% 
   left_join(., full_dataset_analyses %>% dplyr::select(c(Exposure, SE)) %>% 
               set_colnames(c("Exposure", "SE_full")), by = "Exposure") %>% 
-  mutate("xmin" = 
-           case_when(Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") ~ 0.10, 
-                     TRUE ~ 0.02),
-         "xmax" = 
-           case_when(Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") ~ 0.30, 
-                     TRUE ~ 0.26)) %>% 
-  left_join(., SE_summary, by = c("Exposure", "Type")) %>% ungroup()
+  ungroup()
+
+# %>% 
+#   mutate("xmin" = 
+#            case_when(Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") ~ 0.10, 
+#                      TRUE ~ 0.02),
+#          "xmax" = 
+#            case_when(Exposure %in% c("CES-D Wave 4", "CES-D Wave 9") ~ 0.30, 
+#                      TRUE ~ 0.26)) %>% 
+#   left_join(., SE_summary, by = c("Exposure", "Type")) 
 
 average_results %<>% 
   mutate("xaxis" = 
@@ -258,13 +261,13 @@ for(exposure in unique(average_results$Exposure)){
       theme_minimal() + 
       ggtitle(paste0(unique(plot_data$Exposure), " | ", 
                      unique(plot_data$Type), " Missingness")) +
-      annotate("rect", xmin = unique(plot_data$xmin), 
-               xmax = unique(plot_data$xmax), 
-               ymin = unique(plot_data$min_SE_full), 
-               ymax = unique(plot_data$max_SE_full), 
-               alpha = .25 , fill = "blue") + 
-      scale_x_continuous("Missing Percent", breaks = c(seq(0, 0.75, by = 0.05)), 
-                         labels = paste0(seq(0, 75, by = 5), "%"))
+      # annotate("rect", xmin = unique(plot_data$xmin), 
+      #          xmax = unique(plot_data$xmax), 
+      #          ymin = unique(plot_data$min_SE_full), 
+      #          ymax = unique(plot_data$max_SE_full), 
+      #          alpha = .25 , fill = "blue") + 
+      scale_x_continuous("Missing Percent", breaks = c(seq(0, 0.30, by = 0.10)), 
+                         labels = paste0(seq(0, 30, by = 10), "%"))
     
     ggsave(filename = 
              paste0(path_to_dropbox, "/exposure_trajectories/", 
@@ -273,6 +276,21 @@ for(exposure in unique(average_results$Exposure)){
                     ".jpeg"), width = 6, height = 4, units = "in")
   }
 }
+
+ggplot(data = average_results, aes(x = xaxis, y = SE)) + 
+  geom_point() + geom_line() + 
+  geom_hline(aes(yintercept = SE_full), linetype = "dashed") +
+  theme_minimal() + 
+  ggtitle("SE by percent missing, exposure, missingness mechanism") +
+  scale_x_continuous("Missing Percent", breaks = c(seq(0, 0.30, by = 0.10)), 
+                     labels = paste0(seq(0, 30, by = 10), "%")) + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure))
+
+ggsave(filename = 
+         paste0(path_to_dropbox, "/exposure_trajectories/", 
+                "inducing_missingness_troubleshooting/", 
+                "CC_analysis_plots/CC_analysis_", type, "_", exposure, 
+                ".jpeg"), width = 6, height = 4, units = "in")
 
 #---- OLD ----
 #---- check masking ----

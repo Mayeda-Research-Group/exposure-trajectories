@@ -104,7 +104,11 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
            "total_elevated_cesd" = 
              rowSums(data_wide %>% 
                        dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                       mutate_all(function(x) x >= 4)), 
+                       mutate_all(function(x) x >= 4)),
+           "prop_elevated_cesd" = 
+             rowMeans(data_wide %>% 
+                       dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                       mutate_all(function(x) x >= 4)),
            "avg_cesd" = 
              rowMeans(data_wide %>% 
                         dplyr::select(paste0("r", seq(4, 9), "cesd"))), 

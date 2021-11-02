@@ -37,7 +37,7 @@ mask_impute_pool <-
     
     #---- create shell for output ----
     pooled_effect_ests <- 
-      data.frame("Exposure" = exposures, "beta" = NA, "SD" = NA, "LCI" = NA, 
+      data.frame("Exposure" = exposures, "beta" = NA, "SE" = NA, "LCI" = NA, 
                  "UCI" = NA, "Method" = method, "Missingness" = mask_percent, 
                  "Type" = mechanism, "capture_truth" = NA)
     
@@ -107,7 +107,7 @@ mask_impute_pool <-
         (diag(x = 1, nrow = length(time_updated_vars), 
               ncol = length(time_updated_vars)) == 0)*1
       
-    } else if(!method %in% c("LMM", "CC")){
+    } else if(!method %in% c("LMM", "CC", "Exposed", "Unexposed")){
       blocks <- c(apply(expand.grid("r", seq(4, 9), time_updated_vars), 1, 
                         paste, collapse = ""))
       predict <- matrix(1, length(blocks), ncol = ncol(data_wide)) %>% 
@@ -138,8 +138,10 @@ mask_impute_pool <-
       predict[, c("HHIDPN", "intercept", 
                   paste0("r", seq(3, 9), "conde_impute"), "white", "r3cesd", 
                   paste0("r", seq(3, 9), "shlt"), "age_death_y", 
-                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd", 
-                  "avg_cesd", "avg_cesd_elevated", "observed", 
+                  "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd",
+                  "prop_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
+                  "observed", "avg_cesd_elevated_sens", 
+                  "prop_elevated_cesd_sens",
                   paste0("r", seq(4, 9), "cesd_death2018"), 
                   paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
       
@@ -503,15 +505,15 @@ mask_impute_pool <-
       }
       
       pooled_effect_ests[which(pooled_effect_ests$Exposure == exposure), 
-                         c("beta", "SD")] <- 
+                         c("beta", "SE")] <- 
         pooled_model[nrow(pooled_model), c("estimate", "std.error")]
     }
     
     pooled_effect_ests[, "LCI"] <- 
-      pooled_effect_ests$beta - 1.96*pooled_effect_ests$SD
+      pooled_effect_ests$beta - 1.96*pooled_effect_ests$SE
     
     pooled_effect_ests[, "UCI"] <- 
-      pooled_effect_ests$beta + 1.96*pooled_effect_ests$SD
+      pooled_effect_ests$beta + 1.96*pooled_effect_ests$SE
     
     #---- truth coverage ----
     pooled_effect_ests$capture_truth <- 

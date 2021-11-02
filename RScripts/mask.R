@@ -97,23 +97,6 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
               paste0("r", seq(4, 9), var)] <- NA
   }
   
-  #masking derived values
-  data_wide %<>% 
-    mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
-           "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
-           "total_elevated_cesd" = 
-             rowSums(data_wide %>% 
-                       dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                       mutate_all(function(x) x >= 4)),
-           "prop_elevated_cesd" = 
-             rowMeans(data_wide %>% 
-                       dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                       mutate_all(function(x) x >= 4)),
-           "avg_cesd" = 
-             rowMeans(data_wide %>% 
-                        dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
-           "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
-  
   #---- check missings ----
   # make sure no one is missing every cesd measure
   data_wide %<>%

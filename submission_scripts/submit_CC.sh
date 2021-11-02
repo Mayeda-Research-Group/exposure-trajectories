@@ -1,4 +1,5 @@
 ################################################################################
+### PUT THIS IN THE SAME FOLDER AS THE RSCRIPT YOU ARE RUNNING
 ### this submission script was created on NOV2021
 ### with ref: https://support.idre.ucla.edu/helpdesk/Ticket/40244340
 ### author RD for inquiries: hpc@ucla.edu

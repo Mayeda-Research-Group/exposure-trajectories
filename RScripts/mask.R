@@ -17,9 +17,6 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
   #---- create incomplete data ----
   if(mechanism == "MCAR"){
     #---- MCAR ----
-    #it's easier to do this with my own code than the ampute function in MICE, 
-    # which requires specifying all possible missing patterns you'd like it to 
-    # consider
     total_indices <- nrow(data_wide)*6 #6 waves of data per person
     mask_index <- sample(seq(1, total_indices), 
                          size = floor(mask_prop*total_indices), 
@@ -32,15 +29,15 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
       for(wave in seq(4, 9)){
         subset %<>% 
           dplyr::mutate(!!paste0("r", wave, "pcesd") := 
-                   expit(as.numeric(beta_mat[, "death2018"])*death2018 + 
-                           as.numeric(beta_mat[, "cesdcurrent"])*
-                           !!sym(paste0("r", wave, "cesd")) + 
-                           as.numeric(beta_mat[, "death2018_cesdcurrent"])*
-                           !!sym(paste0("r", wave, "cesd_death2018")) + 
-                           as.numeric(beta_0_table[which(
-                             beta_0_table$mechanisms == mechanism & 
-                               beta_0_table$percents == mask_prop*100), 
-                             "beta0"])))
+                          expit(as.numeric(beta_mat[, "death2018"])*death2018 + 
+                                  as.numeric(beta_mat[, "cesdcurrent"])*
+                                  !!sym(paste0("r", wave, "cesd")) + 
+                                  as.numeric(beta_mat[, "death2018_cesdcurrent"])*
+                                  !!sym(paste0("r", wave, "cesd_death2018")) + 
+                                  as.numeric(beta_0_table[which(
+                                    beta_0_table$mechanisms == mechanism & 
+                                      beta_0_table$percents == mask_prop*100), 
+                                    "beta0"])))
       }
     } else if(mechanism == "MAR"){
       #---- MAR ----
@@ -74,19 +71,6 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
     mask_index <- which(subset_long$cesd_missing == 1)
   }
   
-  # #---- plot of missing vs. observed ----
-  # plot_data <- cbind(subset_long, data_wide %>%
-  #                      dplyr::select("HHIDPN",
-  #                                    paste0("r", seq(3, 8), "conde_impute")) %>%
-  #                      pivot_longer(-"HHIDPN"))
-  # 
-  # ggplot(data = plot_data, aes(x = value)) +
-  #   geom_boxplot(aes(color = as.factor(cesd_missing),
-  #                      fill = as.factor(cesd_missing)), alpha = 0.5, 
-  #                position = "dodge") +
-  #   theme_minimal() + facet_wrap(facets = vars(name), scale = "free") +
-  #   ggtitle("30% missing")
-  
   #---- masking wave-specific values ----
   mask_wave_specific <- c("married_partnered", "not_married_partnered", 
                           "widowed", "drinking_cat", "memrye_impute", 
@@ -115,16 +99,16 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
   
   #masking derived values
   data_wide %<>% 
-    mutate("r4cesd_elevated" = ifelse(r4cesd > 4, 1, 0), 
-           "r9cesd_elevated" = ifelse(r9cesd > 4, 1, 0), 
+    mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+           "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
            "total_elevated_cesd" = 
              rowSums(data_wide %>% 
                        dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                       mutate_all(function(x) x > 4)), 
+                       mutate_all(function(x) x >= 4)), 
            "avg_cesd" = 
              rowMeans(data_wide %>% 
                         dplyr::select(paste0("r", seq(4, 9), "cesd"))), 
-           "avg_cesd_elevated" = ifelse(avg_cesd > 4, 1, 0))
+           "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
   
   #---- check missings ----
   # make sure no one is missing every cesd measure

@@ -140,8 +140,8 @@ mask_impute_pool <-
                   paste0("r", seq(3, 9), "shlt"), "age_death_y", 
                   "r4cesd_elevated", "r9cesd_elevated", "total_elevated_cesd",
                   "prop_elevated_cesd", "avg_cesd", "avg_cesd_elevated", 
-                  "observed", "avg_cesd_elevated_sens", 
-                  "prop_elevated_cesd_sens",
+                  "observed", "r4cesd_elevated_sens", "r9cesd_elevated_sens", 
+                  "avg_cesd_elevated_sens", "prop_elevated_cesd_sens",
                   paste0("r", seq(4, 9), "cesd_death2018"), 
                   paste0("r", seq(3, 8), "cesd_conde_impute"))] <- 0
       

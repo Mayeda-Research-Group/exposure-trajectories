@@ -474,7 +474,7 @@ mask_impute_pool <-
                            smoker + r9BMI + hispanic + black + other + female + 
                            r9age_y_int + r9cesd_elevated))
           } else if(exposure == "Elevated CES-D Prop"){
-            model_list[[exposure]] <- 
+            model_list[[exposure]][[i]] <- 
               with(complete_data, 
                    coxph(Surv(survtime, observed) ~ r4not_married_partnered + 
                            r4widowed + ed_cat + r4drinking_cat + r4memrye_impute + 
@@ -501,7 +501,7 @@ mask_impute_pool <-
       if(method %in% c("CC", "Exposed", "Unexposed")){
         pooled_model <- broom::tidy(model_list[[exposure]])
       } else{
-        pooled_model <- summary(pool(model_list[[exposure]]))
+        pooled_model <- summary(mice::pool(model_list[[exposure]]))
       }
       
       pooled_effect_ests[which(pooled_effect_ests$Exposure == exposure), 

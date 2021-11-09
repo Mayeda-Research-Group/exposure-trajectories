@@ -5,11 +5,12 @@ mask_impute_pool <-
       install.packages("pacman", repos='http://cran.us.r-project.org')
     }
     
+    #make sure that devtools::install_github(repo = "amices/mice") was setup
+    #on the cluster prior to running this script for LMM
+    
     p_load("tidyverse", "magrittr", "broom", "ResourceSelection", "survival", 
            "openxlsx", "lubridate", "future.apply", "lme4", "devtools", 
-           "miceFast")
-    devtools::install_github(repo = "amices/mice")
-    library(mice)
+           "miceFast", "mice")
     
     #No scientific notation
     options(scipen = 999)

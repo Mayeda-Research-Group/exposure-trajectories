@@ -526,10 +526,6 @@ mask_impute_pool <-
                      method, "_", mask_percent, ".csv"), append = TRUE)
   }
 
-mask_impute_pool(mechanism = mechanism, method = method, 
-                 mask_percent = mask_percent, directory = "/u/home/c/cshaw343/", 
-                 save = "no")
-
 ## Read in the arguments listed in the:
 ## R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="JMVN" mask_percent="10%"' test_args2.R
 ## expression:

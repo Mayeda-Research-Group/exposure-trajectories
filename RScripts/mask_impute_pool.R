@@ -529,3 +529,32 @@ mask_impute_pool <-
 mask_impute_pool(mechanism = mechanism, method = method, 
                  mask_percent = mask_percent, directory = "/u/home/c/cshaw343/", 
                  save = "no")
+
+## Read in the arguments listed in the:
+## R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="JMVN" mask_percent="10%"' test_args2.R
+## expression:
+args=(commandArgs(TRUE))
+
+## args is now a list of character vectors
+
+## Check to see if arguments are passed and set default values if not,
+## then cycle through each element of the list and evaluate the expressions.
+if(length(args)==0){
+  print("No arguments supplied.")
+  ##supply default values
+  mechanism = 'MNAR'
+  method = 'JMVN'
+  mask_percent = '10%'
+}else{
+  for(i in 1:length(args)){
+    eval(parse(text=args[[i]]))
+  }
+}
+## Now print values just to make sure:
+print(mechanism)
+print(method)
+print(mask_percent)
+
+mask_impute_pool(mechanism = mechanism, method = method, 
+                 mask_percent = mask_percent, directory = "/u/home/c/cshaw343/", 
+                 save = "no")

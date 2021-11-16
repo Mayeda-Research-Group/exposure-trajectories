@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "openxlsx", "magrittr")
+p_load("here", "tidyverse", "magrittr", "vroom")
 
 #No scientific notation
 options(scipen = 999)
@@ -26,23 +26,34 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 
 #---- Figure 2: results ----
 #---- **read in data ----
-methods <- c("JMVN", "PMM", "FCS")
-num_runs <- 10
-
-results <- read_csv(paste0(path_to_dropbox, 
-                           "/exposure_trajectories/manuscript/tables/", 
-                           "results_CC_1000.csv")) %>% 
-  dplyr::select(-one_of("people_dropped")) %>% 
-  filter(!Type == "MAR 2")
+methods <- c("CC", "JMVN")
 
 for(method in methods){
-  results <- 
-    rbind(results, read_csv(Sys.glob(
-      paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-             "results_", method, "_", num_runs, "*.csv"))) %>% 
-        filter(Method != "Truth") %>% 
-        dplyr::select(-one_of(c("LCI_beta", "UCI_beta"))))
+  file_paths <- 
+    list.files(path = paste0(path_to_dropbox, 
+                             "/exposure_trajectories/data/hoffman_transfer/", 
+                             "results/", method), full.names = TRUE, 
+               pattern = "*.csv")
+  
+  if(!exists("results")){
+    results <- vroom(file_paths, col_names = FALSE)
+  } else{
+    results %<>% rbind(vroom(file_paths, col_names = FALSE))
+  }
 }
+
+results %<>% set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+                            "Percent", "Mechanism", "Truth Capture"))
+
+#---- **check scenario counts ----
+#should be num_runs*num_exposures = 100*4 = 400 in each cell
+table(results$Mechanism, results$Percent, results$Method)
+
+#---- **summarize data ----
+results_summary <- results %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
+  summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
+               ~mean(., na.rm = TRUE)) 
 
 #---- **format data ----
 results$Method <- factor(results$Method, 

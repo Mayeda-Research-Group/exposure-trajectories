@@ -36,14 +36,15 @@ for(method in methods){
                pattern = "*.csv")
   
   if(!exists("results")){
-    results <- vroom(file_paths, col_names = FALSE)
+    results <- vroom(file_paths, col_names = FALSE) %>% 
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+                     "Percent", "Mechanism", "Truth Capture"))
   } else{
-    results %<>% rbind(vroom(file_paths, col_names = FALSE))
+    results %<>% rbind(vroom(file_paths, col_names = FALSE) %>% 
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+                     "Percent", "Mechanism", "Truth Capture")))
   }
 }
-
-results %<>% set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-                            "Percent", "Mechanism", "Truth Capture"))
 
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell
@@ -53,27 +54,31 @@ table(results$Mechanism, results$Percent, results$Method)
 results_summary <- results %>% 
   group_by(Method, Mechanism, Percent, Exposure) %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
-               ~mean(., na.rm = TRUE)) 
+               ~mean(., na.rm = TRUE)) %>% 
+  #theres a weird na row that shows up because of rbinding I think
+  na.omit()
+
+#---- **read in truth table ----
 
 #---- **format data ----
-results$Method <- factor(results$Method, 
-                         levels = c("Truth", "CC", methods))
-results$Missingness <- factor(results$Missingness)
+results_summary$Method <- 
+  factor(results_summary$Method, levels = c("Truth", methods))
+results_summary$Missingness <- factor(results_summary$Missingness)
 
 #---- **plot ----
-ggplot(results %>% filter(Type == "MNAR"), 
-       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
+ggplot(results_summary, 
+       aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(0.75)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3,
+  scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
                 position = position_dodge(0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
-  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
+  scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle(paste0("Mean 95% CI of beta across ", num_runs, " runs"))
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
+  ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_MNAR_mean_CI.jpeg"), 

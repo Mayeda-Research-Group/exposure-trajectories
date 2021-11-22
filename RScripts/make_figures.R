@@ -16,8 +16,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- color palette ----
 # The palette with grey:
@@ -45,6 +45,34 @@ for(method in methods){
                      "Percent", "Mechanism", "Truth Capture")))
   }
 }
+
+
+# Test!
+read_results <- function(paths){
+  readr::read_csv(paths, col_names = FALSE) %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+                   "Percent", "Mechanism", "Truth Capture"))  
+}
+
+for(method in methods){
+  file_paths <- 
+    list.files(path = paste0(path_to_dropbox, 
+                             "/exposure_trajectories/data/hoffman_transfer/", 
+                             "results/", method), full.names = TRUE, 
+               pattern = "*.csv")
+  
+  if(!exists("results_test")){
+    results_test <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+    
+  } else{
+    results_test %<>% rbind(
+      do.call(rbind.data.frame, lapply(file_paths, read_results)))
+  }
+}
+
+# Comparing two datasets
+p_load("diffdf")
+diffdf::diffdf(results, results_test)
 
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell

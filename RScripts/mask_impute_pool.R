@@ -204,14 +204,15 @@ mask_impute_pool <-
       impute_method <- impute_method[-which(impute_method == "")]
       #start <- Sys.time()
       
-      data_imputed <- mice(data = data_wide, 
-                           #m = 2, maxit = 5,
-                           m = as.numeric(sub("%","", mask_percent)),
-                           maxit = max_it[method, mask_percent],
-                           method = impute_method,
-                           predictorMatrix = predict, where = is.na(data_wide), 
-                           blocks = as.list(rownames(predict)),
-                           seed = 20210126)
+      data_imputed <- 
+        mice::mice(data = data_wide, 
+                   #m = 2, maxit = 5,
+                   m = as.numeric(sub("%","", mask_percent)),
+                   maxit = max_it[method, mask_percent],
+                   method = impute_method,
+                   predictorMatrix = predict, where = is.na(data_wide), 
+                   blocks = as.list(rownames(predict)),
+                   seed = 20210126)
       #end <- Sys.time() - start
       
       # #look at convergence

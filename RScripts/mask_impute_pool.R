@@ -413,13 +413,16 @@ mask_impute_pool <-
           cols <- apply(expand.grid("r", wave, vars), 1, paste, collapse = "")
           subset <- complete_data[, cols]
           
-          #fix impossible probs
-          subset[subset < 0] <- 0
-          subset[subset > 1] <- 1
-          
-          for(column in 1:3){
-            subset[, column] <- 
-              rbinom(n = nrow(subset), size = 1, prob = unlist(subset[, column]))
+          if(method %in% c("JMVN", "LMM")){
+            #fix impossible probs
+            subset[subset < 0] <- 0
+            subset[subset > 1] <- 1
+            
+            for(column in 1:3){
+              subset[, column] <- 
+                rbinom(n = nrow(subset), size = 1, 
+                       prob = unlist(subset[, column]))
+            }
           }
           
           subset[, "sum"] <- rowSums(subset, na.rm = TRUE)

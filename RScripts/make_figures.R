@@ -16,8 +16,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- color palette ----
 # The palette with grey:
@@ -74,17 +74,19 @@ for(method in methods){
 p_load("diffdf")
 diffdf::diffdf(results, results_test)
 
+#---- **take first 100 runs (in case of extra) ----
+results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  na.omit()
+
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell
 table(results$Mechanism, results$Percent, results$Method)
 
 #---- **summarize data ----
 results_summary <- results %>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
-               ~mean(., na.rm = TRUE)) %>% 
-  #theres a weird na row that shows up because of rbinding I think
-  na.omit()
+               ~mean(., na.rm = TRUE)) 
 
 #---- **read in truth table ----
 

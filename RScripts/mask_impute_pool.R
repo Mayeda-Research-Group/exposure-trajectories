@@ -179,7 +179,7 @@ mask_impute_pool <-
     } else if(method == "FCS"){
       #---- ****FCS ----
       #Fully conditional specification
-      impute_method <- make.method(data_wide)
+      impute_method <- mice::make.method(data_wide)
       impute_method[c(paste0("r", seq(4, 9), "married_partnered"), 
                       paste0("r", seq(4, 9), "not_married_partnered"),
                       paste0("r", seq(4, 9), "widowed"),

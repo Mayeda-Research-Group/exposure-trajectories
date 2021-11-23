@@ -1,10 +1,10 @@
 #!/bin/bash
 #$ -cwd #uses current working directory
 # error = Merged with joblog
-#$ -o joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
+#$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
-#$ -l h_rt=24:00:00,h_data=4G #requests 24 hours, 4GB of data (per core)
-#$ -pe shared 1 #requests 2 cores
+#$ -l h_rt=12:00:00,h_data=8G #requests 12 hours, 8GB of data (per core)
+#$ -pe shared 12 #requests 12 cores
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
@@ -20,17 +20,10 @@
 # load the job environment:
 . /u/local/Modules/default/init/modules.sh
 module load R/4.0.2 #loads R/4.0.2 for use 
+export OMP_NUM_THREADS=12 #uses max 12 threads (needs to match -pe shared)
 ## 
 # run R code
 
-#The sets of JMVN jobs are all combos of these variables:
-#
-#method = "JMVN"
-#mechanism = c("MCAR", "MAR", "MNAR")
-#mask_percent = c("10%", "20%", "30%")
-#
-#So this makes 9 sets of parameters that each need to run 100 times (total 900 jobs) [is my math correct lol]
-#
 #The LMM job will just be
 #
 #method = "LMM"
@@ -39,6 +32,6 @@ module load R/4.0.2 #loads R/4.0.2 for use
 
 echo "======"
 echo SGE_TASK_ID=$SGE_TASK_ID      
-R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="LMM" mask_percent="30%" '  mask_impute_pool.R output.$JOB_ID.$SGE_TASK_ID
-echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" \'  mask_impute_pool.R output.$JOB_ID.$SGE_TASK_ID
+R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="LMM" mask_percent="30%" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
 

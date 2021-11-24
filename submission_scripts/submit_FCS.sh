@@ -14,7 +14,7 @@
 # error = Merged with joblog
 #$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
-#$ -l h_rt=5:00:00,h_data=4G #requests 5 hours, 4GB of data (per core)
+#$ -l h_rt=7:00:00,h_data=4G #requests 7 hours, 4GB of data (per core)
 #$ -pe shared 8 #requests 8 cores
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 

@@ -16,8 +16,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- color palette ----
 # The palette with grey:
@@ -28,26 +28,24 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 #---- **read in data ----
 methods <- c("CC", "JMVN")
 
-for(method in methods){
-  file_paths <- 
-    list.files(path = paste0(path_to_dropbox, 
-                             "/exposure_trajectories/data/hoffman_transfer/", 
-                             "results/", method), full.names = TRUE, 
-               pattern = "*.csv")
-  
-  if(!exists("results")){
-    results <- vroom(file_paths, col_names = FALSE) %>% 
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-                     "Percent", "Mechanism", "Truth Capture"))
-  } else{
-    results %<>% rbind(vroom(file_paths, col_names = FALSE) %>% 
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-                     "Percent", "Mechanism", "Truth Capture")))
-  }
-}
+# for(method in methods){
+#   file_paths <- 
+#     list.files(path = paste0(path_to_dropbox, 
+#                              "/exposure_trajectories/data/hoffman_transfer/", 
+#                              "results/", method), full.names = TRUE, 
+#                pattern = "*.csv")
+#   
+#   if(!exists("results")){
+#     results <- vroom(file_paths, col_names = FALSE) %>% 
+#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+#                      "Percent", "Mechanism", "Truth Capture"))
+#   } else{
+#     results %<>% rbind(vroom(file_paths, col_names = FALSE) %>% 
+#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+#                      "Percent", "Mechanism", "Truth Capture")))
+#   }
+# }
 
-
-# Test!
 read_results <- function(paths){
   readr::read_csv(paths, col_names = FALSE) %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
@@ -61,23 +59,28 @@ for(method in methods){
                              "results/", method), full.names = TRUE, 
                pattern = "*.csv")
   
-  if(!exists("results_test")){
-    results_test <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+  if(!exists("results")){
+    results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
     
   } else{
-    results_test %<>% rbind(
+    results %<>% rbind(
       do.call(rbind.data.frame, lapply(file_paths, read_results)))
   }
 }
 
 # Comparing two datasets
-p_load("diffdf")
-diffdf::diffdf(results, results_test)
+# p_load("diffdf")
+# diffdf::diffdf(results, results_test)
 
 #---- **take first 100 runs (in case of extra) ----
 results %<>% 
   group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
   na.omit()
+
+# which(rowSums(is.na(results_test))>0)
+# line 1081: Exposure = 1, rest NAs
+# results_test[1076:1083, ]
+# The line is in CC 30% MAR (line 281)
 
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell
@@ -88,12 +91,39 @@ results_summary <- results %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
 
+# Sanity check
+# results_sum_test <- 
+#   results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
+#   summarise_all(list(mean))
+# 
+# diffdf::diffdf(results_summary, results_sum_test)
+
 #---- **read in truth table ----
+truth <- read_csv(paste0(path_to_dropbox, 
+                         "/exposure_trajectories/data/", "truth.csv")) %>%
+  select(-c(LCI_beta, UCI_beta)) %>%
+  dplyr::rename(
+    "Mechanism" = "Type",    
+    "Percent" = "Missingness",
+    "Beta" = "beta",
+    "LCI" = "mean_LCI",
+    "UCI" = "mean_UCI",
+    "Truth Capture" = "truth_capture")
+
+truth_multiple <- do.call("rbind", replicate(
+  3, truth, simplify = FALSE)) %>%
+  mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
+                       rep("MAR", length(unique(truth$Exposure))), 
+                       rep("MNAR", length(unique(truth$Exposure)))))
+
+results_summary %<>% rbind(truth_multiple)
 
 #---- **format data ----
 results_summary$Method <- 
   factor(results_summary$Method, levels = c("Truth", methods))
-results_summary$Missingness <- factor(results_summary$Missingness)
+results_summary$Percent <- factor(results_summary$Percent)
+results_summary$Mechanism <- 
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
 
 #---- **plot ----
 ggplot(results_summary, 
@@ -111,7 +141,7 @@ ggplot(results_summary,
   ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_MNAR_mean_CI.jpeg"), 
+              "manuscript/figures/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Supplement Figure 1: traceplots ----

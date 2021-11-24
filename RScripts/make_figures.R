@@ -115,7 +115,6 @@ truth_multiple <- do.call("rbind", replicate(
   mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
                        rep("MAR", length(unique(truth$Exposure))), 
                        rep("MNAR", length(unique(truth$Exposure)))))
-
 results_summary %<>% rbind(truth_multiple)
 
 #---- **format data ----

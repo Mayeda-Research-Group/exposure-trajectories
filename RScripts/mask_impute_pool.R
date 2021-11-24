@@ -244,9 +244,9 @@ mask_impute_pool <-
       #---- ****LMM ----
       #start <- Sys.time()
       data_imputed <- mice::mice(data = data_long, 
-                                 m = 2, maxit = 2,
-                                 #m = as.numeric(sub("%","", mask_percent)),
-                                 #maxit = max_it[method, mask_percent],
+                                 #m = 2, maxit = 2,
+                                 m = as.numeric(sub("%","", mask_percent)),
+                                 maxit = max_it[method, mask_percent],
                                  method = "2l.lmer", predictorMatrix = predict, 
                                  where = is.na(data_long), 
                                  blocks = as.list(rownames(predict)), 

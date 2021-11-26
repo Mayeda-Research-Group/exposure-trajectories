@@ -16,8 +16,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- color palette ----
 # The palette with grey:
@@ -26,7 +26,7 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 
 #---- Figure 2: results ----
 #---- **read in data ----
-methods <- c("CC", "JMVN")
+methods <- c("CC", "JMVN", "PMM")
 
 # for(method in methods){
 #   file_paths <- 

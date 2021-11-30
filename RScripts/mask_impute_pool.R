@@ -25,14 +25,30 @@ mask_impute_pool <-
       read_csv(paste0(directory, 
                       "exposure_trajectories/data/CESD_data_wide.csv")) %>% 
       as.data.frame()
+    
+    #---- **exposure based on analysis ----
+    if(sens == "yes"){
+      exposure_cols <- c("r4cesd_elevated", "r9cesd_elevated", 
+                         "avg_cesd_elevated", "prop_elevated_cesd")
+      
+      data_wide %<>% dplyr::select(-all_of(exposure_cols)) %>% 
+        rename_at(vars(paste0(exposure_cols, "_sens")), ~ exposure_cols)
+    } 
+    
     beta_0_table <- 
       read_csv(paste0(directory, "exposure_trajectories/data/beta_0_table.csv"))
     beta_mat <- 
       read_csv(paste0(directory, "exposure_trajectories/data/beta_mat.csv")) %>% 
       as.data.frame() %>% set_rownames("beta")
-    truth <- 
-      read_csv(paste0(directory, "exposure_trajectories/data/truth.csv")) %>% 
-      dplyr::mutate("Type" = mechanism)
+    if(sens == "yes"){
+      truth <- 
+        read_csv(paste0(directory, "exposure_trajectories/data/truth_sens.csv")) %>% 
+        dplyr::mutate("Type" = mechanism)
+    } else{
+      truth <- 
+        read_csv(paste0(directory, "exposure_trajectories/data/truth.csv")) %>% 
+        dplyr::mutate("Type" = mechanism)
+    }
     
     #---- exposures ----
     exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
@@ -277,9 +293,15 @@ mask_impute_pool <-
       #---- ****post-process: exposures ----
       complete_data <- data_wide 
       
-      complete_data %<>% 
-        mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
-               "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0))
+      if(sens == "yes"){
+        complete_data %<>% 
+          mutate("r4cesd_elevated" = ifelse(r4cesd >= 1, 1, 0), 
+                 "r9cesd_elevated" = ifelse(r9cesd >= 1, 1, 0))
+      } else{
+        complete_data %<>% 
+          mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+                 "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0))
+      }
       
       #indicate where to take averages
       indicator <- complete_data %>% 

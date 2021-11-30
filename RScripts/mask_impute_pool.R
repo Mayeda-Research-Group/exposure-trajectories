@@ -1,6 +1,5 @@
 mask_impute_pool <- 
-  function(mechanism, method, mask_percent, directory, save = "no", 
-           sensitivity = "no"){
+  function(mechanism, method, mask_percent, directory, save = "no", sens = "no"){
     #---- load packages ----
     if (!require("pacman")){
       install.packages("pacman", repos='http://cran.us.r-project.org')
@@ -265,7 +264,7 @@ mask_impute_pool <-
     } 
     
     #---- **save results ----
-    if(save == "yes"){
+    if(save == "yes" & sens == "no"){
       saveRDS(data_imputed, 
               file = here::here("MI datasets", 
                                 paste0(tolower(method), "_", tolower(mechanism), 

@@ -112,9 +112,9 @@ TTEmodel_CESD4_sens_results <- tidy(TTEmodel_CESD4_sens,
                                     exponentiate = FALSE, conf.int = TRUE)
 
 table_effect_ests_sens[which(table_effect_ests_sens$Exposure == "CES-D Wave 4"), 
-                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
+                       c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
   c(TTEmodel_CESD4_sens_results[nrow(TTEmodel_CESD4_sens_results), 
-                           c("estimate", "std.error", "conf.low", "conf.high")])
+                                c("estimate", "std.error", "conf.low", "conf.high")])
 
 #---- **CES-D Wave 9 ----
 TTEmodel_CESD9 <- 
@@ -145,31 +145,12 @@ TTEmodel_CESD9_sens <-
 #summary(TTEmodel_CESD9_sens)
 
 TTEmodel_CESD9_sens_results <- tidy(TTEmodel_CESD9_sens, 
-                               exponentiate = FALSE, conf.int = TRUE)
+                                    exponentiate = FALSE, conf.int = TRUE)
 
 table_effect_ests_sens[which(table_effect_ests_sens$Exposure == "CES-D Wave 9"), 
-                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
+                       c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
   c(TTEmodel_CESD9_sens_results[nrow(TTEmodel_CESD9_sens_results), 
-                           c("estimate", "std.error", "conf.low", "conf.high")])
-
-#---- **Prop Elevated CES-D ----
-TTEmodel_prop_CESD <- 
-  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
-          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
-          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
-          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
-          r4age_y_int + prop_elevated_cesd, data = CESD_data_wide)
-
-TTEmodel_prop_CESD_results <- tidy(TTEmodel_prop_CESD, 
-                                   exponentiate = FALSE, conf.int = TRUE)
-
-table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Prop" & 
-                          table_effect_ests$Method == "Truth"), 
-                  c("beta", "SE", "mean_LCI", "mean_UCI", "LCI_beta", 
-                    "UCI_beta")] <- 
-  c(TTEmodel_prop_CESD_results[nrow(TTEmodel_prop_CESD_results), 
-                               c("estimate", "std.error", 
-                                 rep(c("conf.low", "conf.high"), 2))])
+                                c("estimate", "std.error", "conf.low", "conf.high")])
 
 #---- **Elevated Average CES-D ----
 TTEmodel_elevated_avg_CESD <- 
@@ -183,15 +164,69 @@ TTEmodel_elevated_avg_CESD_results <- tidy(TTEmodel_elevated_avg_CESD,
                                            exponentiate = FALSE, 
                                            conf.int = TRUE)
 
-table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D" & 
-                          table_effect_ests$Method == "Truth"), 
-                  c("beta", "SE", "mean_LCI", "mean_UCI", "LCI_beta", 
-                    "UCI_beta")] <- 
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated Average CES-D"), 
+                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
   c(TTEmodel_elevated_avg_CESD_results[nrow(TTEmodel_elevated_avg_CESD_results), 
-                                       c("estimate", "std.error",
-                                         rep(c("conf.low", "conf.high"), 2))])
+                                       c("estimate", "std.error", "conf.low", 
+                                         "conf.high")])
 
-truth <- table_effect_ests %>% filter(Method == "Truth") %>% 
-  group_by(Exposure) %>% slice(n = 1) %>% 
-  filter(!Exposure == "Elevated CES-D Count") %>%
-  write_csv(paste0(path_to_dropbox, "/exposure_trajectories/data/truth.csv"))
+#---- **Elevated Average CES-D sens ----
+TTEmodel_elevated_avg_CESD_sens <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + avg_cesd_elevated_sens, data = CESD_data_wide)
+
+TTEmodel_elevated_avg_CESD_sens_results <- tidy(TTEmodel_elevated_avg_CESD_sens, 
+                                                exponentiate = FALSE, 
+                                                conf.int = TRUE)
+
+table_effect_ests_sens[which(table_effect_ests_sens$Exposure == 
+                               "Elevated Average CES-D"), 
+                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
+  c(TTEmodel_elevated_avg_CESD_sens_results[
+    nrow(TTEmodel_elevated_avg_CESD_sens_results), 
+                                       c("estimate", "std.error", "conf.low", 
+                                         "conf.high")])
+
+#---- **Prop Elevated CES-D ----
+TTEmodel_prop_CESD <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + prop_elevated_cesd, data = CESD_data_wide)
+
+TTEmodel_prop_CESD_results <- tidy(TTEmodel_prop_CESD, 
+                                   exponentiate = FALSE, conf.int = TRUE)
+
+table_effect_ests[which(table_effect_ests$Exposure == "Elevated CES-D Prop"), 
+                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
+  c(TTEmodel_prop_CESD_results[nrow(TTEmodel_prop_CESD_results), 
+                               c("estimate", "std.error", "conf.low", 
+                                 "conf.high")])
+
+#---- **Prop Elevated CES-D sens ----
+TTEmodel_prop_CESD_sens <- 
+  coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 
+          ed_cat + r4drinking_cat + r4memrye_impute + r4stroke_impute + 
+          r4hearte_impute + r4lunge_impute + r4cancre_impute + r4hibpe_impute + 
+          r4diabe_impute + smoker + r4BMI + hispanic + black + other + female + 
+          r4age_y_int + prop_elevated_cesd_sens, data = CESD_data_wide)
+
+TTEmodel_prop_CESD_sens_results <- tidy(TTEmodel_prop_CESD_sens, 
+                                   exponentiate = FALSE, conf.int = TRUE)
+
+table_effect_ests_sens[which(table_effect_ests_sens$Exposure == 
+                               "Elevated CES-D Prop"), 
+                  c("beta", "SE", "LCI_beta", "UCI_beta")] <- 
+  c(TTEmodel_prop_CESD_sens_results[nrow(TTEmodel_prop_CESD_sens_results), 
+                               c("estimate", "std.error", "conf.low", 
+                                 "conf.high")])
+
+#---- **save tables ----
+write_csv(table_effect_ests, 
+          paste0(path_to_dropbox, "/exposure_trajectories/data/truth.csv"))
+write_csv(table_effect_ests_sens, 
+          paste0(path_to_dropbox, "/exposure_trajectories/data/truth_sens.csv"))

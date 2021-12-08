@@ -322,11 +322,18 @@ mask_impute_pool <-
           mutate("avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
       }
       
-      #--- start here!
-      complete_data[, "prop_elevated_cesd"] <- 
-        rowMeans(complete_data %>% 
-                   dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                   mutate_all(function(x) ifelse(x >= 4, 1, 0)), na.rm = TRUE) 
+      if(sens == "yes"){
+        complete_data[, "prop_elevated_cesd"] <- 
+          rowMeans(complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     mutate_all(function(x) ifelse(x >= 1, 1, 0)), na.rm = TRUE) 
+      } else{
+        complete_data[, "prop_elevated_cesd"] <- 
+          rowMeans(complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     mutate_all(function(x) ifelse(x >= 4, 1, 0)), na.rm = TRUE) 
+      }
+      
       complete_data[which(complete_data$avg_indicator == 0), 
                     "prop_elevated_cesd"] <- NA
       

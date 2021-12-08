@@ -483,16 +483,33 @@ mask_impute_pool <-
         }
         
         #---- ****post-process: exposures ----
-        complete_data %<>% 
-          mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
-                 "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
-                 "prop_elevated_cesd" = 
-                   complete_data %>% 
-                   dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
-                   mutate_all(function(x) ifelse(x >= 4, 1, 0)) %>% rowMeans(), 
-                 "avg_cesd" = complete_data %>% 
-                   dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% rowMeans(), 
-                 "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
+        if(sens == "yes"){
+          complete_data %<>% 
+            mutate("r4cesd_elevated" = ifelse(r4cesd >= 1, 1, 0), 
+                   "r9cesd_elevated" = ifelse(r9cesd >= 1, 1, 0), 
+                   "prop_elevated_cesd" = 
+                     complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     mutate_all(function(x) ifelse(x >= 1, 1, 0)) %>% 
+                     rowMeans(), 
+                   "avg_cesd" = complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     rowMeans(), 
+                   "avg_cesd_elevated" = ifelse(avg_cesd >= 1, 1, 0))
+        } else{
+          complete_data %<>% 
+            mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
+                   "r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
+                   "prop_elevated_cesd" = 
+                     complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     mutate_all(function(x) ifelse(x >= 4, 1, 0)) %>% 
+                     rowMeans(), 
+                   "avg_cesd" = complete_data %>% 
+                     dplyr::select(paste0("r", seq(4, 9), "cesd")) %>% 
+                     rowMeans(), 
+                   "avg_cesd_elevated" = ifelse(avg_cesd >= 4, 1, 0))
+        }
         
         # #Sanity check
         # View(complete_data %>% dplyr::select(contains("cesd")))
@@ -564,9 +581,16 @@ mask_impute_pool <-
       (truth$beta < pooled_effect_ests$UCI)
     
     #---- return values ----
-    write_csv(pooled_effect_ests, 
-              paste0(directory, "exposure_trajectories/results/", mechanism,"_", 
-                     method, "_", mask_percent, ".csv"), append = TRUE)
+    if(sens == "yes"){
+      write_csv(pooled_effect_ests, 
+                paste0(directory, "exposure_trajectories/results/", mechanism, 
+                       "_", method, "_", mask_percent, "_sens.csv"), 
+                append = TRUE)
+    } else{
+      write_csv(pooled_effect_ests, 
+                paste0(directory, "exposure_trajectories/results/", mechanism, 
+                       "_", method, "_", mask_percent, ".csv"), append = TRUE)
+    }
   }
 
 ## Read in the arguments listed in the:

@@ -42,7 +42,8 @@ mask_impute_pool <-
       as.data.frame() %>% set_rownames("beta")
     if(sens == "yes"){
       truth <- 
-        read_csv(paste0(directory, "exposure_trajectories/data/truth_sens.csv")) %>% 
+        read_csv(paste0(directory, 
+                        "exposure_trajectories/data/truth_sens.csv")) %>% 
         dplyr::mutate("Type" = mechanism)
     } else{
       truth <- 

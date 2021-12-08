@@ -4,7 +4,7 @@
 #$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
 #$ -l h_rt=24:00:00,h_data=8G #requests 24 hours, 8GB of data (per core)
-#$ -pe shared 8 #requests 8 cores
+#$ -pe shared 1 #requests 1 core
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
@@ -20,7 +20,7 @@
 # load the job environment:
 . /u/local/Modules/default/init/modules.sh
 module load R/4.0.2 #loads R/4.0.2 for use 
-export OMP_NUM_THREADS=8 #uses max 8 threads (needs to match -pe shared)
+export OMP_NUM_THREADS=1 #uses max 1 thread (needs to match -pe shared)
 ## 
 # run R code
 
@@ -32,6 +32,6 @@ export OMP_NUM_THREADS=8 #uses max 8 threads (needs to match -pe shared)
 
 echo "======"
 echo SGE_TASK_ID=$SGE_TASK_ID      
-R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="LMM" mask_percent="30%" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="LMM" mask_percent="30%" save="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
 

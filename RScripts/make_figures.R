@@ -26,7 +26,7 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 
 #---- Figure 2: results ----
 #---- **read in data ----
-methods <- c("CC", "JMVN", "PMM")
+methods <- c("CC", "JMVN", "PMM", "FCS")
 
 # for(method in methods){
 #   file_paths <- 

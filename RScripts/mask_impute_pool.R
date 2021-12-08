@@ -608,6 +608,8 @@ if(length(args)==0){
   mechanism = 'MNAR'
   method = 'JMVN'
   mask_percent = '10%'
+  save = 'no'
+  sens = 'no'
 }else{
   for(i in 1:length(args)){
     eval(parse(text=args[[i]]))
@@ -620,4 +622,4 @@ print(mask_percent)
 
 mask_impute_pool(mechanism = mechanism, method = method, 
                  mask_percent = mask_percent, directory = "/u/home/c/cshaw343/", 
-                 save = "no")
+                 save = save, sens = sens)

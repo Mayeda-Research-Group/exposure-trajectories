@@ -1,3 +1,5 @@
+# #for testing
+# directory <- "/Users/CrystalShaw/Dropbox/Projects/"
 mask_impute_pool <- 
   function(mechanism, method, mask_percent, directory, save = "no", sens = "no"){
     #---- load packages ----
@@ -19,8 +21,6 @@ mask_impute_pool <-
     source(paste0(directory, "exposure_trajectories/RScripts/fast_impute.R"))
     
     #---- read in data ----
-    # #for testing
-    # directory <- "/Users/CrystalShaw/Dropbox/Projects/"
     data_wide <- 
       read_csv(paste0(directory, 
                       "exposure_trajectories/data/CESD_data_wide.csv")) %>% 

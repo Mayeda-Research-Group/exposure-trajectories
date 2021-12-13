@@ -29,19 +29,19 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 methods <- c("CC", "JMVN", "PMM", "FCS")
 
 # for(method in methods){
-#   file_paths <- 
-#     list.files(path = paste0(path_to_dropbox, 
-#                              "/exposure_trajectories/data/hoffman_transfer/", 
-#                              "results/", method), full.names = TRUE, 
+#   file_paths <-
+#     list.files(path = paste0(path_to_dropbox,
+#                              "/exposure_trajectories/data/hoffman_transfer/",
+#                              "results/", method), full.names = TRUE,
 #                pattern = "*.csv")
-#   
+# 
 #   if(!exists("results")){
-#     results <- vroom(file_paths, col_names = FALSE) %>% 
-#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+#     results <- vroom(file_paths, col_names = FALSE) %>%
+#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
 #                      "Percent", "Mechanism", "Truth Capture"))
 #   } else{
-#     results %<>% rbind(vroom(file_paths, col_names = FALSE) %>% 
-#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+#     results %<>% rbind(vroom(file_paths, col_names = FALSE) %>%
+#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
 #                      "Percent", "Mechanism", "Truth Capture")))
 #   }
 # }

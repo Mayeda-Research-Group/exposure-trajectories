@@ -29,6 +29,6 @@ export OMP_NUM_THREADS=1 #uses max 1 thread (needs to match -pe shared)
 
 echo "======"
 echo SGE_TASK_ID=$SGE_TASK_ID      
-R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="FCS" mask_percent="30%" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"FCS\" mask_percent=\"30%\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="FCS" mask_percent="30%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"FCS\" mask_percent=\"30%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
 

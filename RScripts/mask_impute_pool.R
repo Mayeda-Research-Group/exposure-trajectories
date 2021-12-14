@@ -583,10 +583,9 @@ mask_impute_pool <-
       (truth$beta > pooled_effect_ests$LCI)*
       (truth$beta < pooled_effect_ests$UCI)
     
-    #---- end time ----
-    end <- Sys.time() - start
-    
-    pooled_effect_ests %<>% mutate("time" = end)
+    #---- total time in minutes ----
+    pooled_effect_ests %<>% 
+      mutate("time" = as.numeric(difftime(Sys.time(), start, units = "mins")))
     
     #---- return values ----
     if(sens == "yes"){

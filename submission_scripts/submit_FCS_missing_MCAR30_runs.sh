@@ -11,7 +11,7 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # FULL RUN:
-#$ -t 1-60:1
+#$ -t 1-48:1
 ## 
 
 # load the job environment:

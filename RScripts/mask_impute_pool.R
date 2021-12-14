@@ -168,6 +168,9 @@ mask_impute_pool <-
       # colSums(predict)
     }
     
+    #---- **start time ----
+    start <- Sys.time()
+    
     #---- **run imputation ----
     max_it <- tibble("Method" = c("FCS", "JMVN", "PMM", "LMM"), 
                      "10%" = c(10, 10, 10, 5),
@@ -579,6 +582,11 @@ mask_impute_pool <-
     pooled_effect_ests$capture_truth <- 
       (truth$beta > pooled_effect_ests$LCI)*
       (truth$beta < pooled_effect_ests$UCI)
+    
+    #---- end time ----
+    end <- Sys.time() - start
+    
+    pooled_effect_ests %<>% mutate("time" = end)
     
     #---- return values ----
     if(sens == "yes"){

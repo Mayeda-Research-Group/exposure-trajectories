@@ -52,7 +52,7 @@ read_results <- function(paths){
                    "Percent", "Mechanism", "Truth Capture", "Time"))  
 }
 
-#---- main results ----
+#---- ****main results ----
 for(method in methods){
   file_paths <- 
     list.files(path = paste0(path_to_dropbox, 
@@ -69,7 +69,7 @@ for(method in methods){
   }
 }
 
-#---- sensitivity analyses ----
+#---- ****sensitivity analyses ----
 for(method in c("JMVN")){
   file_paths <- 
     list.files(path = paste0(path_to_dropbox, 

@@ -3,7 +3,7 @@
 # error = Merged with joblog
 #$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
-#$ -l h_rt=6:00:00,h_data=3G #requests 6 hours, 3GB of data (per core)
+#$ -l h_rt=8:00:00,h_data=3G #requests 6 hours, 3GB of data (per core)
 #$ -pe shared 1 #requests 1 core
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
@@ -11,7 +11,7 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # FULL RUN:
-#$ -t 1-40:1
+#$ -t 1-20:1
 ## 
 
 # load the job environment:

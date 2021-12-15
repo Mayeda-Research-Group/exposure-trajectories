@@ -49,21 +49,39 @@ methods <- c("CC", "JMVN", "PMM", "FCS")
 read_results <- function(paths){
   readr::read_csv(paths, col_names = FALSE) %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-                   "Percent", "Mechanism", "Truth Capture"))  
+                   "Percent", "Mechanism", "Truth Capture", "Time"))  
 }
 
+#---- main results ----
 for(method in methods){
   file_paths <- 
     list.files(path = paste0(path_to_dropbox, 
                              "/exposure_trajectories/data/hoffman_transfer/", 
-                             "results/", method), full.names = TRUE, 
+                             "results/main/", method), full.names = TRUE, 
                pattern = "*.csv")
   
-  if(!exists("results")){
-    results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+  if(!exists("main_results")){
+    main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
     
   } else{
-    results %<>% rbind(
+    main_results %<>% rbind(
+      do.call(rbind.data.frame, lapply(file_paths, read_results)))
+  }
+}
+
+#---- sensitivity analyses ----
+for(method in c("JMVN")){
+  file_paths <- 
+    list.files(path = paste0(path_to_dropbox, 
+                             "/exposure_trajectories/data/hoffman_transfer/", 
+                             "results/sens/", method), full.names = TRUE, 
+               pattern = "*.csv")
+  
+  if(!exists("sens_results")){
+    sens_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+    
+  } else{
+    sens_results %<>% rbind(
       do.call(rbind.data.frame, lapply(file_paths, read_results)))
   }
 }
@@ -73,7 +91,7 @@ for(method in methods){
 # diffdf::diffdf(results, results_test)
 
 #---- **take first 100 runs (in case of extra) ----
-results %<>% 
+main_results %<>% 
   group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
   na.omit()
 
@@ -84,8 +102,9 @@ results %<>%
 
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell
-table(results$Mechanism, results$Percent, results$Method)
+table(main_results$Mechanism, main_results$Percent, main_results$Method)
 
+#---- NEED TO EDIT DATAFRAME NAMES ----
 #---- **summarize data ----
 results_summary <- results %>% 
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 

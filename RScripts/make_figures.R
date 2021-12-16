@@ -28,63 +28,68 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 #---- **read in data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
 
-# for(method in methods){
-#   file_paths <-
-#     list.files(path = paste0(path_to_dropbox,
-#                              "/exposure_trajectories/data/hoffman_transfer/",
-#                              "results/", method), full.names = TRUE,
-#                pattern = "*.csv")
-# 
-#   if(!exists("results")){
-#     results <- vroom(file_paths, col_names = FALSE) %>%
-#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                      "Percent", "Mechanism", "Truth Capture"))
-#   } else{
-#     results %<>% rbind(vroom(file_paths, col_names = FALSE) %>%
-#       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                      "Percent", "Mechanism", "Truth Capture")))
-#   }
+# read_results <- function(paths){
+#   readr::read_csv(paths, col_names = FALSE) %>%
+#     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
+#                    "Percent", "Mechanism", "Truth Capture", "Time"))  
 # }
-
-read_results <- function(paths){
-  readr::read_csv(paths, col_names = FALSE) %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-                   "Percent", "Mechanism", "Truth Capture", "Time"))  
-}
 
 #---- ****main results ----
 for(method in methods){
-  file_paths <- 
-    list.files(path = paste0(path_to_dropbox, 
-                             "/exposure_trajectories/data/hoffman_transfer/", 
-                             "results/main/", method), full.names = TRUE, 
+  file_paths <-
+    list.files(path = paste0(path_to_dropbox,
+                             "/exposure_trajectories/data/hoffman_transfer/",
+                             "results/main/", method), full.names = TRUE,
                pattern = "*.csv")
   
   if(!exists("main_results")){
-    main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
-    
+    main_results <- vroom(file_paths, col_names = FALSE) %>%
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                     "Percent", "Mechanism", "Truth Capture", "Time"))
   } else{
-    main_results %<>% rbind(
-      do.call(rbind.data.frame, lapply(file_paths, read_results)))
+    main_results %<>% 
+      rbind(vroom(file_paths, col_names = FALSE) %>%
+              set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                             "Percent", "Mechanism", "Truth Capture", "Time")))
   }
 }
 
+# for(method in methods){
+#   file_paths <- 
+#     list.files(path = paste0(path_to_dropbox, 
+#                              "/exposure_trajectories/data/hoffman_transfer/", 
+#                              "results/main/", method), full.names = TRUE, 
+#                pattern = "*.csv")
+#   
+#   if(!exists("main_results")){
+#     main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+#     
+#   } else{
+#     main_results %<>% rbind(
+#       do.call(rbind.data.frame, lapply(file_paths, read_results)))
+#   }
+# }
+
 #---- ****sensitivity analyses ----
-for(method in c("JMVN")){
-  file_paths <- 
-    list.files(path = paste0(path_to_dropbox, 
-                             "/exposure_trajectories/data/hoffman_transfer/", 
-                             "results/sens/", method), full.names = TRUE, 
+for(method in methods){
+  file_paths <-
+    list.files(path = paste0(path_to_dropbox,
+                             "/exposure_trajectories/data/hoffman_transfer/",
+                             "results/sens/", method), full.names = TRUE,
                pattern = "*.csv")
   
   if(!exists("sens_results")){
-    sens_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
-    
+    sens_results <- vroom(file_paths, col_names = FALSE) %>%
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                     "Percent", "Mechanism", "Truth Capture", "Time"))
   } else{
-    sens_results %<>% rbind(
-      do.call(rbind.data.frame, lapply(file_paths, read_results)))
+    sens_results %<>% 
+      rbind(vroom(file_paths, col_names = FALSE) %>%
+              set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                             "Percent", "Mechanism", "Truth Capture", "Time")))
   }
 }
+
 
 # Comparing two datasets
 # p_load("diffdf")

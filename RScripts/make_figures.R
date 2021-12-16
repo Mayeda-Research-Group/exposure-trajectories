@@ -43,14 +43,15 @@ for(method in methods){
                pattern = "*.csv")
   
   if(!exists("main_results")){
-    main_results <- vroom(file_paths, col_names = FALSE) %>%
+    main_results <- 
+      vroom(file_paths, col_names = FALSE) %>%
       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
                      "Percent", "Mechanism", "Truth Capture", "Time"))
   } else{
     main_results %<>% 
-      rbind(vroom(file_paths, col_names = FALSE) %>%
+      rbind(vroom(file_paths, col_names = FALSE)) %>%
               set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                             "Percent", "Mechanism", "Truth Capture", "Time")))
+                             "Percent", "Mechanism", "Truth Capture", "Time"))
   }
 }
 
@@ -83,8 +84,7 @@ for(method in methods){
       set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
                      "Percent", "Mechanism", "Truth Capture", "Time"))
   } else{
-    sens_results %<>% 
-      rbind(vroom(file_paths, col_names = FALSE) %>%
+    sens_results %<>% rbind(vroom(file_paths, col_names = FALSE) %>%
               set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
                              "Percent", "Mechanism", "Truth Capture", "Time")))
   }
@@ -100,6 +100,10 @@ main_results %<>%
   group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
   na.omit()
 
+sens_results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  na.omit()
+
 # which(rowSums(is.na(results_test))>0)
 # line 1081: Exposure = 1, rest NAs
 # results_test[1076:1083, ]
@@ -108,6 +112,7 @@ main_results %<>%
 #---- **check scenario counts ----
 #should be num_runs*num_exposures = 100*4 = 400 in each cell
 table(main_results$Mechanism, main_results$Percent, main_results$Method)
+table(sens_results$Mechanism, main_results$Percent, main_results$Method)
 
 #---- NEED TO EDIT DATAFRAME NAMES ----
 #---- **summarize data ----

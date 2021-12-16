@@ -19,7 +19,6 @@
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
-##$ -m n
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
@@ -31,6 +30,7 @@
 # load the job environment:
 . /u/local/Modules/default/init/modules.sh
 module load R/4.0.2 #loads R/4.0.2 for use 
+export OMP_NUM_THREADS=1 #uses max 1 threads (needs to match -pe shared)
 ## 
 # run R code
 
@@ -40,14 +40,7 @@ module load R/4.0.2 #loads R/4.0.2 for use
 #mechanism = c("MCAR", "MAR", "MNAR")
 #mask_percent = c("10%", "20%", "30%")
 #
-#So this makes 9 sets of parameters that each need to run 100 times (total 900 jobs) [is my math correct lol]
-#
-#The LMM job will just be
-#
-#method = "LMM"
-#mechanism = "MAR"
-#mask_percent = "30%"
-
+#So this makes 9 sets of parameters that each need to run 100 times (total 900 jobs)
 
 echo "======"
 echo "TASK $SGE_TASK_ID of JOB $JOB_ID started on " `hostname`

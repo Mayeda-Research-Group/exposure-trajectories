@@ -28,6 +28,7 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 #---- **read in data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
 
+#@Yingan: vroom decided it wasn't going to give me errors anymore, so I switched back
 # read_results <- function(paths){
 #   readr::read_csv(paths, col_names = FALSE) %>%
 #     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
@@ -114,9 +115,16 @@ sens_results %<>%
 table(main_results$Mechanism, main_results$Percent, main_results$Method)
 table(sens_results$Mechanism, main_results$Percent, main_results$Method)
 
+#---- **average run time ----
+main_run_times <- main_results %>% 
+  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
+
+
+
+
 #---- NEED TO EDIT DATAFRAME NAMES ----
 #---- **summarize data ----
-results_summary <- results %>% 
+results_summary <- main_results %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
 
@@ -127,6 +135,7 @@ results_summary <- results %>%
 # 
 # diffdf::diffdf(results_summary, results_sum_test)
 
+#---- I've remade the truth table with fewer columns ----
 #---- **read in truth table ----
 truth <- read_csv(paste0(path_to_dropbox, 
                          "/exposure_trajectories/data/", "truth.csv")) %>%

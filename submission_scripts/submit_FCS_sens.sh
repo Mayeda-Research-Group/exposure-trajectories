@@ -14,18 +14,17 @@
 # error = Merged with joblog
 #$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
-#$ -l h_rt=5:00:00,h_data=2G #requests 5 hours, 2GB of data (per core)
+#$ -l h_rt=10:00:00,h_data=3G #requests 10 hours, 3GB of data (per core)
 #$ -pe shared 1 #requests 1 cores
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
-##$ -m n
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
-#$ -t 1-9:1
+##$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD:
-##$ -t 1-900:1
+#$ -t 1-900:1
 ## 
 
 # load the job environment:
@@ -40,7 +39,7 @@ module load R/4.0.2 #loads R/4.0.2 for use
 #mechanism = c("MCAR", "MAR", "MNAR")
 #mask_percent = c("10%", "20%", "30%")
 #
-#So this makes 9 sets of parameters that each need to run 100 times (total 900 jobs) [is my math correct lol]
+#So this makes 9 sets of parameters that each need to run 100 times (total 900 jobs)
 
 echo "======"
 echo "TASK $SGE_TASK_ID of JOB $JOB_ID started on " `hostname`

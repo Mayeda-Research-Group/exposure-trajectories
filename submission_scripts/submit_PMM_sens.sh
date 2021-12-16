@@ -19,13 +19,12 @@
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
-##$ -m n
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
-#$ -t 1-9:1
+##$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD:
-##$ -t 1-900:1
+#$ -t 1-900:1
 ## 
 
 # load the job environment:

@@ -45,16 +45,15 @@ for(method in methods){
   
   if(!exists("main_results")){
     main_results <- 
-      vroom(file_paths, col_names = FALSE) %>%
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                     "Percent", "Mechanism", "Truth Capture", "Time"))
+      vroom(file_paths, col_names = FALSE) 
   } else{
-    main_results %<>% 
-      rbind(vroom(file_paths, col_names = FALSE)) %>%
-              set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                             "Percent", "Mechanism", "Truth Capture", "Time"))
+    main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
   }
 }
+
+main_results %<>% 
+  set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
+                 "Mechanism", "Truth Capture", "Time"))
 
 # for(method in methods){
 #   file_paths <- 
@@ -81,15 +80,15 @@ for(method in methods){
                pattern = "*.csv")
   
   if(!exists("sens_results")){
-    sens_results <- vroom(file_paths, col_names = FALSE) %>%
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                     "Percent", "Mechanism", "Truth Capture", "Time"))
+    sens_results <- vroom(file_paths, col_names = FALSE) 
   } else{
-    sens_results %<>% rbind(vroom(file_paths, col_names = FALSE) %>%
-              set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                             "Percent", "Mechanism", "Truth Capture", "Time")))
+    sens_results %<>% rbind(vroom(file_paths, col_names = FALSE))
   }
 }
+
+sens_results %<>% 
+  set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
+                 "Mechanism", "Truth Capture", "Time"))
 
 
 # Comparing two datasets

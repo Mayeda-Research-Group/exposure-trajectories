@@ -57,19 +57,14 @@ main_results %<>%
   group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
-sens_results %<>% 
+sens_analyses %<>% 
   group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
-# which(rowSums(is.na(results_test))>0)
-# line 1081: Exposure = 1, rest NAs
-# results_test[1076:1083, ]
-# The line is in CC 30% MAR (line 281)
-
 #---- **check scenario counts ----
-#should be num_runs*num_exposures = 100*4 = 400 in each cell
+#should be num_runs*num_exposures = 1000*4 = 4000 in each cell
 table(main_results$Mechanism, main_results$Percent, main_results$Method)
-table(sens_results$Mechanism, main_results$Percent, main_results$Method)
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)
 
 #---- **average run time ----
 main_run_times <- main_results %>% 

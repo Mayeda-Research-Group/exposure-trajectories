@@ -45,48 +45,12 @@ read_results <- function(paths){
 #   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
 #                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
 
-#may give warning message, but problems(main_results) returns an empty dataframe
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
-#---- **main analyses ----
-for(i in 1:2){
-  if(!exists("main_results")){
-    main_results <- data.table::fread(main_paths[i]) %>%
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                     "Percent", "Mechanism", "Truth Capture", "Time"))
-  } else{
-    main_results %<>% rbind(., data.table::fread(main_paths[i]) %>%
-      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                     "Percent", "Mechanism", "Truth Capture", "Time")))
-  }
-}
-
-
-  
-#---- ****sensitivity analyses ----
-for(method in methods){
-  file_paths <-
-    list.files(path = paste0(path_to_dropbox,
-                             "/exposure_trajectories/data/hoffman_transfer/",
-                             "results/sens/", method), full.names = TRUE,
-               pattern = "*.csv")
-  
-  if(!exists("sens_results")){
-    sens_results <- vroom(file_paths, col_names = FALSE) 
-  } else{
-    sens_results %<>% rbind(vroom(file_paths, col_names = FALSE))
-  }
-}
-
-sens_results %<>% 
-  set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
-                 "Mechanism", "Truth Capture", "Time"))
-
-
-# Comparing two datasets
-# p_load("diffdf")
-# diffdf::diffdf(results, results_test)
+#test for invalid rows
+colSums(is.na(main_results))
+colSums(is.na(sens_analyses))
 
 #---- **take first 1000 runs (in case of extra) ----
 main_results %<>% 

@@ -23,8 +23,8 @@
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
 ##$ -t 1-9:1
-# FOR THE FULL RUN USE INSTEAD:
-#$ -t 1-900:1
+# FOR THE FULL RUN USE INSTEAD (9*num runs):
+#$ -t 1-36:1
 ## 
 
 # load the job environment:

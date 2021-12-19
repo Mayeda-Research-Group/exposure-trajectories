@@ -25,19 +25,7 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
                "#D55E00", "#CC79A7")
 
 #---- Figure 2: results ----
-#---- **read in data ----
-methods <- c("CC", "JMVN", "PMM", "FCS")
-
-#---- ****main analyses ----
-
-
-read_results <- function(paths){
-  data.table::fread(paths) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
-}
-
-#---- ****get filepaths ----
+#---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
                            "/exposure_trajectories/data/hoffman_transfer/",
@@ -46,15 +34,36 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
-# test <- data.table::fread(main_paths[1]) %>% 
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+# test <- data.table::fread(main_paths[2], fill = TRUE) %>%
 #   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                  "Percent", "Mechanism", "Truth Capture", "Time"))
+#                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
 
 #may give warning message, but problems(main_results) returns an empty dataframe
-main_results <- do.call(rbind, lapply(main_paths, read_results))
-sens_analyses <- do.call(rbind, lapply(sens_paths, read_results))
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
+
+#---- **main analyses ----
+for(i in 1:2){
+  if(!exists("main_results")){
+    main_results <- data.table::fread(main_paths[i]) %>%
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                     "Percent", "Mechanism", "Truth Capture", "Time"))
+  } else{
+    main_results %<>% rbind(., data.table::fread(main_paths[i]) %>%
+      set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                     "Percent", "Mechanism", "Truth Capture", "Time")))
+  }
+}
 
 
+  
 #---- ****sensitivity analyses ----
 for(method in methods){
   file_paths <-

@@ -62,9 +62,9 @@ sens_analyses %<>%
   na.omit()
 
 #---- **check scenario counts ----
-#should be num_runs*num_exposures = 1000*4 = 4000 in each cell
-table(main_results$Mechanism, main_results$Percent, main_results$Method)
-table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)
+#should be 1000 in each cell (divide by 4 for number of exposures)
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 
 #---- **average run time ----
 main_run_times <- main_results %>% 

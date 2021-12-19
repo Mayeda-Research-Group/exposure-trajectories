@@ -24,7 +24,7 @@
 # TEST OUT BY RUNNING ONLY 9 CASES:
 ##$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD:
-#$ -t 1-900:1
+#$ -t 1-8109:1
 ## 
 
 # load the job environment:

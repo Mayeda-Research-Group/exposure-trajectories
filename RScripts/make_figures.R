@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "vroom")
+p_load("here", "tidyverse", "magrittr")
 
 #No scientific notation
 options(scipen = 999)
@@ -26,40 +26,50 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 
 #---- Figure 2: results ----
 #---- **read in data ----
-methods <- c("CC", "JMVN", "PMM", "FCS")
-
-#@Yingan: vroom decided it wasn't going to give me errors anymore, so I switched back
-# read_results <- function(paths){
-#   readr::read_csv(paths, col_names = FALSE) %>%
-#     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", 
-#                    "Percent", "Mechanism", "Truth Capture", "Time"))  
-# }
-
-#---- ****main results ----
-for(method in methods){
-  file_paths <-
-    list.files(path = paste0(path_to_dropbox,
-                             "/exposure_trajectories/data/hoffman_transfer/",
-                             "results/main/", method), full.names = TRUE,
-               pattern = "*.csv")
-  
-  if(!exists("main_results")){
-    main_results <- 
-      vroom(file_paths, col_names = FALSE) 
-  } else{
-    main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
-  }
+read_results <- function(paths){
+  readr::read_csv(paths, col_names = FALSE) %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
 }
 
-main_results %<>% 
-  set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
-                 "Mechanism", "Truth Capture", "Time"))
+#---- ****get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
+
+#---- ****read main results ----
+main_results <- do.call(rbind.data.frame, lapply(main_paths, read_results))
+
+
 
 # for(method in methods){
-#   file_paths <- 
-#     list.files(path = paste0(path_to_dropbox, 
-#                              "/exposure_trajectories/data/hoffman_transfer/", 
-#                              "results/main/", method), full.names = TRUE, 
+#   file_paths <-
+#     list.files(path = paste0(path_to_dropbox,
+#                              "/exposure_trajectories/data/hoffman_transfer/",
+#                              "results/main/", method), full.names = TRUE,
+#                pattern = "*.csv")
+#   
+#   if(!exists("main_results")){
+#     main_results <- 
+#       vroom(file_paths, col_names = FALSE) 
+#   } else{
+#     main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
+#   }
+# }
+
+# main_results %<>% 
+#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
+#                  "Mechanism", "Truth Capture", "Time"))
+
+# for(method in methods){
+#   file_paths <-
+#     list.files(path = paste0(path_to_dropbox,
+#                              "/exposure_trajectories/data/hoffman_transfer/",
+#                              "results/main/", method), full.names = TRUE,
 #                pattern = "*.csv")
 #   
 #   if(!exists("main_results")){
@@ -95,13 +105,13 @@ sens_results %<>%
 # p_load("diffdf")
 # diffdf::diffdf(results, results_test)
 
-#---- **take first 100 runs (in case of extra) ----
+#---- **take first 1000 runs (in case of extra) ----
 main_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 sens_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 # which(rowSums(is.na(results_test))>0)
@@ -117,8 +127,6 @@ table(sens_results$Mechanism, main_results$Percent, main_results$Method)
 #---- **average run time ----
 main_run_times <- main_results %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
-
-
 
 
 #---- NEED TO EDIT DATAFRAME NAMES ----

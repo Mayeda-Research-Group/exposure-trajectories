@@ -41,45 +41,11 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
-#---- ****read main results ----
+#may give warning message, but problems(main_results) returns an empty dataframe
 main_results <- do.call(rbind.data.frame, lapply(main_paths, read_results))
+sens_analyses <- do.call(rbind.data.frame, lapply(sens_paths, read_results))
 
 
-
-# for(method in methods){
-#   file_paths <-
-#     list.files(path = paste0(path_to_dropbox,
-#                              "/exposure_trajectories/data/hoffman_transfer/",
-#                              "results/main/", method), full.names = TRUE,
-#                pattern = "*.csv")
-#   
-#   if(!exists("main_results")){
-#     main_results <- 
-#       vroom(file_paths, col_names = FALSE) 
-#   } else{
-#     main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
-#   }
-# }
-
-# main_results %<>% 
-#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
-#                  "Mechanism", "Truth Capture", "Time"))
-
-# for(method in methods){
-#   file_paths <-
-#     list.files(path = paste0(path_to_dropbox,
-#                              "/exposure_trajectories/data/hoffman_transfer/",
-#                              "results/main/", method), full.names = TRUE,
-#                pattern = "*.csv")
-#   
-#   if(!exists("main_results")){
-#     main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
-#     
-#   } else{
-#     main_results %<>% rbind(
-#       do.call(rbind.data.frame, lapply(file_paths, read_results)))
-#   }
-# }
 
 #---- ****sensitivity analyses ----
 for(method in methods){
@@ -213,6 +179,40 @@ plot(test, r4married_partnered + r5married_partnered + r6married_partnered +
 
 
 #---- OLD ----
+# for(method in methods){
+#   file_paths <-
+#     list.files(path = paste0(path_to_dropbox,
+#                              "/exposure_trajectories/data/hoffman_transfer/",
+#                              "results/main/", method), full.names = TRUE,
+#                pattern = "*.csv")
+#   
+#   if(!exists("main_results")){
+#     main_results <- 
+#       vroom(file_paths, col_names = FALSE) 
+#   } else{
+#     main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
+#   }
+# }
+
+# main_results %<>% 
+#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
+#                  "Mechanism", "Truth Capture", "Time"))
+
+# for(method in methods){
+#   file_paths <-
+#     list.files(path = paste0(path_to_dropbox,
+#                              "/exposure_trajectories/data/hoffman_transfer/",
+#                              "results/main/", method), full.names = TRUE,
+#                pattern = "*.csv")
+#   
+#   if(!exists("main_results")){
+#     main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
+#     
+#   } else{
+#     main_results %<>% rbind(
+#       do.call(rbind.data.frame, lapply(file_paths, read_results)))
+#   }
+# }
 
 #---- read in data ----
 #---- **CESD data ----

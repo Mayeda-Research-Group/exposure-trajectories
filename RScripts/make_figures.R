@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr")
+p_load("here", "tidyverse", "magrittr", "data.table")
 
 #No scientific notation
 options(scipen = 999)
@@ -26,8 +26,13 @@ cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2",
 
 #---- Figure 2: results ----
 #---- **read in data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+
+#---- ****main analyses ----
+
+
 read_results <- function(paths){
-  readr::read_csv(paths, col_names = FALSE) %>%
+  data.table::fread(paths) %>% na.omit() %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
                    "Percent", "Mechanism", "Truth Capture", "Time"))
 }
@@ -41,10 +46,13 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
-#may give warning message, but problems(main_results) returns an empty dataframe
-main_results <- do.call(rbind.data.frame, lapply(main_paths, read_results))
-sens_analyses <- do.call(rbind.data.frame, lapply(sens_paths, read_results))
+# test <- data.table::fread(main_paths[1]) %>% 
+#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+#                  "Percent", "Mechanism", "Truth Capture", "Time"))
 
+#may give warning message, but problems(main_results) returns an empty dataframe
+main_results <- do.call(rbind, lapply(main_paths, read_results))
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results))
 
 
 #---- ****sensitivity analyses ----

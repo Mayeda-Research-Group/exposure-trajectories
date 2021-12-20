@@ -8,7 +8,6 @@
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
 # Notify when
-##$ -m n
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TO TEST MATTER RUN ONLY TWICE:

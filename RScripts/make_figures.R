@@ -48,9 +48,9 @@ read_results <- function(paths){
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
-#test for invalid rows
-colSums(is.na(main_results))
-colSums(is.na(sens_analyses))
+# #test for invalid rows
+# colSums(is.na(main_results))
+# colSums(is.na(sens_analyses))
 
 #---- **take first 1000 runs (in case of extra) ----
 main_results %<>% 
@@ -70,13 +70,14 @@ table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 main_run_times <- main_results %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
+sens_run_times <- sens_analyses %>% 
+  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- NEED TO EDIT DATAFRAME NAMES ----
 #---- **summarize data ----
 results_summary <- main_results %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
-
 # Sanity check
 # results_sum_test <- 
 #   results %>% group_by(Method, Mechanism, Percent, Exposure) %>%

@@ -3,7 +3,7 @@
 # error = Merged with joblog
 #$ -o joblogs/joblog.$JOB_ID.$TASK_ID #creates a file called joblog.jobidnumber to write to. 
 #$ -j y 
-#$ -l highp,h_rt=120:00:00,h_data=4G #requests 120 hours, 4GB of data (per core) on biostat high performance nodes
+#$ -l highp,h_rt=30:00:00,h_data=4G #requests 30 hours, 4GB of data (per core) on biostat high performance nodes
 #$ -pe shared 1 #requests 1 core
 # Email address to notify
 #$ -M $USER@mail #don't change this line, finds your email in the system 
@@ -11,9 +11,9 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TO TEST MATTER RUN ONLY TWICE:
-#$ -t 1-2:1
+##$ -t 1-2:1
 # FOR THE FULL RUN USE INSTEAD:
-##$ -t 1-100:1
+#$ -t 1-998:1
 ## 
 
 # load the job environment:

@@ -112,6 +112,17 @@ results_summary$Percent <- factor(results_summary$Percent)
 results_summary$Mechanism <- 
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
+results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
+                "Exposure"] <- "Baseline CES-D"
+results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
+                "Exposure"] <- "End of Follow-up CES-D"
+results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
+                "Exposure"] <- "Proportion Elevated CES-D"
+results_summary$Exposure <- 
+  factor(results_summary$Exposure, 
+         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+
 #---- **plot ----
 ggplot(results_summary %>% filter(Method != "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
@@ -119,7 +130,7 @@ ggplot(results_summary %>% filter(Method != "LMM"),
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
                 position = position_dodge(-0.75)) +
-  theme_minimal() + 
+  theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
@@ -128,7 +139,7 @@ ggplot(results_summary %>% filter(Method != "LMM"),
   ggtitle(paste0("Mean 95% CI of beta across 700 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_mean_CI.jpeg"), 
+              "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 3: coverage probability ----
@@ -141,7 +152,33 @@ main_run_times <- main_results %>%
 sens_run_times <- sens_analyses %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
-#---- Supplement Figure 1: traceplots ----
+#---- eFigure 1: sensitivity analyses ----
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
+
+#---- **take first 1000 runs (in case of extra) ----
+sens_analyses %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
+  na.omit()
+
+#---- **check scenario counts ----
+#should be 1000 in each cell (divide by 4 for number of exposures)
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- **limit runs for figure (for now) ----
+sens_analyses %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  na.omit()
+
+#double-checking
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- eFigure 2: traceplots ----
 #---- **read in data ----
 test <- readRDS(here::here("MI datasets", "jmvn_mcar10"))
 jpeg(paste0(path_to_dropbox, "/exposure_trajectories/",

@@ -75,13 +75,14 @@ main_results %<>%
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 
 #---- **summarize data ----
-results_summary <- main_results %>%
+results_summary <- main_results %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
 
-# Sanity check
-# results_sum_test <- 
-#   results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
+# #Sanity check
+# results_sum_test <-
+#   main_results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
 #   summarise_all(list(mean))
 # 
 # diffdf::diffdf(results_summary, results_sum_test)
@@ -103,16 +104,13 @@ truth_multiple <- do.call("rbind", replicate(
 
 results_summary %<>% rbind(truth_multiple)
 
-#---- NEED TO EDIT ----
-#---- I've remade the truth table with fewer columns ----
-
-
 #---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
 results_summary$Method <- 
   factor(results_summary$Method, levels = c("Truth", methods))
 results_summary$Percent <- factor(results_summary$Percent)
 results_summary$Mechanism <- 
-  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 #---- **plot ----
 ggplot(results_summary, 

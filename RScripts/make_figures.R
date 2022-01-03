@@ -113,25 +113,27 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 #---- **plot ----
-ggplot(results_summary, 
+ggplot(results_summary %>% filter(Method != "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(0.75)) + 
+  geom_point(size = 2.0, position = position_dodge(-0.75)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
-                position = position_dodge(0.75)) +
+                position = position_dodge(-0.75)) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
+  ggtitle(paste0("Mean 95% CI of beta across 700 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3: runtimes ----
+#---- Figure 3: coverage probability ----
+
+#---- Figure 4: runtimes ----
 #Need all data reading code
 main_run_times <- main_results %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
@@ -164,141 +166,6 @@ plot(test, r4married_partnered + r5married_partnered + r6married_partnered +
 
 
 #---- OLD ----
-# for(method in methods){
-#   file_paths <-
-#     list.files(path = paste0(path_to_dropbox,
-#                              "/exposure_trajectories/data/hoffman_transfer/",
-#                              "results/main/", method), full.names = TRUE,
-#                pattern = "*.csv")
-#   
-#   if(!exists("main_results")){
-#     main_results <- 
-#       vroom(file_paths, col_names = FALSE) 
-#   } else{
-#     main_results %<>% rbind(vroom(file_paths, col_names = FALSE))
-#   }
-# }
-
-# main_results %<>% 
-#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method", "Percent", 
-#                  "Mechanism", "Truth Capture", "Time"))
-
-# for(method in methods){
-#   file_paths <-
-#     list.files(path = paste0(path_to_dropbox,
-#                              "/exposure_trajectories/data/hoffman_transfer/",
-#                              "results/main/", method), full.names = TRUE,
-#                pattern = "*.csv")
-#   
-#   if(!exists("main_results")){
-#     main_results <- do.call(rbind.data.frame, lapply(file_paths, read_results))
-#     
-#   } else{
-#     main_results %<>% rbind(
-#       do.call(rbind.data.frame, lapply(file_paths, read_results)))
-#   }
-# }
-
-#---- read in data ----
-#---- **CESD data ----
-CESD_data_wide <- 
-  read_csv(paste0(path_to_dropbox, 
-                  "/exposure_trajectories/data/", 
-                  "CESD_data_wide.csv"), 
-           col_types = cols(HHIDPN = col_character())) %>% 
-  mutate_if(is.character, as.factor) 
-
-#---- **results ----
-methods <- c("JMVN", "PMM", "FCS")
-num_runs <- 10
-
-#complete case
-results <- 
-  read_csv(paste0(path_to_dropbox, 
-                  "/exposure_trajectories/manuscript/tables/", 
-                  "complete_case_analyses/results_JMVN_100_20210411_cc.csv"))
-results[which(results$Method != "Truth"), "Method"] <- "Complete Case"
-
-for(method in methods){
-  results <- 
-    rbind(results, read_csv(Sys.glob(
-      paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-             "results_", method, "_", num_runs, "*.csv"))) %>% 
-        filter(Method != "Truth"))
-}
-
-#---- visualizations ----
-#---- **effect estimates ----
-mask_props <- unique(results$Missingness)[-1] #Don't want 0%
-results %<>% mutate_at(c("Missingness"), as.factor) 
-results$Method <- factor(results$Method, 
-                         levels = c("Truth", "Complete Case", methods))
-results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
-
-#update exposure defs
-results[which(results$Exposure == "CES-D Wave 4"), "Exposure"] <- 
-  "Elevated CES-D Wave 4" 
-results[which(results$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated CES-D Wave 9" 
-results$Exposure <- 
-  factor(results$Exposure, 
-         levels = c("Elevated CES-D Wave 4", "Elevated CES-D Wave 9" , 
-                    "Elevated Average CES-D", "Elevated CES-D Count"))
-
-# #---- ****Distribution of beta ----
-# ggplot(results, 
-#        aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-#   geom_point(size = 2, position = position_dodge(0.60)) + 
-#   scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-#   geom_errorbar(aes(xmin = LCI_beta, xmax = UCI_beta), width = .2, 
-#                 position = position_dodge(0.60)) + theme_minimal() + 
-#   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-#   scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-#   scale_y_discrete(limits = rev(levels(results$Missingness))) + 
-#   geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
-#   facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-#   ggtitle(paste0("95% CI of beta across ", num_runs, " runs"))
-# 
-# ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-#               "manuscript/figures/effect_ests_dist_beta.jpeg"), device = "jpeg", 
-#        dpi = 300, width = 9, height = 5, units = "in")
-
-#---- ****mean LCI and mean UCI ----
-ggplot(results, 
-       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(0.75)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-  geom_errorbar(aes(xmin = mean_LCI, xmax = mean_UCI), width = .3, 
-                position = position_dodge(0.75)) + theme_minimal() + 
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle(paste0("Mean 95% CI of beta across ", num_runs, " runs"))
-
-ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_mean_LCI_UCI.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
-
-#---- ****CI with mean SD ----
-ggplot(results, 
-       aes(x = beta, y = Missingness, color = Method, shape = Method)) +
-  geom_point(size = 2, position = position_dodge(0.50)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(results))))) + 
-  geom_errorbar(aes(xmin = beta - 1.96*SD, xmax = beta + 1.96*SD), width = .2, 
-                position = position_dodge(0.50)) + theme_minimal() + 
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_ghibli_d("LaputaMedium", direction = -1) + 
-  scale_y_discrete(limits = rev(levels(results$Missingness))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure)) + 
-  ggtitle(paste0("95% CI of beta using mean SD across ", num_runs, " runs"))
-
-ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/effect_ests_CI_mean_SD.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 5, units = "in")
-
 #---- **individual imputations ----
 #Read in data
 methods <- c("jmvn_", "pmm_", "fcs_")

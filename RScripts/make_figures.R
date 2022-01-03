@@ -66,18 +66,19 @@ sens_analyses %<>%
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 
-#---- **average run time ----
-main_run_times <- main_results %>% 
-  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
+#---- **limit runs for figure (for now) ----
+main_results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  na.omit()
 
-sens_run_times <- sens_analyses %>% 
-  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
+#double-checking
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 
-#---- NEED TO EDIT DATAFRAME NAMES ----
 #---- **summarize data ----
 results_summary <- main_results %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
+
 # Sanity check
 # results_sum_test <- 
 #   results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
@@ -85,25 +86,26 @@ results_summary <- main_results %>%
 # 
 # diffdf::diffdf(results_summary, results_sum_test)
 
-#---- I've remade the truth table with fewer columns ----
 #---- **read in truth table ----
 truth <- read_csv(paste0(path_to_dropbox, 
                          "/exposure_trajectories/data/", "truth.csv")) %>%
-  select(-c(LCI_beta, UCI_beta)) %>%
-  dplyr::rename(
-    "Mechanism" = "Type",    
-    "Percent" = "Missingness",
-    "Beta" = "beta",
-    "LCI" = "mean_LCI",
-    "UCI" = "mean_UCI",
-    "Truth Capture" = "truth_capture")
+  dplyr::rename("LCI" = "LCI_beta", 
+                "UCI" = "UCI_beta",
+                "Beta" = "beta") %>% 
+  mutate("Percent" = "0%", 
+         "Truth Capture" = 1)
 
 truth_multiple <- do.call("rbind", replicate(
   3, truth, simplify = FALSE)) %>%
   mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
                        rep("MAR", length(unique(truth$Exposure))), 
                        rep("MNAR", length(unique(truth$Exposure)))))
+
 results_summary %<>% rbind(truth_multiple)
+
+#---- NEED TO EDIT ----
+#---- I've remade the truth table with fewer columns ----
+
 
 #---- **format data ----
 results_summary$Method <- 
@@ -130,6 +132,14 @@ ggplot(results_summary,
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- Figure 3: runtimes ----
+#Need all data reading code
+main_run_times <- main_results %>% 
+  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
+
+sens_run_times <- sens_analyses %>% 
+  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- Supplement Figure 1: traceplots ----
 #---- **read in data ----

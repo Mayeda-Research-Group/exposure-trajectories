@@ -19,7 +19,7 @@ options(scipen = 999)
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
-#---- Table 2 ----
+#---- Table 2: RMSE ----
 #---- **read in truth table ----
 truth <- read_csv(paste0(path_to_dropbox, 
                          "/exposure_trajectories/data/", "truth.csv")) %>%
@@ -47,19 +47,18 @@ read_results <- function(paths){
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **table shell ----
-methods <- c("CC", "JMVN", "PMM", "FCS")
-
 rmse_table <- 
-  data.frame("Method" = rep(unique(results$Method), 
-                            each = length(unique(results$Type))*
-                              length(unique(results$Missingness))), 
+  data.frame("Method" = rep(unique(main_results$Method), 
+                            each = length(unique(main_results$Mechanism))*
+                              length(unique(main_results$Percent))), 
              "Mechanism" = rep(c("MCAR", "MAR", "MNAR"), 
-                               each = length(unique(results$Missingness))), 
-             "Missing Percent" = rep(unique(results$Missingness), 
-                                     length(unique(results$Type))))
+                               each = length(unique(main_results$Percent))), 
+             "Missing Percent" = rep(unique(main_results$Percent), 
+                                     length(unique(main_results$Mechanism))))
+
 rmse_table <- cbind(rmse_table, matrix(nrow = nrow(rmse_table), ncol = 4)) %>% 
   set_colnames(c("Method", "Mechanism", "Missing Percent", 
-                 unique(results$Exposure)))
+                 unique(main_results$Exposure)))
 
 #---- **calculate RMSE ----
 for(i in 1:nrow(rmse_table)){
@@ -67,18 +66,21 @@ for(i in 1:nrow(rmse_table)){
   mechanism = rmse_table[i, "Mechanism"]
   percent = rmse_table[i, "Missing Percent"]
   
-  for(exposure in unique(results$Exposure)){
-    subset <- results %>% filter(Exposure == exposure, Method == method, 
-                                 Type == mechanism, Missingness == percent)
+  for(exposure in unique(main_results$Exposure)){
+    subset <- main_results %>% 
+      filter(Exposure == exposure, Method == method, Mechanism == mechanism, 
+             Percent == percent)
     
-    rmse_table[i, exposure] <- round(sqrt(mean((subset$beta - 
-                                                  truth[[which(truth$Exposure == exposure), "beta"]])^2)), 3)
+    rmse_table[i, exposure] <- 
+      round(sqrt(mean((subset$beta - 
+                         truth[[which(truth$Exposure == exposure), 
+                                "beta"]])^2)), 3)
   }
 }
 
 #---- **save results ----
 write_csv(rmse_table, paste0(path_to_dropbox, "/exposure_trajectories/",
-                             "manuscript/tables/rmse.csv"))
+                             "manuscript/tables/table2/rmse.csv"))
 
 
 

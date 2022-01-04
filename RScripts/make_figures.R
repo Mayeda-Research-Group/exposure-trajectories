@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "data.table")
+p_load("here", "tidyverse", "magrittr", "data.table", "stringr")
 
 #No scientific notation
 options(scipen = 999)
@@ -143,23 +143,28 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 3: coverage probabilities ----
-#---- **read in data ----
-results <- read_csv(paste0(path_to_dropbox, 
-                           "/exposure_trajectories/manuscript/tables/", 
-                           "results_CC_1000.csv")) %>% 
-  dplyr::select(-one_of("people_dropped")) %>% 
-  filter(!Type == "MAR 2")
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
 
-results <- 
-  rbind(results, read_csv(Sys.glob(
-    paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-           "results_JMVN_PMM_FCS", "*.csv")))) 
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **format data ----
 # Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
 # but not in the legend
-methods <- c("JMVN", "PMM", "FCS")
-results$Method <- factor(results$Method, levels = c("Truth", "CC", methods))
+methods <- c("CC", "JMVN", "PMM", "FCS")
+results$Method <- factor(results$Method, levels = c("Truth", methods))
 results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
 results$Missingness <- factor(results$Missingness)
 

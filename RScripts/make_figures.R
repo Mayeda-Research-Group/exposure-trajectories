@@ -227,7 +227,7 @@ ggplot(rmse_table,
   facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/rmse.jpeg"), 
+              "manuscript/figures/figure4/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 5: runtimes ----

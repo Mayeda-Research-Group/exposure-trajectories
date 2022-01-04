@@ -203,12 +203,14 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #---- Figure 4: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
-                              "manuscript/tables/rmse.csv"))
+                              "manuscript/tables/table2/rmse.csv"))
 rmse_table %<>% 
-  pivot_longer(cols = colnames(rmse_table)[grep("CES-D", colnames(rmse_table))])
+  pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
+                                                colnames(rmse_table))]) %>% 
+  filter(Method != "LMM")
 
 #---- **format data ----
-methods <- c("JMVN", "PMM", "FCS")
+methods <- c("CC", "JMVN", "PMM", "FCS")
 rmse_table$Method <- factor(rmse_table$Method, levels = methods)
 rmse_table$Mechanism <- factor(rmse_table$Mechanism, 
                                levels = c("MCAR", "MAR", "MNAR"))

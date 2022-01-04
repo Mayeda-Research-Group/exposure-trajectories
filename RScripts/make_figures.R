@@ -178,6 +178,74 @@ sens_analyses %<>%
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 
+#---- **summarize data ----
+results_summary <- sens_analyses %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
+  summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
+               ~mean(., na.rm = TRUE)) 
+
+# #Sanity check
+# results_sum_test <-
+#   main_results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
+#   summarise_all(list(mean))
+# 
+# diffdf::diffdf(results_summary, results_sum_test)
+
+#---- **read in truth table ----
+truth_sens <- read_csv(paste0(path_to_dropbox, 
+                         "/exposure_trajectories/data/", "truth_sens.csv")) %>%
+  dplyr::rename("LCI" = "LCI_beta", 
+                "UCI" = "UCI_beta",
+                "Beta" = "beta") %>% 
+  mutate("Percent" = "0%", 
+         "Truth Capture" = 1)
+
+truth_multiple <- do.call("rbind", replicate(
+  3, truth_sens, simplify = FALSE)) %>%
+  mutate(Mechanism = c(rep("MCAR", length(unique(truth_sens$Exposure))), 
+                       rep("MAR", length(unique(truth_sens$Exposure))), 
+                       rep("MNAR", length(unique(truth_sens$Exposure)))))
+
+results_summary %<>% rbind(truth_multiple)
+
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+results_summary$Method <- 
+  factor(results_summary$Method, levels = c("Truth", methods))
+results_summary$Percent <- factor(results_summary$Percent)
+results_summary$Mechanism <- 
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
+
+results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
+                "Exposure"] <- "Baseline CES-D"
+results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
+                "Exposure"] <- "End of Follow-up CES-D"
+results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
+                "Exposure"] <- "Proportion Elevated CES-D"
+results_summary$Exposure <- 
+  factor(results_summary$Exposure, 
+         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+
+#---- **plot ----
+ggplot(results_summary, 
+       aes(x = Beta, y = Percent, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(-0.75)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+                position = position_dodge(-0.75)) +
+  theme_minimal() + ylab("Percent Missing Data") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + 
+  scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
+  ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure1/effect_ests_mean_CI_sens.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
 #---- eFigure 2: traceplots ----
 #---- **read in data ----
 test <- readRDS(here::here("MI datasets", "jmvn_mcar10"))

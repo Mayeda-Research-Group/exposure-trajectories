@@ -72,9 +72,9 @@ for(i in 1:nrow(rmse_table)){
              Percent == percent)
     
     rmse_table[i, exposure] <- 
-      round(sqrt(mean((subset$beta - 
+      round(sqrt(mean((subset$Beta - 
                          truth[[which(truth$Exposure == exposure), 
-                                "beta"]])^2)), 3)
+                                "Beta"]])^2)), 3)
   }
 }
 

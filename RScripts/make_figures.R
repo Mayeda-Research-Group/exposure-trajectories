@@ -260,7 +260,32 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 5: runtimes ----
-#Need all data reading code
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+
+#---- **limit runs for figure (for now) ----
+main_results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  na.omit()
+
+#double-checking
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
+
+#---- summarize data ----
 main_run_times <- main_results %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 

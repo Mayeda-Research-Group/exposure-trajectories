@@ -3,7 +3,7 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "vroom")
+p_load("here", "tidyverse")
 
 #No scientific notation
 options(scipen = 999)
@@ -20,48 +20,35 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- Table 2 ----
-#---- **read in true data ----
+#---- **read in truth table ----
 truth <- read_csv(paste0(path_to_dropbox, 
-                         "/exposure_trajectories/manuscript/tables/", 
-                         "results_CC_1000.csv")) %>% 
-  dplyr::select(-one_of("people_dropped")) %>% 
-  filter(Method == "Truth") %>% group_by(Exposure) %>% slice(1)
+                         "/exposure_trajectories/data/", "truth.csv")) %>%
+  dplyr::rename("LCI" = "LCI_beta", 
+                "UCI" = "UCI_beta",
+                "Beta" = "beta") %>% 
+  mutate("Percent" = "0%", 
+         "Truth Capture" = 1)
 
-#---- **read in Hoffman data ----
-methods <- c("JMVN", "PMM", "FCS")
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
 
-for(method in methods){
-  if(!exists("results")){
-    results <- 
-      vroom(paste0(path_to_dropbox, "/exposure_trajectories/data/",
-                   "hoffman_transfer/", method, "/", 
-                   list.files(path = 
-                                paste0(path_to_dropbox, 
-                                       "/exposure_trajectories/data/", 
-                                       "hoffman_transfer/", method))), 
-            col_names = FALSE) %>% 
-      set_colnames(c("Exposure", "beta", "SD", "LCI", "UCI", "Method", 
-                     "Missingness", "Type", "truth_capture")) %>% 
-      group_by(Method, Type, Missingness, Exposure) %>% slice_head(n = 100)
-  } else{
-    results <- 
-      rbind(results, 
-            vroom(paste0(path_to_dropbox, 
-                         "/exposure_trajectories/data/", 
-                         "hoffman_transfer/", method, "/", 
-                         list.files(path = paste0(path_to_dropbox, 
-                                                  "/exposure_trajectories/data/", 
-                                                  "hoffman_transfer/", method))), 
-                  col_names = FALSE) %>% 
-              set_colnames(c("Exposure", "beta", "SD", "LCI", "UCI", "Method", 
-                             "Missingness", "Type", "truth_capture")) %>% 
-              group_by(Method, Type, Missingness, Exposure) %>% 
-              slice_head(n = 100))
-  }
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
 }
 
-#---- RMSE table ----
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+
 #---- **table shell ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+
 rmse_table <- 
   data.frame("Method" = rep(unique(results$Method), 
                             each = length(unique(results$Type))*

@@ -285,11 +285,33 @@ main_results %<>%
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 
-#---- summarize data ----
+#---- **summarize data ----
 main_run_times <- main_results %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
-#---- eFigure 1: sensitivity analyses ----
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+main_results$Method <- factor(main_results$Method, 
+                                 levels = c("Truth", methods))
+main_results$Mechanism <- 
+  factor(main_results$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+main_results$Percent <- factor(main_results$Percent)
+
+main_results %<>% mutate("time_hours" = Time/60)
+
+#---- **plot ----
+ggplot(data = na.omit(main_results), 
+       aes(x = Percent, y = time_hours, color = Method)) + 
+  geom_boxplot() + ylab("Computational Time (Hours)") + 
+  xlab("Percent Missing Data") + theme_bw() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-1])
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/figure5/run_times.jpeg"), 
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+
+#---- eFigure 3: sensitivity analyses ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -298,14 +320,14 @@ all_paths <-
 
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
-#---- **take first 1000 runs (in case of extra) ----
-sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
-  na.omit()
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
 
-#---- **check scenario counts ----
-#should be 1000 in each cell (divide by 4 for number of exposures)
-table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
 sens_analyses %<>% 
@@ -320,13 +342,6 @@ results_summary <- sens_analyses %>%
   group_by(Method, Mechanism, Percent, Exposure) %>%
   summarize_at(.vars = c("Beta", "SE", "LCI", "UCI", "Truth Capture"), 
                ~mean(., na.rm = TRUE)) 
-
-# #Sanity check
-# results_sum_test <-
-#   main_results %>% group_by(Method, Mechanism, Percent, Exposure) %>%
-#   summarise_all(list(mean))
-# 
-# diffdf::diffdf(results_summary, results_sum_test)
 
 #---- **read in truth table ----
 truth_sens <- read_csv(paste0(path_to_dropbox, 
@@ -380,9 +395,159 @@ ggplot(results_summary,
   ggtitle(paste0("Mean 95% CI of beta across 100 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure1/effect_ests_mean_CI_sens.jpeg"), 
+              "manuscript/figures/efigure3/effect_ests_mean_CI_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
+#---- eFigure 4: sensitivity coverage probabilities ----
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
+
+#---- **limit runs for figure (for now) ----
+sens_analyses %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  na.omit()
+
+#double-checking
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- **summarize data ----
+results_summary <- sens_analyses %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
+  summarize_at(.vars = c("Truth Capture"), ~mean(., na.rm = TRUE))
+
+#---- **format data ----
+# Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
+# but not in the legend
+methods <- c("CC", "JMVN", "PMM", "FCS")
+results_summary$Method <- factor(results_summary$Method, 
+                                 levels = c("Truth", methods))
+results_summary$Mechanism <- 
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+results_summary$Percent <- factor(results_summary$Percent)
+
+results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
+                "Exposure"] <- "Baseline CES-D"
+results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
+                "Exposure"] <- "End of Follow-up CES-D"
+results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
+                "Exposure"] <- "Proportion Elevated CES-D"
+results_summary$Exposure <- 
+  factor(results_summary$Exposure, 
+         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+
+#---- **plot ----
+ggplot(results_summary %>% filter(!Method == "Truth"), 
+       mapping = aes(x = Percent, y = `Truth Capture`, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-1]) + ylab("Coverage Probability") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure), scales = "free_y")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure4/coverage_prob_sens.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- eFigure 5: sensitivity RMSE ----
+#---- **read in data ----
+rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
+                              "manuscript/tables/table2/rmse.csv"))
+rmse_table %<>% 
+  pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
+                                                colnames(rmse_table))]) %>% 
+  filter(Method != "LMM")
+
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+rmse_table$Method <- factor(rmse_table$Method, levels = methods)
+rmse_table$Mechanism <- factor(rmse_table$Mechanism, 
+                               levels = c("MCAR", "MAR", "MNAR"))
+rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
+
+#---- **plot ----
+ggplot(rmse_table, 
+       mapping = aes(x = `Missing Percent`, y = value, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-c(1, 2)]) + ylab("RMSE") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/figure4/rmse.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- Figure 5: runtimes ----
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+sens_analyses <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+
+#---- **limit runs for figure (for now) ----
+sens_analyses %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  na.omit()
+
+#double-checking
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- **summarize data ----
+main_run_times <- sens_analyses %>% 
+  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
+
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+sens_analyses$Method <- factor(sens_analyses$Method, 
+                              levels = c("Truth", methods))
+sens_analyses$Mechanism <- 
+  factor(sens_analyses$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+sens_analyses$Percent <- factor(sens_analyses$Percent)
+
+sens_analyses %<>% mutate("time_hours" = Time/60)
+
+#---- **plot ----
+ggplot(data = na.omit(sens_analyses), 
+       aes(x = Percent, y = time_hours, color = Method)) + 
+  geom_boxplot() + ylab("Computational Time (Hours)") + 
+  xlab("Percent Missing Data") + theme_bw() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-1])
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/figure5/run_times.jpeg"), 
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+
+
+#---- OLD ----
 #---- eFigure 2: traceplots ----
 #---- **read in data ----
 test <- readRDS(here::here("MI datasets", "jmvn_mcar10"))
@@ -405,9 +570,6 @@ plot(test, r4married_partnered + r5married_partnered + r6married_partnered +
        r7married_partnered + r8married_partnered + r9married_partnered ~ 
        .it | .ms, layout = c(2, 6))
 
-
-
-#---- OLD ----
 #---- **individual imputations ----
 #Read in data
 methods <- c("jmvn_", "pmm_", "fcs_")

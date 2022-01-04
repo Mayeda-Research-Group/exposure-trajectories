@@ -19,12 +19,15 @@ options(scipen = 999)
 path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
+#---- load scripts ----
+#put read_results function here
+
 #---- color palette ----
 # The palette with grey:
 cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
                "#D55E00", "#CC79A7")
 
-#---- Figure 2: results ----
+#---- count scenarios ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -41,16 +44,8 @@ read_results <- function(paths){
                    "Percent", "Mechanism", "Truth Capture", "Time"))
 }
 
-# test <- data.table::fread(main_paths[2], fill = TRUE) %>%
-#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
-
-# #test for invalid rows
-# colSums(is.na(main_results))
-# colSums(is.na(sens_analyses))
 
 #---- **take first 1000 runs (in case of extra) ----
 main_results %<>% 
@@ -65,6 +60,32 @@ sens_analyses %<>%
 #should be 1000 in each cell (divide by 4 for number of exposures)
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- Figure 2: results ----
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+# test <- data.table::fread(main_paths[2], fill = TRUE) %>%
+#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+#                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
+
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+
+# #test for invalid rows
+# colSums(is.na(main_results))
+# colSums(is.na(sens_analyses))
 
 #---- **limit runs for figure (for now) ----
 main_results %<>% 
@@ -159,6 +180,14 @@ read_results <- function(paths){
 }
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+
+#---- **limit runs for figure (for now) ----
+main_results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  na.omit()
+
+#double-checking
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 
 #---- **summarize data ----
 results_summary <- main_results %>% 

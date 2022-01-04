@@ -252,7 +252,7 @@ ggplot(rmse_table,
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-c(1, 2)]) + ylab("RMSE") + 
+  scale_color_manual(values = cbPalette[-1]) + ylab("RMSE") + 
   facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -501,7 +501,7 @@ all_paths <-
                            "/exposure_trajectories/data/hoffman_transfer/",
                            "results"), full.names = TRUE, pattern = "*.csv")
 
-main_paths <- all_paths[!str_detect(all_paths, "sens")]
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
 read_results <- function(paths){
@@ -510,18 +510,18 @@ read_results <- function(paths){
                    "Percent", "Mechanism", "Truth Capture", "Time"))
 }
 
-sens_analyses <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
 sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
   na.omit()
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 
 #---- **summarize data ----
-main_run_times <- sens_analyses %>% 
+sens_run_times <- sens_analyses %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- **format data ----
@@ -543,7 +543,7 @@ ggplot(data = na.omit(sens_analyses),
   scale_color_manual(values = cbPalette[-1])
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure5/run_times.jpeg"), 
+              "manuscript/figures/efigure6/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 

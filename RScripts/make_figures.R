@@ -142,14 +142,72 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3: coverage probability ----
+#---- Figure 3: coverage probabilities ----
+#---- **read in data ----
+results <- read_csv(paste0(path_to_dropbox, 
+                           "/exposure_trajectories/manuscript/tables/", 
+                           "results_CC_1000.csv")) %>% 
+  dplyr::select(-one_of("people_dropped")) %>% 
+  filter(!Type == "MAR 2")
 
-#---- Figure 4: runtimes ----
+results <- 
+  rbind(results, read_csv(Sys.glob(
+    paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+           "results_JMVN_PMM_FCS", "*.csv")))) 
+
+#---- **format data ----
+# Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
+# but not in the legend
+methods <- c("JMVN", "PMM", "FCS")
+results$Method <- factor(results$Method, levels = c("Truth", "CC", methods))
+results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
+results$Missingness <- factor(results$Missingness)
+
+#---- **plot ----
+ggplot(results %>% filter(!Method == "Truth"), 
+       mapping = aes(x = Missingness, y = truth_capture, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-1]) + ylab("Coverage Probability") + 
+  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free_y")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/coverage_prob", ".jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- Figure 4: RMSE ----
+#---- **read in data ----
+rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
+                              "manuscript/tables/rmse.csv"))
+rmse_table %<>% 
+  pivot_longer(cols = colnames(rmse_table)[grep("CES-D", colnames(rmse_table))])
+
+#---- **format data ----
+methods <- c("JMVN", "PMM", "FCS")
+rmse_table$Method <- factor(rmse_table$Method, levels = methods)
+rmse_table$Mechanism <- factor(rmse_table$Mechanism, 
+                               levels = c("MCAR", "MAR", "MNAR"))
+rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
+
+#---- **plot ----
+ggplot(rmse_table, 
+       mapping = aes(x = `Missing Percent`, y = value, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-c(1, 2)]) + ylab("RMSE") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/rmse.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- Figure 5: runtimes ----
 #Need all data reading code
 main_run_times <- main_results %>% 
-  group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
-
-sens_run_times <- sens_analyses %>% 
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- eFigure 1: sensitivity analyses ----

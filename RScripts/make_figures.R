@@ -160,26 +160,44 @@ read_results <- function(paths){
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
+#---- **summarize data ----
+results_summary <- main_results %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
+  summarize_at(.vars = c("Truth Capture"), ~mean(., na.rm = TRUE))
+
 #---- **format data ----
 # Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
 # but not in the legend
 methods <- c("CC", "JMVN", "PMM", "FCS")
-results$Method <- factor(results$Method, levels = c("Truth", methods))
-results$Type <- factor(results$Type, levels = c("MCAR", "MAR", "MNAR"))
-results$Missingness <- factor(results$Missingness)
+results_summary$Method <- factor(results_summary$Method, 
+                                 levels = c("Truth", methods))
+results_summary$Mechanism <- 
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+results_summary$Percent <- factor(results_summary$Percent)
+
+results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
+                "Exposure"] <- "Baseline CES-D"
+results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
+                "Exposure"] <- "End of Follow-up CES-D"
+results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
+                "Exposure"] <- "Proportion Elevated CES-D"
+results_summary$Exposure <- 
+  factor(results_summary$Exposure, 
+         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
-ggplot(results %>% filter(!Method == "Truth"), 
-       mapping = aes(x = Missingness, y = truth_capture, 
+ggplot(results_summary %>% filter(!Method == "Truth"), 
+       mapping = aes(x = Percent, y = `Truth Capture`, 
                      color = Method)) +
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette[-1]) + ylab("Coverage Probability") + 
-  facet_grid(rows = vars(Type), cols = vars(Exposure), scales = "free_y")
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/coverage_prob", ".jpeg"), 
+              "manuscript/figures/figure3/coverage_prob.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 4: RMSE ----

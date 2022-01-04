@@ -543,9 +543,8 @@ ggplot(data = na.omit(sens_analyses),
   scale_color_manual(values = cbPalette[-1])
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure6/run_times.jpeg"), 
+              "manuscript/figures/efigure6/run_times_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
-
 
 #---- OLD ----
 #---- eFigure 2: traceplots ----

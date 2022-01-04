@@ -46,6 +46,14 @@ read_results <- function(paths){
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
+#---- **limit runs for table (for now) ----
+main_results %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  na.omit()
+
+#double-checking
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
+
 #---- **table shell ----
 rmse_table <- 
   data.frame("Method" = rep(unique(main_results$Method), 

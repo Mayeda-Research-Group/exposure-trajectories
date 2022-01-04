@@ -467,7 +467,7 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #---- eFigure 5: sensitivity RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
-                              "manuscript/tables/table2/rmse.csv"))
+                              "manuscript/tables/etable2/rmse_sens.csv"))
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
                                                 colnames(rmse_table))]) %>% 
@@ -487,14 +487,14 @@ ggplot(rmse_table,
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-c(1, 2)]) + ylab("RMSE") + 
+  scale_color_manual(values = cbPalette[-1]) + ylab("RMSE") + 
   facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure4/rmse.jpeg"), 
+              "manuscript/figures/efigure5/rmse_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 5: runtimes ----
+#---- eFigure 6: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,

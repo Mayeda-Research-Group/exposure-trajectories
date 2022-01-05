@@ -134,14 +134,14 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Follow-up CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
@@ -369,14 +369,14 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Follow-up CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Baseline CES-D", "End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----

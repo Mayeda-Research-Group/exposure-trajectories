@@ -491,6 +491,17 @@ rmse_table$Mechanism <- factor(rmse_table$Mechanism,
                                levels = c("MCAR", "MAR", "MNAR"))
 rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 
+rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
+  "Elevated Baseline CES-D"
+rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
+  "Elevated End of Follow-up CES-D"
+rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
+  "Proportion Elevated CES-D"
+rmse_table$name <- 
+  factor(rmse_table$name, 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+
 #---- **plot ----
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 

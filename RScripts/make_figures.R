@@ -16,15 +16,17 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- load scripts ----
 #put read_results function here
 
 #---- color palette ----
 # The palette with grey:
-cbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
+cbPalette <- c(
+                # "#000000", # Remove the black color
+               "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
                "#D55E00", "#CC79A7")
 
 #---- count scenarios ----
@@ -113,17 +115,28 @@ truth <- read_csv(paste0(path_to_dropbox,
                          "/exposure_trajectories/data/", "truth.csv")) %>%
   dplyr::rename("LCI" = "LCI_beta", 
                 "UCI" = "UCI_beta",
-                "Beta" = "beta") %>% 
-  mutate("Percent" = "0%", 
-         "Truth Capture" = 1)
+                "Beta" = "beta") %>%
+  # mutate("Percent" = "0%", 
+  #        "Truth Capture" = 1) 
+  mutate(Exposure = 
+           case_when(
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Follow-up CES-D",
+             Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated CES-D",
+             TRUE ~ Exposure))
 
-truth_multiple <- do.call("rbind", replicate(
-  3, truth, simplify = FALSE)) %>%
-  mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
-                       rep("MAR", length(unique(truth$Exposure))), 
-                       rep("MNAR", length(unique(truth$Exposure)))))
+truth$Exposure <- 
+  factor(truth$Exposure, 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
-results_summary %<>% rbind(truth_multiple)
+# truth_multiple <- do.call("rbind", replicate(
+#   3, truth, simplify = FALSE)) %>%
+#   mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
+#                        rep("MAR", length(unique(truth$Exposure))), 
+#                        rep("MNAR", length(unique(truth$Exposure)))))
+
+# results_summary %<>% rbind(truth_multiple)
 
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
@@ -155,8 +168,9 @@ ggplot(results_summary %>% filter(Method != "LMM"),
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
+  geom_vline(data = truth, aes(xintercept = Beta)) +
   ggtitle(paste0("Mean 95% CI of beta across 700 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",

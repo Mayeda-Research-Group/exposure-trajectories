@@ -1,13 +1,13 @@
 ################################################################################
-### this submission script was created on NOV2021
+### this submission script was created on JAN2022
 ### with ref: https://support.idre.ucla.edu/helpdesk/Ticket/40244340
 ### author RD for inquiries: hpc@ucla.edu
-### it submits an array job of 900 tasks for:
+### it submits an array job of 9000 tasks for:
 ### CC jobs are all combos of these variables:
 ### method = "CC"
 ### mechanism = c("MCAR", "MAR", "MNAR")
 ### mask_percent = c("10%", "20%", "30%")
-### 9 sets of parameters that each need to run 100 times (total 900 jobs)
+### 9 sets of parameters that each need to run 1000 times (total 9000 jobs)
 ################################################################################
 #!/bin/bash
 #$ -cwd #uses current working directory
@@ -22,9 +22,9 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
-##$ -t 1-9:1
+#$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD (9*num runs):
-#$ -t 1-36:1
+##$ -t 1-9000:1
 ## 
 
 # load the job environment:
@@ -61,20 +61,20 @@ if [ $myindex -gt 0 ] && [ $myindex -lt 4 ]; then
         n=3
         ##mask_percent="30%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"30%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="30%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="30%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 1 ]; then
         n=$mylastindex
         ##mask_percent="10%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"10%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="10%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"10%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="10%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 2 ]; then
         n=$mylastindex
         ##mask_percent="20%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"20%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="20%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MCAR\" method=\"CC\" mask_percent=\"20%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MCAR" method="CC" mask_percent="20%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     fi   
 
 
@@ -88,20 +88,20 @@ elif [ $myindex -ge 4 ] && [ $myindex -lt 7 ] ; then
         n=3
         ##mask_percent="30%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"30%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="30%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="30%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 1 ]; then
         n=$mylastindex
         ##mask_percent="10%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"10%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="10%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"10%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="10%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 2 ]; then
         n=$mylastindex
         ##mask_percent="20%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"20%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="20%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"CC\" mask_percent=\"20%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MAR" method="CC" mask_percent="20%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     fi   
 
 
@@ -115,20 +115,20 @@ elif [ $myindex -ge 7 ] &&[ $myindex -le 9 ]; then
         n=3
         ##mask_percent="30%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"30%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="30%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="30%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 1 ]; then
         n=$mylastindex
         ##mask_percent="10%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"10%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="10%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"10%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="10%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     elif [ $mylastindex == 2 ]; then
         n=$mylastindex
         ##mask_percent="20%"
         echo SGE_TASK_ID=$SGE_TASK_ID, MYINDEX=$myindex, MYLASTINDEX=$mylastindex, l=$myindex, m=$m, n=$n      
-        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"20%\" save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID     
-        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="20%" save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+        echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"CC\" mask_percent=\"20%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID     
+        R CMD BATCH --no-save --no-restore '--args mechanism="MNAR" method="CC" mask_percent="20%" seed=$SGE_TASK_ID save="no" sens="no" '  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
     fi          
 
 fi

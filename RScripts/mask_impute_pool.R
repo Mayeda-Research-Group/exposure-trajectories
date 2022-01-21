@@ -1,7 +1,8 @@
 # #for testing
 # directory <- "/Users/CrystalShaw/Dropbox/Projects/"
 mask_impute_pool <- 
-  function(mechanism, method, mask_percent, directory, save = "no", sens = "no"){
+  function(mechanism, method, mask_percent, directory, seed, save = "no", 
+           sens = "no"){
     #---- load packages ----
     if (!require("pacman")){
       install.packages("pacman", repos='http://cran.us.r-project.org')
@@ -20,6 +21,9 @@ mask_impute_pool <-
     #---- source scripts ----
     source(paste0(directory, "exposure_trajectories/RScripts/mask.R"))
     source(paste0(directory, "exposure_trajectories/RScripts/fast_impute.R"))
+    
+    #---- set seed ----
+    set.seed(seed)
     
     #---- read in data ----
     data_wide <- 
@@ -587,6 +591,10 @@ mask_impute_pool <-
     pooled_effect_ests %<>% 
       mutate("time" = as.numeric(difftime(Sys.time(), start, units = "mins")))
     
+    #---- seed used ----
+    pooled_effect_ests %<>% 
+      mutate("seed" = seed)
+    
     #---- return values ----
     if(sens == "yes"){
       write_csv(pooled_effect_ests, 
@@ -615,6 +623,7 @@ if(length(args)==0){
   mechanism = 'MNAR'
   method = 'JMVN'
   mask_percent = '10%'
+  seed = 123
   save = 'no'
   sens = 'no'
 }else{
@@ -629,4 +638,4 @@ print(mask_percent)
 
 mask_impute_pool(mechanism = mechanism, method = method, 
                  mask_percent = mask_percent, directory = "/u/home/c/cshaw343/", 
-                 save = save, sens = sens)
+                 seed = seed, save = save, sens = sens)

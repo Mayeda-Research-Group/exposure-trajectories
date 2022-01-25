@@ -22,9 +22,9 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TEST OUT BY RUNNING ONLY 9 CASES:
-#$ -t 1-9:1
+##$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD (9*num runs):
-##$ -t 1-9000:1
+#$ -t 10-9000:1
 ## 
 
 # load the job environment:

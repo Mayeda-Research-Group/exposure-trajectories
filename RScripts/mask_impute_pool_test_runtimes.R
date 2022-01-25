@@ -269,7 +269,7 @@ mask_impute_pool <-
                                  #m = 2, maxit = 2,
                                  m = as.numeric(sub("%","", mask_percent)),
                                  maxit = max_it[method, mask_percent],
-                                 method = "fastpmm", predictorMatrix = predict, 
+                                 method = "pmm", predictorMatrix = predict, 
                                  where = is.na(data_wide), 
                                  blocks = as.list(rownames(predict)), 
                                  seed = 20210126)

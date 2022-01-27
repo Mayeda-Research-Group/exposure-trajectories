@@ -11,9 +11,9 @@
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # submit array job:
 # TO TEST MATTER RUN ONLY TWICE:
-#$ -t 1-2:1
+##$ -t 1-2:1
 # FOR THE FULL RUN USE INSTEAD:
-##$ -t 1-998:1
+#$ -t 3-1000:1
 ## 
 
 # load the job environment:

@@ -16,8 +16,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/CrystalShaw"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- load scripts ----
 #put read_results function here
@@ -43,7 +43,7 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 read_results <- function(paths){
   data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
+                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
 }
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()

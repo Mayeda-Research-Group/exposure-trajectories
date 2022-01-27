@@ -25,9 +25,9 @@ path_to_dropbox <- "~/Dropbox/Projects"
 #---- color palette ----
 # The palette with grey:
 cbPalette <- c(
-                # "#000000", # Remove the black color
-               "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
-               "#D55E00", "#CC79A7")
+  # "#000000", # Remove the black color
+  "#E69F00", "#56B4E9", "#009E73", "#FFD700", "#0072B2", 
+  "#D55E00", "#CC79A7")
 
 #---- count scenarios ----
 #---- **get filepaths ----
@@ -46,22 +46,34 @@ read_results <- function(paths){
                    "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
 }
 
-main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
-sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
+  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure)
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
+  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure)
 
-#---- **take first 1000 runs (in case of extra) ----
-main_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
-  na.omit()
-
-sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
-  na.omit()
+#---- **double check there is only one copy of each seed ----
 
 #---- **check scenario counts ----
 #should be 1000 in each cell (divide by 4 for number of exposures)
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- **check max seeds for paused jobs ----
+main_results %>% group_by(Method) %>% 
+  summarise_at(.vars = c("Seed"), .funs = max)
+
+sens_analyses %>% group_by(Method) %>% 
+  summarise_at(.vars = c("Seed"), .funs = max)
+
+
+
+#---- **check for missing seeds ----
+CC_seeds <- main_results %>% filter(Method == "CC") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique()
+CC_missing_seeds <- which(!seq(1, 9000) %in% CC_seeds)
+
+
+
 
 #---- Figure 2: results ----
 #---- **get filepaths ----
@@ -317,7 +329,7 @@ main_run_times <- main_results %>%
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
 main_results$Method <- factor(main_results$Method, 
-                                 levels = c("Truth", methods))
+                              levels = c("Truth", methods))
 main_results$Mechanism <- 
   factor(main_results$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
 main_results$Percent <- factor(main_results$Percent)
@@ -370,7 +382,7 @@ results_summary <- sens_analyses %>%
 
 #---- **read in truth table ----
 truth_sens <- read_csv(paste0(path_to_dropbox, 
-                         "/exposure_trajectories/data/", "truth_sens.csv")) %>%
+                              "/exposure_trajectories/data/", "truth_sens.csv")) %>%
   dplyr::rename("LCI" = "LCI_beta", 
                 "UCI" = "UCI_beta",
                 "Beta" = "beta") %>% 
@@ -563,7 +575,7 @@ sens_run_times <- sens_analyses %>%
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
 sens_analyses$Method <- factor(sens_analyses$Method, 
-                              levels = c("Truth", methods))
+                               levels = c("Truth", methods))
 sens_analyses$Mechanism <- 
   factor(sens_analyses$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
 sens_analyses$Percent <- factor(sens_analyses$Percent)

@@ -47,11 +47,13 @@ read_results <- function(paths){
 }
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
-  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure)
+  #making sure only one copy of each seed
+  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
+  group_by(Method, Mechanism, Percent, Exposure)
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
-  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure)
-
-#---- **double check there is only one copy of each seed ----
+  #making sure only one copy of each seed
+  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
+  group_by(Method, Mechanism, Percent, Exposure)
 
 #---- **check scenario counts ----
 #should be 1000 in each cell (divide by 4 for number of exposures)
@@ -64,8 +66,6 @@ main_results %>% group_by(Method) %>%
 
 sens_analyses %>% group_by(Method) %>% 
   summarise_at(.vars = c("Seed"), .funs = max)
-
-
 
 #---- **check for missing seeds ----
 CC_seeds <- main_results %>% filter(Method == "CC") %>% ungroup() %>% 

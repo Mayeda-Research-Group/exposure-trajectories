@@ -84,6 +84,14 @@ PMM_main_missing_seeds <- main_results %>%
 FCS_main_missing_seeds <- main_results %>% 
   filter(Method == "FCS") %>% ungroup() %>% dplyr::select("Seed") %>% 
   unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
+  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
+  write_csv(paste0(path_to_dropbox,
+            "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+            "FCS_main_missing.csv"))
+
+CC_sens_missing_seeds <- sens_analyses %>% 
+  filter(Method == "CC") %>% ungroup() %>% dplyr::select("Seed") %>% 
+  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
   set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
 
 #---- **check seeds for each scenario ----

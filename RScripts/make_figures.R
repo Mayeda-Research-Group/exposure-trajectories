@@ -68,7 +68,20 @@ main_results %>% group_by(Method) %>%
 sens_analyses %>% group_by(Method) %>% 
   summarise_at(.vars = c("Seed"), .funs = max)
 
-#---- **list seeds for each scenario ----
+#---- **check seeds overall ----
+seeds <- seq(1, 9000, by = 1)
+
+CC_main_missing_seeds <- main_results %>% 
+  filter(Method == "CC") %>% ungroup() %>% dplyr::select("Seed") %>% 
+  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
+  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
+
+PMM_main_missing_seeds <- main_results %>% 
+  filter(Method == "PMM") %>% ungroup() %>% dplyr::select("Seed") %>% 
+  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
+  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
+
+#---- **check seeds for each scenario ----
 mechanisms <- c("mcar", "mar", "mnar")
 percents <- c(10, 20, 30)
 
@@ -80,6 +93,11 @@ for(i in 1:length(seed_vecs)){
 }
 
 #---- **check for missing seeds ----
+CC_MCAR_20_seeds <- main_results %>% 
+  filter(Method == "CC" & Mechanism == "MCAR" & Percent == "20%") %>% 
+  ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
+CC_MCAR_20_missing_seeds <- setdiff(mcar_20_seeds, CC_MCAR_20_seeds)
+
 CC_MAR_20_seeds <- main_results %>% 
   filter(Method == "CC" & Mechanism == "MAR" & Percent == "20%") %>% 
   ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
@@ -89,6 +107,11 @@ CC_MAR_30_seeds <- main_results %>%
   filter(Method == "CC" & Mechanism == "MAR" & Percent == "30%") %>% 
   ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
 CC_MAR_30_missing_seeds <- setdiff(mar_30_seeds, CC_MAR_30_seeds)
+
+CC_MNAR_20_seeds <- main_results %>% 
+  filter(Method == "CC" & Mechanism == "MNAR" & Percent == "20%") %>% 
+  ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
+CC_MNAR_20_missing_seeds <- setdiff(mnar_20_seeds, CC_MNAR_20_seeds)
 
 #---- Figure 2: results ----
 #---- **get filepaths ----

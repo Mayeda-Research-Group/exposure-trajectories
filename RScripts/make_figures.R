@@ -81,6 +81,11 @@ PMM_main_missing_seeds <- main_results %>%
   unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
   set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
 
+FCS_main_missing_seeds <- main_results %>% 
+  filter(Method == "FCS") %>% ungroup() %>% dplyr::select("Seed") %>% 
+  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
+  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
+
 #---- **check seeds for each scenario ----
 mechanisms <- c("mcar", "mar", "mnar")
 percents <- c(10, 20, 30)

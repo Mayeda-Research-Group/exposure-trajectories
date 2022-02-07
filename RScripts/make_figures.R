@@ -50,6 +50,7 @@ main_results <- do.call(rbind, lapply(main_paths, read_results)) %>%
   #making sure only one copy of each seed
   na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
   group_by(Method, Mechanism, Percent, Exposure)
+
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
   #making sure only one copy of each seed
   na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
@@ -67,13 +68,27 @@ main_results %>% group_by(Method) %>%
 sens_analyses %>% group_by(Method) %>% 
   summarise_at(.vars = c("Seed"), .funs = max)
 
+#---- **list seeds for each scenario ----
+mechanisms <- c("mcar", "mar", "mnar")
+percents <- c(10, 20, 30)
+
+seed_vecs <- expand_grid(mechanisms, percents) %>% mutate("seed" = "seeds") %>% 
+  unite("names", everything(), sep = "_") %>% unlist()
+
+for(i in 1:length(seed_vecs)){
+  assign(seed_vecs[i], seq(i, 9000, by = 9))
+}
+
 #---- **check for missing seeds ----
-CC_seeds <- main_results %>% filter(Method == "CC") %>% ungroup() %>% 
-  dplyr::select("Seed") %>% unique()
-CC_missing_seeds <- which(!seq(1, 9000) %in% CC_seeds)
+CC_MAR_20_seeds <- main_results %>% 
+  filter(Method == "CC" & Mechanism == "MAR" & Percent == "20%") %>% 
+  ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
+CC_MAR_20_missing_seeds <- setdiff(mar_20_seeds, CC_MAR_20_seeds)
 
-
-
+CC_MAR_30_seeds <- main_results %>% 
+  filter(Method == "CC" & Mechanism == "MAR" & Percent == "30%") %>% 
+  ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist()
+CC_MAR_30_missing_seeds <- setdiff(mar_30_seeds, CC_MAR_30_seeds)
 
 #---- Figure 2: results ----
 #---- **get filepaths ----

@@ -92,9 +92,9 @@ fast_impute <-
           if(exists("trace_data")){
             #in the third slot: 1 = mean, 2 = sd
             trace_data[var, paste0(c(run, iter, 1), collapse = ":")] <- 
-              mean(imputed_data[where[, var] == 1, var])
+              mean(unlist(imputed_data[where[, var] == 1, var]))
             trace_data[var, paste0(c(run, iter, 2), collapse = ":")] <- 
-              sd(imputed_data[where[, var] == 1, var])
+              sd(unlist(imputed_data[where[, var] == 1, var]))
           }
         }
       }

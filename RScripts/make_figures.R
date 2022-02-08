@@ -410,7 +410,7 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #---- eFigure 1: ----
 #---- **read in data ----
 test <- readRDS(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                       "hoffman_transfer/results/MI_datasets/pmm_mcar10"))
+                       "hoffman_transfer/results/MI_datasets/jmvn_mcar10"))
 
 #---- eFigure 3: sensitivity analyses ----
 #---- **get filepaths ----

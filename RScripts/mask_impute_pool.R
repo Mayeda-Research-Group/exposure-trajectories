@@ -191,7 +191,7 @@ mask_impute_pool <-
                                   #m = 2, maxit = 5,
                                   m = as.numeric(sub("%","", mask_percent)),
                                   maxit = max_it[method, mask_percent],
-                                  save = save)
+                                  save = save, directory = directory)
       #stop <- Sys.time() - start
       
       #this is from mice package
@@ -255,7 +255,7 @@ mask_impute_pool <-
                                   #m = 2, maxit = 5,
                                   m = as.numeric(sub("%","", mask_percent)),
                                   maxit = max_it[method, mask_percent],
-                                  save = save)
+                                  save = save, directory = directory)
       #stop <- Sys.time() - start
       
       #from the mice package
@@ -289,9 +289,10 @@ mask_impute_pool <-
     #---- **save results ----
     if(save == "yes" & sens == "no"){
       saveRDS(data_imputed, 
-              file = here::here("MI datasets", 
-                                paste0(tolower(method), "_", tolower(mechanism), 
-                                       as.numeric(sub("%","", mask_percent)))))
+              file = paste0(directory, "exposure_trajectories/results/", 
+                            "MI_datasets/", tolower(method), "_", 
+                            tolower(mechanism), 
+                            as.numeric(sub("%","", mask_percent))))
     }
     
     #---- fitted models ----

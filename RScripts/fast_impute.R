@@ -1,6 +1,6 @@
 fast_impute <- 
   function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, 
-           maxit, save = "no"){
+           maxit, save = "no", directory){
     
     #---- where matrix ----
     where <- is.na(data_wide)*1  
@@ -105,21 +105,17 @@ fast_impute <-
     if(save == "yes"){
       #where matrix
       write_csv(as.data.frame(where), 
-                file = here::here("MI datasets", 
-                                  paste0("where_", tolower(method), "_", 
-                                         tolower(mechanism), 
-                                         as.numeric(sub("%","", 
-                                                        mask_percent)), 
-                                         ".csv")))
+                file = paste0(directory, "exposure_trajectories/results/", 
+                              "where/where_", tolower(method), "_", 
+                              tolower(mechanism), 
+                              as.numeric(sub("%","", mask_percent)), ".csv"))
       
       #trace_data plots data
       write_csv(as.data.frame(trace_data), 
-                file = here::here("MI datasets", 
-                                  paste0("trace_data_", tolower(method), "_", 
-                                         tolower(mechanism), 
-                                         as.numeric(sub("%","", 
-                                                        mask_percent)),
-                                         ".csv")))
+                file = paste0(directory, "exposure_trajectories/results/", 
+                              "trace_data/trace_data_", tolower(method), "_", 
+                              tolower(mechanism), 
+                              as.numeric(sub("%","", mask_percent)), ".csv"))
     }
     
     #---- return ----
@@ -130,19 +126,4 @@ fast_impute <-
 # test <- fast_impute(predictor_matrix = predict, data_wide, method = "JMVN",
 #                     mechanism = "MNAR", mask_percent = "10%", m = 2, maxit = 5,
 #                     save = "yes")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

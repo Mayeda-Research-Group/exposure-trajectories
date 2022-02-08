@@ -407,6 +407,11 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure5/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
+#---- eFigure 1: ----
+#---- **read in data ----
+test <- readRDS(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                       "hoffman_transfer/results/MI_datasets/pmm_mcar10"))
+
 #---- eFigure 3: sensitivity analyses ----
 #---- **get filepaths ----
 all_paths <- 

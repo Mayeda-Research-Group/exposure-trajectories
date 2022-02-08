@@ -68,74 +68,71 @@ main_results %>% group_by(Method) %>%
 sens_analyses %>% group_by(Method) %>% 
   summarise_at(.vars = c("Seed"), .funs = max)
 
-#---- **check seeds overall ----
+#---- **check seeds ----
 seeds <- seq(1, 9000, by = 1)
 
-CC_main_missing_seeds <- main_results %>% 
-  filter(Method == "CC") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
-  write.xlsx(paste0(path_to_dropbox,
-                   "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                   "CC_main_missing.xlsx"))
-
-PMM_main_missing_seeds <- main_results %>% 
-  filter(Method == "PMM") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
-  write.xlsx(paste0(path_to_dropbox,
-                   "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                   "PMM_main_missing.xlsx"))
-
-FCS_main_missing_seeds <- main_results %>% 
-  filter(Method == "FCS") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
-  write.xlsx(paste0(path_to_dropbox,
-                   "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                   "FCS_main_missing.xlsx"))
-
-CC_sens_missing_seeds <- sens_analyses %>% 
-  filter(Method == "CC") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
-  write.xlsx(paste0(path_to_dropbox,
-                   "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                   "CC_sens_missing.xlsx"))
-
-JMVN_sens_missing_seeds <- sens_analyses %>% 
-  filter(Method == "JMVN") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
-  write.xlsx(paste0(path_to_dropbox,
-                   "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                   "JMVN_sens_missing.xlsx"))
-
-PMM_sens_missing_seeds <- sens_analyses %>% 
-  filter(Method == "PMM") %>% ungroup() %>% dplyr::select("Seed") %>% 
-  unique() %>% unlist() %>% setdiff(seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed)) %>% 
+#---- ****CC main ----
+main_results %>% filter(Method == "CC") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
   write.xlsx(paste0(path_to_dropbox,
                     "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                    "PMM_sens_missing.xlsx"))
+                    "CC_main_missing.xlsx"), overwrite = TRUE)
 
-#---- **check seeds for each scenario ----
-mechanisms <- c("mcar", "mar", "mnar")
-percents <- c(10, 20, 30)
+#---- ****JMVN main ----
+main_results %>% filter(Method == "JMVN") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "JMVN_main_missing.xlsx"), overwrite = TRUE)
 
-seed_vecs <- expand_grid(mechanisms, percents) %>% mutate("seed" = "seeds") %>% 
-  unite("names", everything(), sep = "_") %>% unlist()
+#---- ****PMM main ----
+main_results %>% filter(Method == "PMM") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "PMM_main_missing.xlsx"), overwrite = TRUE)
 
-for(i in 1:length(seed_vecs)){
-  assign(seed_vecs[i], seq(i, 9000, by = 9))
-}
+#---- ****FCS main ----
+main_results %>% filter(Method == "FCS") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "FCS_main_missing.xlsx"), overwrite = TRUE)
 
-#---- **check for missing seeds ----
-FCS_MCAR_10_missing_seeds <- main_results %>% 
-  filter(Method == "FCS" & Mechanism == "MCAR" & Percent == "10%") %>% 
-  ungroup() %>% dplyr::select("Seed") %>% unique() %>% unlist() %>% 
-  setdiff(mcar_10_seeds, .) %>% as.data.frame() %>% 
-  set_colnames("Seed") %>% mutate("Diff" = Seed - lag(Seed))
+#---- ****CC sens ----
+sens_analyses %>% filter(Method == "CC") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "CC_sens_missing.xlsx"), overwrite = TRUE)
+
+#---- ****JVMN sens ----
+sens_analyses %>% filter(Method == "JMVN") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "JMVN_sens_missing.xlsx"), overwrite = TRUE)
+
+#---- ****PMM sens ----
+sens_analyses %>% filter(Method == "PMM") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "PMM_sens_missing.xlsx"), overwrite = TRUE)
 
 #---- Figure 2: results ----
 #---- **get filepaths ----

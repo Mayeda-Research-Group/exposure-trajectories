@@ -137,7 +137,7 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
 }
 
 #---- optimizer ----
-#---- **MNAR ----
+#Balancing intercepts (Rudolph et.al., 2021) are used for warm starts 
 warm_start <- function(mask_prop, mechanism, beta_mat){
   if(mechanism == "MNAR"){
     return(-log(1/(mask_prop) - 1) -

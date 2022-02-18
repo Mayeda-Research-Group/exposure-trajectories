@@ -24,7 +24,7 @@
 # TEST OUT BY RUNNING ONLY 9 CASES:
 ##$ -t 1-9:1
 # FOR THE FULL RUN USE INSTEAD (9*num runs):
-#$ -t 8486-8498:1,8500,8502-8519:1,8523-8543:1
+#$ -t 8486-8498:1
 ## 
 
 # load the job environment:

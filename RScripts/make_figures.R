@@ -279,14 +279,14 @@ ggplot(rmse_table,
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-1]) + ylab("RMSE") + 
+  scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure4/rmse.jpeg"), 
+              "manuscript/figures/figure3/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 5: runtimes ----
+#---- Figure 4: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -299,14 +299,14 @@ main_paths <- all_paths[!str_detect(all_paths, "sens")]
 read_results <- function(paths){
   data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
+                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
 }
 
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
 main_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 #double-checking
@@ -317,7 +317,7 @@ main_run_times <- main_results %>%
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "FCS")
+methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
 main_results$Method <- factor(main_results$Method, 
                               levels = c("Truth", methods))
 main_results$Mechanism <- 
@@ -332,10 +332,10 @@ ggplot(data = na.omit(main_results),
   geom_boxplot() + ylab("Computational Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-1])
+  scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure5/run_times.jpeg"), 
+              "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- eFigure 1: kappa plots ----

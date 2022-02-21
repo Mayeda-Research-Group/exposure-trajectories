@@ -241,8 +241,7 @@ ggplot(results_summary,
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta)) +
-  ggtitle(paste0("Mean 95% CI of beta across 1000 runs"))
+  geom_vline(data = truth, aes(xintercept = Beta))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 

@@ -407,12 +407,17 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure5/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
-#---- eFigure 1: ----
+#---- eFigure 1: kappa plots ----
+#move kappa plot code here
+
+#---- eFigure 2: traceplots ----
 #---- **read in data ----
 test <- readRDS(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                        "hoffman_transfer/results/MI_datasets/jmvn_mcar10"))
 
-#---- eFigure 3: sensitivity analyses ----
+#---- eFigure 3: observed vs. imputed ----
+
+#---- eFigure 4: sensitivity analyses ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,

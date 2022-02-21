@@ -253,9 +253,7 @@ rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/table2/rmse.csv"))
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
-                                                colnames(rmse_table))]) %>% 
-  filter(Method != "LMM")
-
+                                                colnames(rmse_table))]) 
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
 rmse_table$Method <- factor(rmse_table$Method, levels = methods)

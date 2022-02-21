@@ -162,7 +162,7 @@ main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
 main_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 700) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 #double-checking
@@ -229,12 +229,12 @@ results_summary$Exposure <-
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
-ggplot(results_summary %>% filter(Method != "LMM"), 
+ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(-0.75)) + 
+  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
-                position = position_dodge(-0.75)) +
+                position = position_dodge(-0.8)) +
   theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
@@ -242,7 +242,7 @@ ggplot(results_summary %>% filter(Method != "LMM"),
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
   geom_vline(data = truth, aes(xintercept = Beta)) +
-  ggtitle(paste0("Mean 95% CI of beta across 700 runs"))
+  ggtitle(paste0("Mean 95% CI of beta across 1000 runs"))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 

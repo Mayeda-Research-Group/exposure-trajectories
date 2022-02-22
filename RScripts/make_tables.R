@@ -117,14 +117,14 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 read_results <- function(paths){
   data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
+                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
 }
 
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for table (for now) ----
 sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 #double-checking

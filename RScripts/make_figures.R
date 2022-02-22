@@ -472,7 +472,7 @@ ggplot(rmse_table,
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-1]) + ylab("RMSE") + 
+  scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",

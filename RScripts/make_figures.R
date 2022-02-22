@@ -492,14 +492,14 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 read_results <- function(paths){
   data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
     set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
+                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
 }
 
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
 sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
   na.omit()
 
 #double-checking
@@ -525,7 +525,7 @@ ggplot(data = na.omit(sens_analyses),
   geom_boxplot() + ylab("Computational Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-1])
+  scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure6/run_times_sens.jpeg"), 

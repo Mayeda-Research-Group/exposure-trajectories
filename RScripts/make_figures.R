@@ -438,72 +438,6 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure4/effect_ests_mean_CI_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 4: sensitivity coverage probabilities ----
-#---- **get filepaths ----
-all_paths <- 
-  list.files(path = paste0(path_to_dropbox,
-                           "/exposure_trajectories/data/hoffman_transfer/",
-                           "results"), full.names = TRUE, pattern = "*.csv")
-
-sens_paths <- all_paths[str_detect(all_paths, "sens")]
-
-#---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
-}
-
-sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
-
-#---- **limit runs for figure (for now) ----
-sens_analyses %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
-  na.omit()
-
-#double-checking
-table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
-
-#---- **summarize data ----
-results_summary <- sens_analyses %>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>%
-  summarize_at(.vars = c("Truth Capture"), ~mean(., na.rm = TRUE))
-
-#---- **format data ----
-# Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
-# but not in the legend
-methods <- c("CC", "JMVN", "PMM", "FCS")
-results_summary$Method <- factor(results_summary$Method, 
-                                 levels = c("Truth", methods))
-results_summary$Mechanism <- 
-  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
-results_summary$Percent <- factor(results_summary$Percent)
-
-results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline CES-D"
-results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Follow-up CES-D"
-results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated CES-D"
-results_summary$Exposure <- 
-  factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
-
-#---- **plot ----
-ggplot(results_summary %>% filter(!Method == "Truth"), 
-       mapping = aes(x = Percent, y = `Truth Capture`, 
-                     color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() +
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette[-1]) + ylab("Coverage Probability") + 
-  facet_grid(rows = vars(Mechanism), cols = vars(Exposure), scales = "free_y")
-
-ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure4/coverage_prob_sens.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
-
 #---- eFigure 5: sensitivity RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -899,4 +833,68 @@ ggsave(paste0("/Users/CrystalShaw/Dropbox/Projects/exposure_trajectories/",
        device = "jpeg", width = 7, height = 4.5, units = "in", dpi = 300)
 
 
+#---- eFigure 4: sensitivity coverage probabilities ----
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
 
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+read_results <- function(paths){
+  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
+    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
+                   "Percent", "Mechanism", "Truth Capture", "Time"))
+}
+
+sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
+
+#---- **limit runs for figure (for now) ----
+sens_analyses %<>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 100) %>% 
+  na.omit()
+
+#double-checking
+table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
+
+#---- **summarize data ----
+results_summary <- sens_analyses %>% 
+  group_by(Method, Mechanism, Percent, Exposure) %>%
+  summarize_at(.vars = c("Truth Capture"), ~mean(., na.rm = TRUE))
+
+#---- **format data ----
+# Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
+# but not in the legend
+methods <- c("CC", "JMVN", "PMM", "FCS")
+results_summary$Method <- factor(results_summary$Method, 
+                                 levels = c("Truth", methods))
+results_summary$Mechanism <- 
+  factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+results_summary$Percent <- factor(results_summary$Percent)
+
+results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
+                "Exposure"] <- "Elevated Baseline CES-D"
+results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
+                "Exposure"] <- "Elevated End of Follow-up CES-D"
+results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
+                "Exposure"] <- "Proportion Elevated CES-D"
+results_summary$Exposure <- 
+  factor(results_summary$Exposure, 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+
+#---- **plot ----
+ggplot(results_summary %>% filter(!Method == "Truth"), 
+       mapping = aes(x = Percent, y = `Truth Capture`, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette[-1]) + ylab("Coverage Probability") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure), scales = "free_y")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure4/coverage_prob_sens.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")

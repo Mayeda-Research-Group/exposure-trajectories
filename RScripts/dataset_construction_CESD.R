@@ -17,8 +17,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "non_missing.R"))
@@ -1029,7 +1029,7 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 #                               "predict_death2018_betas.csv"))
 
 #---- Dropping people ----
-# 1. full HRSsample (n = 43398)
+# 1. full HRSsample (n = 42233)
 
 # 2. remove people who were not sampled in 2018
 sum(is.na(hrs_samp$QALIVE))
@@ -1038,6 +1038,7 @@ hrs_samp %<>% filter(!is.na(QALIVE))
 # 3. drop those with missing CESD observations in wave 4 - 9
 drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 
   mutate("drop" = apply(., 1, function(x) sum(is.na(x)) > 0)*1)
+table(drop$drop, useNA = "ifany")
 hrs_samp %<>% mutate("drop" = drop$drop) %>% filter(drop == 0)
 
 # 4.1 Check those missing age data-- these people have no birth date data so I am 
@@ -1071,6 +1072,7 @@ hrs_samp %<>% filter(missing_bmi == 0)
 
 # 8. Drop those who miss drinking status at any wave after imputation
 subset <- hrs_samp %>% dplyr::select(contains("drinking"))
+table(rowSums(is.na(subset)))
 hrs_samp %<>% filter(rowSums(is.na(subset)) == 0)
 
 # 9. Drop those without self-reported health
@@ -1099,6 +1101,114 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # #No missing marital status for waves 5-8
 # subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
 # drop <- rowSums(is.na(subset))
+
+# Check variability for drinking behavior
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled",
+       "purrr", "writexl", "ggplot2", "readxl")
+temp <- hrs_samp %>% 
+  select(HHIDPN, paste0("r", seq(4, 9), "drinkd"), 
+         paste0("r", seq(4, 9), "drinkn"),
+         paste0("r", seq(4, 9), "drinkd_impute"), 
+         paste0("r", seq(4, 9), "drinkn_impute"),
+         paste0("r", seq(4, 9), "drinking_cat"),
+         female) 
+
+for (wave in seq(4, 9)){
+  temp %<>%
+    dplyr::rename(!!paste0("r", wave, "drink_cat_impute") :=
+                    paste0("r", wave, "drinking_cat"))
+  temp[, paste0("r", wave, "drinkw")] <- 
+    temp[, paste0("r", wave, "drinkd")] *
+    temp[, paste0("r", wave, "drinkn")]
+  temp[, paste0("r", wave, "drinkw_impute")] <- 
+    temp[, paste0("r", wave, "drinkd_impute")] *
+    temp[, paste0("r", wave, "drinkn_impute")]
+  temp[, paste0("r", wave, "drink_cat")] <- 
+    case_when(temp[, "female"] ==  1 & 
+                (temp[, paste0("r", wave, "drinkw")] >= 7 | 
+                   temp[, paste0("r", wave, "drinkn")] >= 3) ~ 2,
+              temp[, "female"] ==  1 & 
+                (temp[, paste0("r", wave, "drinkw")] <= 7 & 
+                   temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1,
+              temp[, paste0("r", wave, "drinkw")] == 0 ~ 0,
+              temp[, "female"] ==  0 & 
+                (temp[, paste0("r", wave, "drinkw")] >= 14 | 
+                   temp[, paste0("r", wave, "drinkn")] >= 4) ~ 2,
+              temp[, "female"] ==  0 & 
+                (temp[, paste0("r", wave, "drinkw")] <= 14 & 
+                   temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1)
+}
+# Somehow the !!paste0("r", wave, "drinkw") := !!sym(paste0("r", wave, "drinkd"))
+# * !!sym(paste0("r", wave, "drinkn")) is not working
+
+p_load("scales")
+n <- length(levels(as.factor(hrs_samp$HHIDPN)))# number of colors
+cols <- hue_pal(h = c(0, 360) + 15, 
+                c = 100, l = 65, 
+                h.start = 0, direction = 1)(n)[order(sample(1:n, n))] 
+
+frac <- 0.1
+
+temp %>%
+  select(HHIDPN, paste0("r", seq(4, 9), "drinkw")) %>%
+  sample_frac(frac, replace = FALSE) %>%
+  pivot_longer(!HHIDPN,
+              names_to = "wave",
+              names_pattern = "r(.*)drinkw",
+              values_to = "drink") %>%
+  mutate(HHIDPN = as.factor(HHIDPN)) %>%
+  ggplot(aes(x = wave, y = drink, group = HHIDPN, color = HHIDPN)) +
+  geom_point() + geom_line() +
+  scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
+  theme(legend.position = "none") +
+  scale_color_manual(values = cols) +
+  labs(title = "# of Drinks per week across waves", 
+       subtitle = paste0("A ", frac*100, 
+                         "% random sample of the analytic sample"))
+
+temp %>%
+  select(HHIDPN, paste0("r", seq(4, 9), "drinkw_impute")) %>%
+  sample_frac(frac, replace = FALSE) %>%
+  pivot_longer(!HHIDPN,
+               names_to = "wave",
+               names_pattern = "r(.*)drinkw_impute",
+               values_to = "drink_impute") %>%
+  mutate(HHIDPN = as.factor(HHIDPN)) %>%
+  ggplot(aes(x = wave, y = drink_impute, group = HHIDPN, color = HHIDPN)) +
+  geom_point() + geom_line() +
+  scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
+  theme(legend.position = "none") +
+  scale_color_manual(values = cols) +
+  labs(title = "# of Drinks per week across waves (imputed)", 
+       subtitle = paste0("A ", frac*100, 
+                         "% random sample of the analytic sample"))
+  
+with(temp %>%
+  mutate(drink_change = case_when(
+    abs(r5drink_cat - r4drink_cat) == 2|
+      abs(r6drink_cat - r5drink_cat) == 2|
+      abs(r7drink_cat - r6drink_cat) == 2|
+      abs(r8drink_cat - r7drink_cat) == 2|
+      abs(r9drink_cat - r8drink_cat) == 2 ~ 2,
+    abs(r5drink_cat - r4drink_cat) == 1|
+      abs(r6drink_cat - r5drink_cat) == 1|
+      abs(r7drink_cat - r6drink_cat) == 1|
+      abs(r8drink_cat - r7drink_cat) == 1|
+      abs(r9drink_cat - r8drink_cat) == 1 ~ 1,
+    TRUE ~ 0),
+    drink_change_impute = case_when(
+      abs(r5drink_cat_impute - r4drink_cat_impute) == 2|
+        abs(r6drink_cat_impute - r5drink_cat_impute) == 2|
+        abs(r7drink_cat_impute - r6drink_cat_impute) == 2|
+        abs(r8drink_cat_impute - r7drink_cat_impute) == 2|
+        abs(r9drink_cat_impute - r8drink_cat_impute) == 2 ~ 2,
+      abs(r5drink_cat_impute - r4drink_cat_impute) == 1|
+        abs(r6drink_cat_impute - r5drink_cat_impute) == 1|
+        abs(r7drink_cat_impute - r6drink_cat_impute) == 1|
+        abs(r8drink_cat_impute - r7drink_cat_impute) == 1|
+        abs(r9drink_cat_impute - r8drink_cat_impute) == 1 ~ 1,
+      TRUE ~ 0),), table(drink_change, 
+                         drink_change_impute, useNA = "ifany"))
 
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"),

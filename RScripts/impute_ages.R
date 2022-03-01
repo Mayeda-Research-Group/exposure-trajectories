@@ -2,11 +2,10 @@
 # in 24-month increments (HRS has visits every two years)
 
 impute_ages <- function(vector){
-  #For complete vectors, do nothing
-  if(sum(is.na(vector)) == 0){
+  #For complete vectors or vectors missing every value, do nothing
+  if(sum(is.na(vector)) == 0 | sum(is.na(vector)) == length(vector)){
     return(vector)
-    } else{
-      
+  } else{
     last_age <- max(which(!is.na(vector)))
     missing_age <- which(is.na(vector))
     
@@ -30,4 +29,6 @@ impute_ages <- function(vector){
 # vector <- c(75*12, NA, NA, 81*12, 83*12)
 # impute_ages(vector)
 # vector <- c(75*12, 77*12, 79*12, 81*12, 83*12)
+# impute_ages(vector)
+# vector <- c(rep(NA, 5))
 # impute_ages(vector)

@@ -4,6 +4,9 @@
 # 05.07.2021
 # Edited by: Crystal Shaw
 # 05.21.2021
+# 
+# Data input: CESD_data_wide.csv
+# Data output: 6 RDS objects containing optimized, one for each com
 
 #---- Package loading + options ----
 if (!require("pacman")){

@@ -1,3 +1,6 @@
+#This function imputes a vector of ages in months by adding or subtracting 
+# in 24-month increments (HRS has visits every two years)
+
 impute_ages <- function(vector){
   #For complete vectors, do nothing
   if(sum(is.na(vector)) == 0){
@@ -19,6 +22,12 @@ impute_ages <- function(vector){
 }
 
 # #test vectors
-# vector <- c(NA, 75, 77, 79, 81)
-# vector <- c(75, 77, 79, 81, NA)
-# vector <- c(75, 77, 79, 81, 83)
+# # converted ages in years to months
+# vector <- c(NA, 75*12, 77*12, 79*12, 81*12)
+# impute_ages(vector)
+# vector <- c(75*12, 77*12, 79*12, 81*12, NA)
+# impute_ages(vector)
+# vector <- c(75*12, NA, NA, 81*12, 83*12)
+# impute_ages(vector)
+# vector <- c(75*12, 77*12, 79*12, 81*12, 83*12)
+# impute_ages(vector)

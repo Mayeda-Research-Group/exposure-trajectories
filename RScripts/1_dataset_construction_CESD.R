@@ -377,7 +377,8 @@ hrs_samp %<>%
 #Create a "best" height variable by taking the median of measured heights 
 # (waves 8+) if available or first self-reported height
 # 
-# the warning you'll see is from those who are not missing height
+# the warning you'll see is from those who are missing every height. We will get
+#   rid of them in filtering steps
 hrs_samp %<>% 
   mutate("med_height" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(8, 13, by = 1), "pmhght")) %>%
@@ -465,7 +466,7 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"),
                                paste0("r", seq(8, 13, by = 1), "pmbmi")))
 
 #---- smoking ----
-#the warning you'll see is for those not missing smoking
+#the warning you'll see is for those missing smoking at every wave
 hrs_samp %<>% 
   mutate("smoker" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "smoken")) %>%
@@ -498,7 +499,7 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # }
 
 # Imputing chronic conditions
-# the warnings you'll see are for those not missing any chronic conditions
+# the warnings you'll see are for those missing every chronic condition
 #---- ** diabetes ----
 hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
                                      seq(1, 9), hrs_samp)

@@ -11,14 +11,14 @@ options(scipen = 999)
 
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
-# Yingyan's directory: C:/Users/yingyan_wu
+# Yingyan's directory: C:/Users/yingyan_wu/Box
 #                      C:/Users/yingyan_wu/Dropbox
-# Crystal's directory: /Users/CrystalShaw
+# Crystal's directory: /Users/crystalshaw/Library/CloudStorage/Box-Box
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 #source(here::here("RScripts", "non_missing.R"))
@@ -48,7 +48,7 @@ number_waves <- seq(1, 13, by = 1)
 
 #---- read in HRS tracker ----
 hrs_tracker <-
-  read_sas(paste0(path_to_box, "/Box/HRS/tracker/trk2018v2a/",
+  read_sas(paste0(path_to_box, "/HRS/tracker/trk2018v2a/",
                   "trk2018tr_r.sas7bdat")) %>%
   select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE", 
          paste0(c("F", "G", "H", "J", "K", "L"), "ALIVE")) %>%

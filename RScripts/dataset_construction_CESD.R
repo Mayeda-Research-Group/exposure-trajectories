@@ -21,7 +21,7 @@ path_to_box <- "C:/Users/Yingyan Wu"
 path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- source scripts ----
-source(here::here("RScripts", "non_missing.R"))
+#source(here::here("RScripts", "non_missing.R"))
 source(here::here("RScripts", "impute_ages.R"))
 source(here::here("RScripts", "measured_self_report.R"))
 source(here::here("RScripts", "read_da_dct.R"))

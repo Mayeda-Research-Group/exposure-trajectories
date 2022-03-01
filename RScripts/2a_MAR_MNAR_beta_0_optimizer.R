@@ -1,5 +1,5 @@
 # Aim: to simulate many missing datasets to ensure that we are achieving our 
-#   desired levels of missingness
+#   desired levels of missingness when masking data
 # Created by: Yingyan Wu
 # 05.07.2021
 # Edited by: Crystal Shaw
@@ -12,7 +12,7 @@ if (!require("pacman")){
 
 p_load("here", "tidyverse", "magrittr", "kableExtra")
 
-#---- functions ----
+#---- custom functions ----
 expit <- function(x) {
   output <- (exp(x)/(1+exp(x)))
   return(output)
@@ -40,13 +40,11 @@ estimate_df <- function(dataframe){
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
-# Yingyan's directory: C:/Users/yingyan_wu
-#                      C:/Users/yingyan_wu/Dropbox
-# Crystal's directory: /Users/CrystalShaw
-#                     ~/Dropbox/Projects
+# Yingyan's directory: C:/Users/yingyan_wu/Dropbox
+#                      
+# Crystal's directory: ~/Dropbox/Projects 
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
@@ -63,27 +61,28 @@ for(wave in seq(4, 9)){
 }
 
 #---- beta and expected values matrix ----
-beta_mat <- #effect sizes
+beta_mat <- #effect sizes: fixed at what we thought were reasonable values
   matrix(c(log(1.1), log(1.05), log(1.05), log(1.25), log(1.1), log(1.25),
-           #expected values
+           #expected values: used to calculuate balancing intercept for warm start
+           #  for optimizer
+           #MAR variables
            mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
                 na.rm = TRUE), 
            mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
                                           "conde_impute")]), na.rm = TRUE), 
            mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), 
-                                          "cesd_conde_impute")]), na.rm = TRUE), 
+                                          "cesd_conde_impute")]), na.rm = TRUE),
+           #MNAR variables
            mean(data_wide$death2018), 
            mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), "cesd")])), 
            mean(unlist(data_wide[, paste0("r", seq(4, 9, by = 1), 
                                           "cesd_death2018")]))), 
          nrow = 2, byrow = TRUE) %>% 
-  #MAR
   set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
-                 #MNAR
                  "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
   set_rownames(c("beta", "expected"))
 
-#----  prop missing function ----
+#----  prop missing function: to be optimized ----
 missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat, 
                          optimize = "yes"){
   subset <- dataset
@@ -128,6 +127,8 @@ missing_prop <- function(BETA_0, dataset, mechanism, mask_prop, beta_mat,
       mean(subset %>% dplyr::select(contains("cesd_missing")) %>% as.matrix()) - 
         mask_prop)) 
   } else{
+    #This is to double check the results missing probabilities from the optimized
+    # parameters
     return(Missing_prop_results <- 
              tibble(missing_prop = 
                       mean(subset %>% 

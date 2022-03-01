@@ -273,6 +273,8 @@ rmse_table$name <-
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
 #---- **plot ----
+p_load("facetscales")
+# devtools::install_github("zeehio/facetscales")
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
@@ -280,7 +282,15 @@ ggplot(rmse_table,
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
-  facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
+  facet_grid_sc(
+    rows = vars(Mechanism), cols = vars(name), 
+    scales = list(y = list(
+      `MCAR` = scale_y_continuous(limits = c(0.02, 0.09), 
+                                  breaks = seq(0.02, 0.09, 0.02)),
+      `MAR` = scale_y_continuous(limits = c(0.02, 0.09), 
+                                 breaks = seq(0.02, 0.09, 0.02)),
+      `MNAR` = scale_y_continuous(limits = c(0, 1.5), 
+                                  breaks = seq(0, 1.5, 0.5)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure3/rmse.jpeg"), 

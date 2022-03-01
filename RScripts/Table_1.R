@@ -22,7 +22,7 @@ CESD_data_wide <-
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
            col_types = cols(.default = col_double()))
-           
+
 #---- Label the data ----
 colnames(CESD_data_wide)
 
@@ -40,41 +40,38 @@ table1_data <- CESD_data_wide %>%
     female = "Female (%)",
     raceeth = "Race/Ethnicity (%)",
     ed_cat = "Education level (%)",
-    r4mstat_cat = "Married status (%)",
+    r4mstat_cat = "Marital status (%)",
     r4hibpe_impute = "Hypertension(Diagnosed) (%)",
     r4diabe_impute = "Diabetes (%)",
-    r4hearte_impute = "Heart diseases (%)",
+    r4hearte_impute = "Heart disease (%)",
     r4stroke_impute = "Stroke (%)",
     r4cancre_impute = "Cancer (%)",
-    r4lunge_impute = "Lung diseases (%)",
+    r4lunge_impute = "Lung disease (%)",
     r4memrye_impute = "Memory problems (%)",
-    r4conde_impute = "Count of self-report chronic diseases",
+    r4conde_impute = "Self-reported chronic condition count",
     r4BMI = "BMI",
-    r4drinking_cat = "Alcohol intake (%)",
+    r4drinking_cat = "Drinking behavior (%)",
     smoker = "Smoking status (%)",
-    r4shlt = "Self-reported health (%)",
     r4cesd_elevated = "Baseline Elevated CES-D"
   ) %>%
   labelled::drop_unused_value_labels() %>%
   labelled::set_value_labels(female = c("Yes" = 1, "No" = 0),
-                   ed_cat = c("Less than High School" = 1, "High School" = 2, 
-                              "Some college" = 3, "Bachelors" = 4, 
-                              "Grad studies" = 5),
-                   r4hibpe_impute = c("Yes" = 1, "No" = 0),
-                   r4diabe_impute = c("Yes" = 1, "No" = 0),
-                   r4hearte_impute = c("Yes" = 1, "No" = 0),
-                   r4stroke_impute = c("Yes" = 1, "No" = 0),
-                   r4cancre_impute = c("Yes" = 1, "No" = 0),
-                   r4lunge_impute = c("Yes" = 1, "No" = 0),
-                   r4memrye_impute = c("Yes" = 1, "No" = 0),
-                   r4drinking_cat = c("Heavy Drinking" = 2,
-                                            "Moderate Drinking" = 1,
-                                            "No Drinking" = 0),
-                   smoker = c("Ever smoke" = 1, "No smoking" = 0),
-                   r4shlt = c("Excellent" = 1, "Very Good" = 2, "Good" = 3,
-                              "Fair" = 4, "Poor" = 5),
-                   r4cesd_elevated = c("Elevated CES-D" = 1, 
-                                       "Not Elevated CES-D" = 0)) %>%
+                             ed_cat = c("Less than High School" = 1, "High School" = 2, 
+                                        "Some college" = 3, "Bachelor's degree" = 4, 
+                                        "Graduate studies" = 5),
+                             r4hibpe_impute = c("Yes" = 1, "No" = 0),
+                             r4diabe_impute = c("Yes" = 1, "No" = 0),
+                             r4hearte_impute = c("Yes" = 1, "No" = 0),
+                             r4stroke_impute = c("Yes" = 1, "No" = 0),
+                             r4cancre_impute = c("Yes" = 1, "No" = 0),
+                             r4lunge_impute = c("Yes" = 1, "No" = 0),
+                             r4memrye_impute = c("Yes" = 1, "No" = 0),
+                             r4drinking_cat = c("Heavy Drinking" = 2,
+                                                "Moderate Drinking" = 1,
+                                                "No Drinking" = 0),
+                             smoker = c("Ever smoke" = 1, "Never smoke" = 0),
+                             r4cesd_elevated = c("Elevated CES-D" = 1, 
+                                                 "Not Elevated CES-D" = 0)) %>%
   modify_if(is.labelled, to_factor)
 
 # #---- Use gtsummary package ----
@@ -84,10 +81,10 @@ options(
 
 table_1 <- table1_data %>%
   select("r4age_y_int","female", "raceeth", "ed_cat", "r4mstat_cat",
-           "r4hibpe_impute", "r4diabe_impute", "r4hearte_impute",
-           "r4stroke_impute", "r4cancre_impute", "r4lunge_impute",
-           "r4memrye_impute", "r4conde_impute", "r4BMI", "r4drinking_cat",
-           "smoker", "r4shlt", "r4cesd_elevated") %>%
+         "r4hibpe_impute", "r4diabe_impute", "r4hearte_impute",
+         "r4stroke_impute", "r4cancre_impute", "r4lunge_impute",
+         "r4memrye_impute", "r4conde_impute", "r4BMI", "r4drinking_cat",
+         "smoker", "r4cesd_elevated") %>%
   tbl_summary(statistic = list(
     all_categorical() ~ "{n} ({p})",
     all_continuous() ~ "{mean} ({sd})"),
@@ -98,15 +95,21 @@ table_1 <- table1_data %>%
   add_overall %>%
   modify_header(label = "") %>%
   modify_spanning_header(starts_with("stat_") ~ "**Baseline CES-D**") %>%
-  bold_labels()
+  bold_labels() %>%
+  modify_footnote(
+    update = list(
+      starts_with("stat_") ~
+        "Mean (SD) for continuous variables; n (%) for categorical variables
+      
+        Abbreviations: BMI, body mass index; CES-D, Center for Epidemiologic Studies-Depression")
+  )
 
 table_1 %>% as_flex_table()
 
-table1_xlsx <- table_1 %>% as_tibble()
-
-write_xlsx(table1_xlsx, paste0(path_to_dropbox, 
-                               "/exposure_trajectories/manuscript/tables/OLD/", 
-                               "table_1_temp.xlsx"))
+write_xlsx(as.tibble(table_1), 
+           paste0(path_to_dropbox,
+                  "/exposure_trajectories/manuscript/tables/", 
+                  "table_1_temp.xlsx"))
 # # Save as png (but the format is very different from a flex_table)
 # table1_png <- table_1 %>% as_gt()
 # gt::gtsave(table1_png, "table_1.png",

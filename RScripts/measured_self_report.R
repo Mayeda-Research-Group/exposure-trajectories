@@ -1,8 +1,8 @@
 #This function creates a derived variable based on variables that can be 
-#measured or self-reported within the RAND HRS dataset. The function picks up 
-#all measured variables and fills in missing values with self-reported variables
-#when available. This function also creates a set of columns [measure]_measured
-#which indicates that the value is measured (vs. self-reported)
+# measured or self-reported within the RAND HRS dataset. The function picks up 
+# all measured variables and fills in missing values with self-reported variables
+# when available. This function also creates a set of columns [measure]_measured
+# which indicates that the value is measured (vs. self-reported)
 
 measured_self_report <- function(data, measured_cols, self_cols, 
                                  derived_variable, measured_waves_start, 

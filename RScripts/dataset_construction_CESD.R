@@ -134,7 +134,7 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", seq(2, 13, by = 1), "cesd"),
                     paste0("r", number_waves, "shlt"))
 
-RAND <- read_dta(paste0(path_to_box, "/Box/HRS/RAND_longitudinal/STATA/", 
+RAND <- read_dta(paste0(path_to_box, "/HRS/RAND_longitudinal/STATA/", 
                         "randhrs1992_2018v1.dta"), 
                  col_select = all_of(rand_variables)) 
 
@@ -302,7 +302,6 @@ hrs_samp %<>% dplyr::select(-c("rabmonth", "rabyear", "rabdate",
                                "age_death_d"))
 
 #---- age ----
-#The warning you'll see is from those who have no missing ages
 age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
   apply(., 1, impute_ages) %>% t() 
 

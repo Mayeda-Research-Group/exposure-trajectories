@@ -14,7 +14,8 @@ impute_chronic_condition <-
           ifelse(is.na(subset[, j]), 
                  subset %>% 
                    dplyr::select(paste0("r", waves[1:j-1], condition)) %>%
-                   apply(., 1, function(x) x[max(which(!is.na(x)))]),
+                   apply(., 1, function(x) {if (sum(is.na(x)) == length(x)){
+                     return(NA)} else {x[max(which(!is.na(x)))]}}),
                  subset[, j])
       } else{
         subset[, paste0("r", waves[j], condition, "_impute")] <- 
@@ -65,14 +66,16 @@ impute_status <- function(status, status_vars, waves, impute_waves, dataset) {
         ifelse(is.na(subset[, paste0("r", imp_wave, status)]), 
                subset %>% 
                  dplyr::select(paste0("r", waves[1:imp_wave - 1], status)) %>%
-                 apply(., 1, function(x) x[max(which(!is.na(x)))]),
+                 apply(., 1, function(x) {if (sum(is.na(x)) == length(x)){
+                   return(NA)} else {x[max(which(!is.na(x)))]}}),
                subset[, paste0("r", imp_wave, status)])
       subset[, paste0("r", imp_wave, status, "_impute")] <-
         ifelse(is.na(subset[, paste0("r", imp_wave, status, "_impute")]),
                subset %>% 
                  dplyr::select(
                    paste0("r", (imp_wave + 1):length(waves), status)) %>%
-                 apply(., 1, function(x) x[min(which(!is.na(x)))]),
+                 apply(., 1, function(x) {if (sum(is.na(x)) == length(x)){
+                   return(NA)} else {x[min(which(!is.na(x)))]}}),
                subset[, paste0("r", imp_wave, status, "_impute")])
     }
   subset %<>% select(contains("impute"))

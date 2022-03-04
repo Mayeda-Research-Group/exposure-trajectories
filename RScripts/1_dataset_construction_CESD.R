@@ -1,32 +1,38 @@
+# 1. Data construction for the exposure: wave 4 - 9 CESD
+# Data input: trk2018tr_r.sas7bdat, randhrs1992_2018v1.dta, cses_measures.dta
+# Data output: CESD_data_wide.csv, 
+#              CESD_missing_model_betas_in_sampled.csv (in commented code)
+#              predict_death2018_betas.csv (in commented code)
+# Author: CS & YW
+
+
 #---- Package loading + options ----
 if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
-
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled", 
-       "lubridate", "broom", "kableExtra")
+p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled",
+       "lubridate")
+# p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled", 
+#        "lubridate", "broom", "kableExtra")
 
 #No scientific notation
 options(scipen = 999)
 
 #---- Note ----
 # Since the difference between win and OS, put substituted directory here
-# Yingyan's directory: C:/Users/yingyan_wu/Box
-#                      C:/Users/yingyan_wu/Dropbox
+# Yingyan's directory: C:/Users/Yingyan Wu/Box
+#                      C:/Users/Yingyan Wu/Dropbox
 # Crystal's directory: /Users/crystalshaw/Library/CloudStorage/Box-Box
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu/Box"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- source scripts ----
-#source(here::here("RScripts", "non_missing.R"))
-source(here::here("RScripts", "impute_ages.R"))
-source(here::here("RScripts", "measured_self_report.R"))
-#source(here::here("RScripts", "read_da_dct.R"))
-#source(here::here("Rscripts", "chronic_condition.R"))
-source(here::here("Rscripts", "impute_condition.R"))
+source(here::here("RScripts", "functions", "impute_ages.R"))
+source(here::here("RScripts", "functions", "measured_self_report.R"))
+source(here::here("Rscripts", "functions", "impute_condition.R"))
 
 #---- wave mapping between HRS and RAND ----
 #Wave Year | HRS Core Data | RAND
@@ -118,19 +124,10 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "lunge"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
                     paste0("r", seq(4 ,9 , by = 1), "memrye"),
-                    #We don't think this is an important confounder of 
-                    # CESD --> Mortality
-                    # paste0("r", seq(2, 13, by = 1), "arthrs"),
-                    # paste0("r", seq(2, 13, by = 1), "arthre"),
                     paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
-                    #We don't think this is an important confounder of 
-                    # CESD --> Mortality
-                    # paste0("r", seq(7, 13, by = 1), "vgactx"),
-                    # paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    # paste0("r", seq(7, 13, by = 1), "ltactx"),
                     paste0("r", seq(2, 13, by = 1), "cesd"),
                     paste0("r", number_waves, "shlt"))
 
@@ -143,71 +140,6 @@ colnames(RAND)[1] <- "HHIDPN" #For merging
 #Remove labeled data format
 val_labels(RAND) <- NULL
 
-# #---- read in HRS Core files ---- 
-# #needed for medication
-# 
-# # '98-'00 medication in section B, 02-later medication in section C
-# # memory problem medication starts from wave 2008; we won't do memory meds
-# # since it starts on the last wave relevant to our analysis
-# 
-# years <- c("98", "00", 
-#            "02", "04", "06", "08") #medication
-# dataframes_list <- vector(mode = "list", length = (length(years)))
-# 
-# for(i in 1:length(years)){
-#   year <- years[i]
-#   if(i == 1 | i == 2){
-#     dataframes_list[[i]] <- 
-#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
-#                          "core/h", year, "da/H", year, "B_R.da"),
-#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
-#                          "core/h", year, "sta/H", year, "B_R.dct"),
-#                   skip_lines = 1,
-#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
-#       #select variables of interest
-#       dplyr::select("HHIDPN", 
-#                     #1998 vars         2000 vars
-#                     contains("F1117"), contains("G1248"),
-#                     contains("F1118"), contains("G1249"),
-#                     contains("F1110"), contains("G1239"),
-#                     contains("F1151"), contains("G1284"),
-#                     contains("F1157"), contains("G1290"),
-#                     contains("F1184"), contains("G1317")) %>%
-#       #contains("F1198"), contains("G1331")) 
-#       set_colnames(c("HHIDPN", 
-#                      paste0("diabetes_rx_swallowed", (i + 3)),
-#                      paste0("diabetes_rx_insulin", (i + 3)), 
-#                      paste0("bp_rx", (i + 3)), 
-#                      paste0("lung_rx", (i + 3)), 
-#                      paste0("heart_rx", (i + 3)), 
-#                      paste0("stroke_rx", (i + 3)) 
-#                      #paste0("arthritis_rx", (i + 3))
-#       )) 
-#   } else{
-#     dataframes_list[[i]] <-
-#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
-#                          "core/h", year, "da/H", year, "C_R.da"),
-#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
-#                          "core/h", year, "sta/H", year, "C_R.dct"), 
-#                   skip_lines = 2, 
-#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
-#       #select variables of interest
-#       dplyr::select("HHIDPN", 
-#                     contains("C011"), contains("C012"), contains("C006"), 
-#                     contains("C032"), contains("C037"), contains("C060")) %>% 
-#       #contains("C074")) %>%
-#       set_colnames(c("HHIDPN", 
-#                      paste0("diabetes_rx_swallowed", (i + 3)),
-#                      paste0("diabetes_rx_insulin", (i + 3)), 
-#                      paste0("bp_rx", (i + 3)), 
-#                      paste0("lung_rx", (i + 3)), 
-#                      paste0("heart_rx", (i + 3)), 
-#                      paste0("stroke_rx", (i + 3))
-#                      #paste0("arthritis_rx", (i + 3))
-#       ))
-#   }
-# }
-
 #---- read in Anusha Vable's CSES index ----
 cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
                         "cSES measures/cses_measures.dta"), 
@@ -219,41 +151,6 @@ cSES <- read_dta(paste0(path_to_dropbox, "/exposure_trajectories/data/",
 #Use this to subset RAND data
 hrs_samp <- 
   join_all(c(list(RAND, cSES, hrs_tracker)), by = "HHIDPN", type = "left") 
-
-#---- looking for optimal subset ----
-# #Drop those who are not age-eligible for HRS at the start of follow-up
-# subsets_data <- data.frame(matrix(nrow = 45, ncol = 8)) %>%
-#   set_colnames(c("CESD_start_wave", "CESD_end_wave", "num_measures",
-#                  "sample_size", "min_age", "max_age", "death_2018",
-#                  "prop_dead"))
-# 
-# index = 0
-# for(i in 2:9){
-#   for(j in (i + 4):13){
-#     index = index + 1
-#     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
-#     subsets_data[index, "num_measures"] = j - i + 1
-#     
-#     data_subset <- hrs_samp %>%
-#       dplyr::select(paste0("r", seq(i, j, by = 1), "cesd"), "death2018",
-#                     paste0(i, "age_y_int")) %>%
-#       na.omit()
-#     data_subset[, "too_young"] =
-#       ifelse(data_subset[, tail(colnames(data_subset), n = 1)] < 50, 1, 0)
-#     
-#     data_subset %<>% filter(too_young == 0)
-#     
-#     subsets_data[index, "sample_size"] = nrow(data_subset)
-#     subsets_data[index, "min_age"] = min(data_subset[, paste0(i, "age_y_int")])
-#     subsets_data[index, "max_age"] = max(data_subset[, paste0(i, "age_y_int")])
-#     subsets_data[index, "death_2018"] = sum(data_subset$death2018)
-#     subsets_data[index, "prop_dead"] = mean(data_subset$death2018)
-#   }
-# }
-# 
-# #Best subset was waves 4-9
-# write_csv(subsets_data, here::here("Prelim Analyses", "exp_CESD_out_mortality",
-#                              "CESD_complete_subsets.csv"))
 
 # Create indicators for whether CESD is missing at each wave
 hrs_samp[, paste0("r", seq(2, 13), "cesd_missing")] <- NA
@@ -376,17 +273,16 @@ hrs_samp %<>%
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights 
 # (waves 8+) if available or first self-reported height
-# 
-# the warning you'll see is from those who are missing every height. We will get
-#   rid of them in filtering steps
 hrs_samp %<>% 
   mutate("med_height" = hrs_samp %>% 
            dplyr::select(paste0("r", seq(8, 13, by = 1), "pmhght")) %>%
            apply(1, function(x) median(x, na.rm = TRUE)), 
-         "self_height" = hrs_samp %>% 
+         "self_height" = hrs_samp %>%
            dplyr::select(paste0("r", number_waves, "height")) %>%
-           apply(1, function(x) x[min(which(!is.na(x)))])) %>% 
-  mutate("height_measured" = ifelse(!is.na(med_height), 1, 0)) %>% 
+           apply(1, function(x) 
+           {if (sum(is.na(x)) == length(x)){
+             return(NA)} else {x[min(which(!is.na(x)))]}})) %>%
+  mutate("height_measured" = ifelse(!is.na(med_height), 1, 0)) %>%
   mutate("height" = ifelse(height_measured == 1, med_height, self_height))
 
 # #Sanity check
@@ -466,12 +362,12 @@ hrs_samp %<>% dplyr::select(-c(paste0("r", number_waves, "bmi"),
                                paste0("r", seq(8, 13, by = 1), "pmbmi")))
 
 #---- smoking ----
-#the warning you'll see is for those missing smoking at every wave
 hrs_samp %<>% 
   mutate("smoker" = hrs_samp %>% 
            dplyr::select(paste0("r", number_waves, "smoken")) %>%
-           apply(1, function(x) x[min(which(!is.na(x)))]))
-
+           apply(1, function(x) 
+           {if (sum(is.na(x)) == length(x)){
+             return(NA)} else {x[min(which(!is.na(x)))]}}))
 # #Sanity check
 # View(hrs_samp[, c(paste0("r", number_waves, "smoken"), "smoker")])
 # table(hrs_samp$smoker, useNA = "ifany")
@@ -499,7 +395,6 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # }
 
 # Imputing chronic conditions
-# the warnings you'll see are for those missing every chronic condition
 #---- ** diabetes ----
 hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
                                      seq(1, 9), hrs_samp)
@@ -524,11 +419,6 @@ hrs_samp <- impute_chronic_condition("hearte", paste0("r", seq(1, 9), "hearte"),
 hrs_samp <- impute_chronic_condition("stroke", paste0("r", seq(1, 9), "stroke"),
                                      seq(1, 9), hrs_samp)
 
-# #---- **arthritis ----
-# hrs_samp <-
-#   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
-#                               seq(4, 9), hrs_samp)
-
 #---- **memory ----
 #For memory problems, data starts from wave 4.
 hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
@@ -543,6 +433,38 @@ hrs_samp <- impute_chronic_condition("memrye", paste0("r", seq(4, 9), "memrye"),
 #   counts <- rowSums(is.na(subset))
 #   print(table(counts, useNA = "ifany"))
 # }
+
+# #---- data check ----
+# #How many people are missing all data for a chronic condition
+# missing_data_check <- c("diab",  "hibp", "cancr", "lung", "heart", "strok",
+#                         "arthrs", "memry",
+#                         "diabetes_rx_swallowed", "diabetes_rx_insulin",
+#                         "bp_rx",  "lung_rx", "heart_rx", "stroke_rx",
+#                         "arthritis_rx")
+# 
+# for(var in missing_data_check){
+#   print(var)
+#   if(grepl("rx", var)){
+#     test <- hrs_samp %>%
+#       dplyr::select(paste0(var, seq(4, 9)))
+#     test_table <- table(rowSums(is.na(test)))
+#     print(test_table)
+#     print(sum(test_table))
+#   } else{
+#     test <- hrs_samp %>%
+#       dplyr::select(paste0("r", seq(4, 9), var))
+#     test_table <- table(rowSums(is.na(test)))
+#     print(test_table)
+#     print(sum(test_table))
+#   }
+# }
+# 
+# #Sanity check
+# test <- hrs_samp %>%
+#   dplyr::select(paste0("r", seq(4, 9), "diab"))
+# test %<>% cbind(., rowSums(is.na(.)))
+# table(test[, 7])
+# sum(table(test[, 7]))
 
 #---- sum of conditions ----
 # wave-specific r(wave)conde
@@ -560,61 +482,6 @@ for(j in 1:length(waves)){
 hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <- 
   cond_mat %>% select(contains("conde_impute"))
 
-# view(hrs_samp %>% select(contains("conde_impute")))
-
-# # #---- Old code chunk ----
-# # #---- ** diabetes ----
-# hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
-#                               c(paste0("diabetes_rx_insulin", seq(4, 9)),
-#                                 paste0("diabetes_rx_swallowed", seq(4, 9))),
-#                               hrs_samp)
-# 
-# # #Sanity check
-# # for(var in c(paste0("r", seq(1, 13), "diab"),
-# #              paste0("diabetes_rx_insulin", seq(4, 9)))){
-# #   print(var)
-# #   print(table(hrs_samp[, var], useNA = "ifany"))
-# # }
-# 
-# #---- **high bp ----
-# hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"),
-#                               paste0("bp_rx", seq(4, 9)), hrs_samp)
-# 
-# #---- **cancer ----
-# hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"),
-#                               NA, hrs_samp)
-# 
-# #---- **lung ----
-# hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"),
-#                               paste0("lung_rx", seq(4, 9)), hrs_samp)
-# 
-# #---- **heart ----
-# hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"),
-#                               paste0("heart_rx", seq(4, 9)), hrs_samp)
-# 
-# #---- **stroke ----
-# hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"),
-#                               paste0("stroke_rx", seq(4, 9)), hrs_samp)
-# 
-# #---- **arthritis ----
-# hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"),
-#                               paste0("arthritis_rx", seq(4, 9)), hrs_samp)
-# ## arthritis is reported from wave 2 to wave 13.
-# 
-# #---- **memory ----
-# hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"),
-#                               NA, hrs_samp)
-# 
-# #---- sum of conditions ----
-# #We're going to create our own version of r[wave]conde from RAND, but ours will
-# #   not be wave-specific
-# cond_mat <- hrs_samp %>%
-#   dplyr::select(contains("ever"))
-# 
-# #since ever_condition variables are used to derive new conde variable,
-# #it should not vary across waves
-# hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
-
 #---- marital status ----
 # #Variable check
 # table(hrs_samp$r4mstat, useNA = "ifany")
@@ -623,35 +490,8 @@ hrs_samp[, colnames(cond_mat %>% select(contains("conde_impute")))] <-
 # Impute mstat with closest non-missing value
 hrs_samp <- impute_status("mstat", paste0("r", seq(1, 13), "mstat"),
                           seq(1, 13), seq(4, 9), hrs_samp)
-# 
 
-# Old code chunk for mstat
-#Impute r4mstat with closest non-missing value
-# hrs_samp %<>%
-#   mutate("r4mstat_impute" =
-#            ifelse(is.na(r4mstat),
-#                   hrs_samp %>%
-#                     dplyr::select(paste0("r", seq(1, 3), "mstat")) %>%
-#                     apply(., 1, function(x) x[max(which(!is.na(x)))]),
-#                   r4mstat)) %>%
-#   mutate("r4mstat_impute" =
-#            ifelse(is.na(r4mstat_impute),
-#                   hrs_samp %>%
-#                     dplyr::select(paste0("r", seq(5, 13), "mstat")) %>%
-#                     apply(., 1, function(x) x[min(which(!is.na(x)))]),
-#                   r4mstat_impute)) %>%
-
-
-# #Sanity check
-# sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
-# View(hrs_samp %>%
-#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
-#                      "r4mstat_impute"))
-# View(hrs_samp %>%
-#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
-#                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
-
-#Create marital status categories
+# Create marital status categories
 mstat_mat <- hrs_samp %>% select(contains("mstat_impute"))
 
 #Consolidate categories
@@ -681,13 +521,10 @@ for(wave in seq(4, 9)){
 
 #---- drinking ----
 # Imputing drinking per day and drinking per week
-# The warnings you'll see are for people who are not missing any drinking 
-#   variables
 hrs_samp <- impute_status("drinkd", paste0("r", seq(3, 13), "drinkd"),
                           seq(3, 13), seq(4, 9),  hrs_samp)
 hrs_samp <- impute_status("drinkn", paste0("r", seq(3, 13), "drinkn"),
                           seq(3, 13), seq(4, 9),  hrs_samp)
-
 #Sanity check
 # table(hrs_samp$r4drinkn, hrs_samp$r4drinkn_impute, useNA = "ifany")
 
@@ -716,36 +553,6 @@ for(i in 1:ncol(drinking_cat_mat)){
   }
 }
 
-# Old code chunk
-# drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
-#   (hrs_samp %>% dplyr::select(contains("drinkn")))
-# ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
-# 
-# 
-# drinking_cat_mat <- 
-#   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
-#   set_colnames(paste0("drinking", seq(3, 13), "_cat"))
-# 
-# for(i in 1:ncol(drinking_cat_mat)){
-#   for(j in 1:nrow(drinking_cat_mat)){
-#     drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
-#       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
-#                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
-#                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
-#                 (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
-#                   hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
-#                 (drinks_per_week_mat[j, i] >= 1 & 
-#                    drinks_per_week_mat[j, i] < 7) & 
-#                   hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
-#                 (drinks_per_week_mat[j, i] >= 1 & 
-#                    drinks_per_week_mat[j, i] < 14) & 
-#                   hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
-#   }
-# }
-
-# #Sanity Check
-# View(drinking_cat_mat)
-
 hrs_samp %<>% cbind(drinking_cat_mat)
 
 # #Sanity Check
@@ -755,140 +562,6 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # View(hrs_samp %>% dplyr::select("r9drinkn", "drinks_per_week9", "female",
 #                                 "drinking9_cat") %>%
 #        filter(drinking9_cat == "Heavy Drinking"))
-
-# #Variable check
-# table(hrs_samp$drinking4_cat, useNA = "ifany")
-# table(hrs_samp$drinking9_cat, useNA = "ifany")
-
-# #Impute drinking4_cat and drinking9_cat with closest non-missing values
-# hrs_samp %<>% 
-#   mutate("drinking4_cat_impute" = 
-#            ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
-#   mutate("drinking4_cat_impute" = 
-#            ifelse(is.na(drinking4_cat_impute), 
-#                   hrs_samp %>% 
-#                     dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
-#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-#                   drinking4_cat_impute)) %>% 
-#   mutate("drinking9_cat_impute" = 
-#            ifelse(is.na(drinking9_cat), 
-#                   hrs_samp %>% 
-#                     dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
-#                     apply(., 1, function(x) x[max(which(!is.na(x)))]), 
-#                   drinking9_cat)) %>% 
-#   mutate("drinking9_cat_impute" = 
-#            ifelse(is.na(drinking9_cat_impute), 
-#                   hrs_samp %>% 
-#                     dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
-#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
-#                   drinking9_cat_impute))
-
-# #Sanity check
-# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))))
-# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))) %>% 
-#        filter(is.na(drinking4_cat) | is.na(drinking9_cat)))
-# table(hrs_samp$drinking4_cat_impute, useNA = "ifany")
-# table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
-# table(hrs_samp$drinking4_cat, hrs_samp$drinking9_cat)
-
-# #Drop the one person who has no information on drinking behavior
-# hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
-
-
-# #---- physical activity ----
-# PA_mat <- hrs_samp %>% 
-#   dplyr::select(contains("ltactx"), contains("mdactx"), contains("vgactx"))
-# 
-# waves_PA <-  seq(7, 13, by = 1)
-# 
-# for(i in 1:nrow(PA_mat)){
-#   for(j in 1:length(waves_PA)){
-#     wave <- waves_PA[j]
-#     PA_mat[i, paste0("r", wave, "MET")] = 
-#       case_when(PA_mat[i, paste0("r", wave, "vgactx")] == 1 ~ 17,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] == 2 ~ 13,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(3,4,5,NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] == 1 ~ 10，
-#                 PA_mat[i, paste0("r", wave, "vgactx")] == 3 &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(2,3,4,5,NA) ~ 9,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] == 2 ~ 7.5，
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] == 3 ~ 5，
-#                 PA_mat[i, paste0("r", wave, "vgactx")] == 4 &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) ~ 4.25,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] == 1 ~ 4,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] == 2 ~ 3,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] == 4 &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(3, 4,5,NA) ~ 2.5,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] == 3 ~ 2,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] == 4 ~ 1,
-#                 ifelse(is.na(PA_mat[i, paste0("r", wave, "vgactx")]),1,0) == 1 &
-#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "mdactx")]),1,0) == 1 &
-#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "ltactx")]),1,0) == 1
-#                 ~ NA_real_,
-#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
-#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
-#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(5,NA) ~ 0
-#       )
-#   }
-# }
-# 
-# # Sanity check
-# # View(PA_mat %>% dplyr::select("r8ltactx", "r8mdactx", "r8vgactx", "r8MET") %>%
-# #        filter(is.na(r8MET)))
-# # View(PA_mat %>% dplyr::select("r13ltactx", "r13mdactx", "r13vgactx", "r13MET") %>%
-# #        filter(is.na(r13MET)))
-# 
-# # Combine to hrs_samp
-# hrs_samp %<>% cbind(PA_mat[, paste0("r", waves_PA, "MET")])
-
-# #---- data check ----
-# #How many people are missing all data for a chronic condition
-# missing_data_check <- c("diab",  "hibp", "cancr", "lung", "heart", "strok", 
-#                         "arthrs", "memry", 
-#                         "diabetes_rx_swallowed", "diabetes_rx_insulin",
-#                         "bp_rx",  "lung_rx", "heart_rx", "stroke_rx", 
-#                         "arthritis_rx")
-# 
-# for(var in missing_data_check){
-#   print(var)
-#   if(grepl("rx", var)){
-#     test <- hrs_samp %>% 
-#       dplyr::select(paste0(var, seq(4, 9))) 
-#     test_table <- table(rowSums(is.na(test))) 
-#     print(test_table)
-#     print(sum(test_table))
-#   } else{
-#     test <- hrs_samp %>% 
-#       dplyr::select(paste0("r", seq(4, 9), var))
-#     test_table <- table(rowSums(is.na(test)))
-#     print(test_table) 
-#     print(sum(test_table))
-#   }
-# }
-
-# #Sanity check
-# test <- hrs_samp %>% 
-#   dplyr::select(paste0("r", seq(4, 9), "diab")) 
-# test %<>% cbind(., rowSums(is.na(.)))  
-# table(test[, 7])
-# sum(table(test[, 7]))
-
-# #---- self-reported health ----
-# #Variable check
-# self_reported_health <- hrs_samp %>%
-#   dplyr::select(paste0("r", seq(4, 9), "shlt"))
-# colSums(is.na(self_reported_health))
 
 # #---- Preliminary models ----
 # # DO NOT DELETE DURING CODE CLEAN-UP
@@ -1102,114 +775,6 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
 # drop <- rowSums(is.na(subset))
 
-# Check variability for drinking behavior
-p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled",
-       "purrr", "writexl", "ggplot2", "readxl")
-temp <- hrs_samp %>% 
-  select(HHIDPN, paste0("r", seq(4, 9), "drinkd"), 
-         paste0("r", seq(4, 9), "drinkn"),
-         paste0("r", seq(4, 9), "drinkd_impute"), 
-         paste0("r", seq(4, 9), "drinkn_impute"),
-         paste0("r", seq(4, 9), "drinking_cat"),
-         female) 
-
-for (wave in seq(4, 9)){
-  temp %<>%
-    dplyr::rename(!!paste0("r", wave, "drink_cat_impute") :=
-                    paste0("r", wave, "drinking_cat"))
-  temp[, paste0("r", wave, "drinkw")] <- 
-    temp[, paste0("r", wave, "drinkd")] *
-    temp[, paste0("r", wave, "drinkn")]
-  temp[, paste0("r", wave, "drinkw_impute")] <- 
-    temp[, paste0("r", wave, "drinkd_impute")] *
-    temp[, paste0("r", wave, "drinkn_impute")]
-  temp[, paste0("r", wave, "drink_cat")] <- 
-    case_when(temp[, "female"] ==  1 & 
-                (temp[, paste0("r", wave, "drinkw")] >= 7 | 
-                   temp[, paste0("r", wave, "drinkn")] >= 3) ~ 2,
-              temp[, "female"] ==  1 & 
-                (temp[, paste0("r", wave, "drinkw")] <= 7 & 
-                   temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1,
-              temp[, paste0("r", wave, "drinkw")] == 0 ~ 0,
-              temp[, "female"] ==  0 & 
-                (temp[, paste0("r", wave, "drinkw")] >= 14 | 
-                   temp[, paste0("r", wave, "drinkn")] >= 4) ~ 2,
-              temp[, "female"] ==  0 & 
-                (temp[, paste0("r", wave, "drinkw")] <= 14 & 
-                   temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1)
-}
-# Somehow the !!paste0("r", wave, "drinkw") := !!sym(paste0("r", wave, "drinkd"))
-# * !!sym(paste0("r", wave, "drinkn")) is not working
-
-p_load("scales")
-n <- length(levels(as.factor(hrs_samp$HHIDPN)))# number of colors
-cols <- hue_pal(h = c(0, 360) + 15, 
-                c = 100, l = 65, 
-                h.start = 0, direction = 1)(n)[order(sample(1:n, n))] 
-
-frac <- 0.1
-
-temp %>%
-  select(HHIDPN, paste0("r", seq(4, 9), "drinkw")) %>%
-  sample_frac(frac, replace = FALSE) %>%
-  pivot_longer(!HHIDPN,
-              names_to = "wave",
-              names_pattern = "r(.*)drinkw",
-              values_to = "drink") %>%
-  mutate(HHIDPN = as.factor(HHIDPN)) %>%
-  ggplot(aes(x = wave, y = drink, group = HHIDPN, color = HHIDPN)) +
-  geom_point() + geom_line() +
-  scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
-  theme(legend.position = "none") +
-  scale_color_manual(values = cols) +
-  labs(title = "# of Drinks per week across waves", 
-       subtitle = paste0("A ", frac*100, 
-                         "% random sample of the analytic sample"))
-
-temp %>%
-  select(HHIDPN, paste0("r", seq(4, 9), "drinkw_impute")) %>%
-  sample_frac(frac, replace = FALSE) %>%
-  pivot_longer(!HHIDPN,
-               names_to = "wave",
-               names_pattern = "r(.*)drinkw_impute",
-               values_to = "drink_impute") %>%
-  mutate(HHIDPN = as.factor(HHIDPN)) %>%
-  ggplot(aes(x = wave, y = drink_impute, group = HHIDPN, color = HHIDPN)) +
-  geom_point() + geom_line() +
-  scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
-  theme(legend.position = "none") +
-  scale_color_manual(values = cols) +
-  labs(title = "# of Drinks per week across waves (imputed)", 
-       subtitle = paste0("A ", frac*100, 
-                         "% random sample of the analytic sample"))
-  
-with(temp %>%
-  mutate(drink_change = case_when(
-    abs(r5drink_cat - r4drink_cat) == 2|
-      abs(r6drink_cat - r5drink_cat) == 2|
-      abs(r7drink_cat - r6drink_cat) == 2|
-      abs(r8drink_cat - r7drink_cat) == 2|
-      abs(r9drink_cat - r8drink_cat) == 2 ~ 2,
-    abs(r5drink_cat - r4drink_cat) == 1|
-      abs(r6drink_cat - r5drink_cat) == 1|
-      abs(r7drink_cat - r6drink_cat) == 1|
-      abs(r8drink_cat - r7drink_cat) == 1|
-      abs(r9drink_cat - r8drink_cat) == 1 ~ 1,
-    TRUE ~ 0),
-    drink_change_impute = case_when(
-      abs(r5drink_cat_impute - r4drink_cat_impute) == 2|
-        abs(r6drink_cat_impute - r5drink_cat_impute) == 2|
-        abs(r7drink_cat_impute - r6drink_cat_impute) == 2|
-        abs(r8drink_cat_impute - r7drink_cat_impute) == 2|
-        abs(r9drink_cat_impute - r8drink_cat_impute) == 2 ~ 2,
-      abs(r5drink_cat_impute - r4drink_cat_impute) == 1|
-        abs(r6drink_cat_impute - r5drink_cat_impute) == 1|
-        abs(r7drink_cat_impute - r6drink_cat_impute) == 1|
-        abs(r8drink_cat_impute - r7drink_cat_impute) == 1|
-        abs(r9drink_cat_impute - r8drink_cat_impute) == 1 ~ 1,
-      TRUE ~ 0),), table(drink_change, 
-                         drink_change_impute, useNA = "ifany"))
-
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"),
           paste0("r", seq(4, 9), "not_married_partnered"),
@@ -1312,3 +877,393 @@ for(wave in seq(4, 9)){
 write_csv(hrs_samp, paste0(path_to_dropbox,
                            "/exposure_trajectories/data/",
                            "CESD_data_wide.csv"))
+
+#---- OLD ----
+#source(here::here("RScripts", "non_missing.R"))
+#source(here::here("RScripts", "read_da_dct.R"))
+#source(here::here("Rscripts", "chronic_condition.R"))
+
+#---- Check the variability of drinking behavior ----
+# #Run this script after dropping people!
+# # Check variability for drinking behavior in the analytic sample
+# 
+# temp <- hrs_samp %>% 
+#   select(HHIDPN, paste0("r", seq(4, 9), "drinkd"), 
+#          paste0("r", seq(4, 9), "drinkn"),
+#          paste0("r", seq(4, 9), "drinkd_impute"), 
+#          paste0("r", seq(4, 9), "drinkn_impute"),
+#          paste0("r", seq(4, 9), "drinking_cat"),
+#          female) 
+# 
+# for (wave in seq(4, 9)){
+#   temp %<>%
+#     dplyr::rename(!!paste0("r", wave, "drink_cat_impute") :=
+#                     paste0("r", wave, "drinking_cat"))
+#   temp[, paste0("r", wave, "drinkw")] <- 
+#     temp[, paste0("r", wave, "drinkd")] *
+#     temp[, paste0("r", wave, "drinkn")]
+#   temp[, paste0("r", wave, "drinkw_impute")] <- 
+#     temp[, paste0("r", wave, "drinkd_impute")] *
+#     temp[, paste0("r", wave, "drinkn_impute")]
+#   temp[, paste0("r", wave, "drink_cat")] <- 
+#     case_when(temp[, "female"] ==  1 & 
+#                 (temp[, paste0("r", wave, "drinkw")] >= 7 | 
+#                    temp[, paste0("r", wave, "drinkn")] >= 3) ~ 2,
+#               temp[, "female"] ==  1 & 
+#                 (temp[, paste0("r", wave, "drinkw")] <= 7 & 
+#                    temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1,
+#               temp[, paste0("r", wave, "drinkw")] == 0 ~ 0,
+#               temp[, "female"] ==  0 & 
+#                 (temp[, paste0("r", wave, "drinkw")] >= 14 | 
+#                    temp[, paste0("r", wave, "drinkn")] >= 4) ~ 2,
+#               temp[, "female"] ==  0 & 
+#                 (temp[, paste0("r", wave, "drinkw")] <= 14 & 
+#                    temp[, paste0("r", wave, "drinkw")] >= 1) ~ 1)
+# }
+# # Somehow the !!paste0("r", wave, "drinkw") := !!sym(paste0("r", wave, "drinkd"))
+# # * !!sym(paste0("r", wave, "drinkn")) is not working
+# 
+# p_load("scales")
+# n <- length(levels(as.factor(hrs_samp$HHIDPN)))# number of colors
+# cols <- hue_pal(h = c(0, 360) + 15, 
+#                 c = 100, l = 65, 
+#                 h.start = 0, direction = 1)(n)[order(sample(1:n, n))] 
+# 
+# frac <- 0.1
+# 
+# temp %>%
+#   select(HHIDPN, paste0("r", seq(4, 9), "drinkw")) %>%
+#   sample_frac(frac, replace = FALSE) %>%
+#   pivot_longer(!HHIDPN,
+#                names_to = "wave",
+#                names_pattern = "r(.*)drinkw",
+#                values_to = "drink") %>%
+#   mutate(HHIDPN = as.factor(HHIDPN)) %>%
+#   ggplot(aes(x = wave, y = drink, group = HHIDPN, color = HHIDPN)) +
+#   geom_point() + geom_line() +
+#   scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
+#   theme(legend.position = "none") +
+#   scale_color_manual(values = cols) +
+#   labs(title = "# of Drinks per week across waves", 
+#        subtitle = paste0("A ", frac*100, 
+#                          "% random sample of the analytic sample"))
+# 
+# temp %>%
+#   select(HHIDPN, paste0("r", seq(4, 9), "drinkw_impute")) %>%
+#   sample_frac(frac, replace = FALSE) %>%
+#   pivot_longer(!HHIDPN,
+#                names_to = "wave",
+#                names_pattern = "r(.*)drinkw_impute",
+#                values_to = "drink_impute") %>%
+#   mutate(HHIDPN = as.factor(HHIDPN)) %>%
+#   ggplot(aes(x = wave, y = drink_impute, group = HHIDPN, color = HHIDPN)) +
+#   geom_point() + geom_line() +
+#   scale_y_continuous(limits=c(0, 20), breaks = seq(0, 14, 7)) +
+#   theme(legend.position = "none") +
+#   scale_color_manual(values = cols) +
+#   labs(title = "# of Drinks per week across waves (imputed)", 
+#        subtitle = paste0("A ", frac*100, 
+#                          "% random sample of the analytic sample"))
+# 
+# with(temp %>%
+#        mutate(drink_change = case_when(
+#          abs(r5drink_cat - r4drink_cat) == 2|
+#            abs(r6drink_cat - r5drink_cat) == 2|
+#            abs(r7drink_cat - r6drink_cat) == 2|
+#            abs(r8drink_cat - r7drink_cat) == 2|
+#            abs(r9drink_cat - r8drink_cat) == 2 ~ 2,
+#          abs(r5drink_cat - r4drink_cat) == 1|
+#            abs(r6drink_cat - r5drink_cat) == 1|
+#            abs(r7drink_cat - r6drink_cat) == 1|
+#            abs(r8drink_cat - r7drink_cat) == 1|
+#            abs(r9drink_cat - r8drink_cat) == 1 ~ 1,
+#          TRUE ~ 0),
+#          drink_change_impute = case_when(
+#            abs(r5drink_cat_impute - r4drink_cat_impute) == 2|
+#              abs(r6drink_cat_impute - r5drink_cat_impute) == 2|
+#              abs(r7drink_cat_impute - r6drink_cat_impute) == 2|
+#              abs(r8drink_cat_impute - r7drink_cat_impute) == 2|
+#              abs(r9drink_cat_impute - r8drink_cat_impute) == 2 ~ 2,
+#            abs(r5drink_cat_impute - r4drink_cat_impute) == 1|
+#              abs(r6drink_cat_impute - r5drink_cat_impute) == 1|
+#              abs(r7drink_cat_impute - r6drink_cat_impute) == 1|
+#              abs(r8drink_cat_impute - r7drink_cat_impute) == 1|
+#              abs(r9drink_cat_impute - r8drink_cat_impute) == 1 ~ 1,
+#            TRUE ~ 0),), table(drink_change, 
+#                               drink_change_impute, useNA = "ifany"))
+
+# #---- physical activity ----
+# PA_mat <- hrs_samp %>% 
+#   dplyr::select(contains("ltactx"), contains("mdactx"), contains("vgactx"))
+# 
+# waves_PA <-  seq(7, 13, by = 1)
+# 
+# for(i in 1:nrow(PA_mat)){
+#   for(j in 1:length(waves_PA)){
+#     wave <- waves_PA[j]
+#     PA_mat[i, paste0("r", wave, "MET")] = 
+#       case_when(PA_mat[i, paste0("r", wave, "vgactx")] == 1 ~ 17,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 2 ~ 13,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(3,4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 1 ~ 10，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 3 &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(2,3,4,5,NA) ~ 9,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 2 ~ 7.5，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 3 ~ 5，
+#                 PA_mat[i, paste0("r", wave, "vgactx")] == 4 &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) ~ 4.25,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 1 ~ 4,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(4,5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 2 ~ 3,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] == 4 &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(3, 4,5,NA) ~ 2.5,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 3 ~ 2,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] == 4 ~ 1,
+#                 ifelse(is.na(PA_mat[i, paste0("r", wave, "vgactx")]),1,0) == 1 &
+#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "mdactx")]),1,0) == 1 &
+#                   ifelse(is.na(PA_mat[i, paste0("r", wave, "ltactx")]),1,0) == 1
+#                 ~ NA_real_,
+#                 PA_mat[i, paste0("r", wave, "vgactx")] %in% c(5, NA) &
+#                   PA_mat[i, paste0("r", wave, "mdactx")] %in% c(5,NA) &
+#                   PA_mat[i, paste0("r", wave, "ltactx")] %in% c(5,NA) ~ 0
+#       )
+#   }
+# }
+# 
+# # Sanity check
+# # View(PA_mat %>% dplyr::select("r8ltactx", "r8mdactx", "r8vgactx", "r8MET") %>%
+# #        filter(is.na(r8MET)))
+# # View(PA_mat %>% dplyr::select("r13ltactx", "r13mdactx", "r13vgactx", "r13MET") %>%
+# #        filter(is.na(r13MET)))
+# 
+# # Combine to hrs_samp
+# hrs_samp %<>% cbind(PA_mat[, paste0("r", waves_PA, "MET")])
+
+# #---- self-reported health ----
+# #Variable check
+# self_reported_health <- hrs_samp %>%
+#   dplyr::select(paste0("r", seq(4, 9), "shlt"))
+# colSums(is.na(self_reported_health))
+#---- ** drinking ----
+# Old code chunk
+# drinks_per_week_mat <- (hrs_samp %>% dplyr::select(contains("drinkd")))*
+#   (hrs_samp %>% dplyr::select(contains("drinkn")))
+# ndrinks_mat <- hrs_samp %>% dplyr::select(contains("drinkn"))
+# 
+# 
+# drinking_cat_mat <- 
+#   matrix(nrow = nrow(drinks_per_week_mat), ncol = ncol(drinks_per_week_mat)) %>% 
+#   set_colnames(paste0("drinking", seq(3, 13), "_cat"))
+# 
+# for(i in 1:ncol(drinking_cat_mat)){
+#   for(j in 1:nrow(drinking_cat_mat)){
+#     drinking_cat_mat[j, paste0("drinking", (i + 2), "_cat")] = 
+#       case_when(drinks_per_week_mat[j, i] == 0 ~ "No Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 7 | ndrinks_mat[j, i] >= 3) & 
+#                   hrs_samp[j, "female"] == 1 ~ "Heavy Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 14 | ndrinks_mat[j, i] >= 4) & 
+#                   hrs_samp[j, "female"] == 0 ~ "Heavy Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 1 & 
+#                    drinks_per_week_mat[j, i] < 7) & 
+#                   hrs_samp[j, "female"] == 1 ~ "Moderate Drinking", 
+#                 (drinks_per_week_mat[j, i] >= 1 & 
+#                    drinks_per_week_mat[j, i] < 14) & 
+#                   hrs_samp[j, "female"] == 0 ~ "Moderate Drinking")
+#   }
+# }
+
+# #Sanity Check
+# View(drinking_cat_mat)
+
+# #Impute drinking4_cat and drinking9_cat with closest non-missing values
+# hrs_samp %<>% 
+#   mutate("drinking4_cat_impute" = 
+#            ifelse(is.na(drinking4_cat), drinking3_cat, drinking4_cat)) %>% 
+#   mutate("drinking4_cat_impute" = 
+#            ifelse(is.na(drinking4_cat_impute), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(5, 13), "_cat")) %>% 
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+#                   drinking4_cat_impute)) %>% 
+#   mutate("drinking9_cat_impute" = 
+#            ifelse(is.na(drinking9_cat), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(3, 8), "_cat")) %>% 
+#                     apply(., 1, function(x) x[max(which(!is.na(x)))]), 
+#                   drinking9_cat)) %>% 
+#   mutate("drinking9_cat_impute" = 
+#            ifelse(is.na(drinking9_cat_impute), 
+#                   hrs_samp %>% 
+#                     dplyr::select(paste0("drinking", seq(10, 13), "_cat")) %>% 
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]), 
+#                   drinking9_cat_impute))
+
+# #Sanity check
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))))
+# View(hrs_samp %>% dplyr::select(contains("drinking", seq(3, 13))) %>% 
+#        filter(is.na(drinking4_cat) | is.na(drinking9_cat)))
+# table(hrs_samp$drinking4_cat_impute, useNA = "ifany")
+# table(hrs_samp$drinking9_cat_impute, useNA = "ifany")
+# table(hrs_samp$drinking4_cat, hrs_samp$drinking9_cat)
+
+# #Drop the one person who has no information on drinking behavior
+# hrs_samp %<>% filter(!is.na(drinking4_cat_impute))
+#---- ** marital status ----
+# Old code chunk for mstat
+#Impute r4mstat with closest non-missing value
+# hrs_samp %<>%
+#   mutate("r4mstat_impute" =
+#            ifelse(is.na(r4mstat),
+#                   hrs_samp %>%
+#                     dplyr::select(paste0("r", seq(1, 3), "mstat")) %>%
+#                     apply(., 1, function(x) x[max(which(!is.na(x)))]),
+#                   r4mstat)) %>%
+#   mutate("r4mstat_impute" =
+#            ifelse(is.na(r4mstat_impute),
+#                   hrs_samp %>%
+#                     dplyr::select(paste0("r", seq(5, 13), "mstat")) %>%
+#                     apply(., 1, function(x) x[min(which(!is.na(x)))]),
+#                   r4mstat_impute)) %>%
+
+
+# #Sanity check
+# sum(hrs_samp$r4mstat != hrs_samp$r4mstat_impute, na.rm = TRUE)
+# View(hrs_samp %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
+#                      "r4mstat_impute"))
+# View(hrs_samp %>%
+#        dplyr::select("HHIDPN", paste0("r", number_waves, "mstat"),
+#                      "r4mstat_impute") %>% filter(is.na(r4mstat)))
+
+# #---- **arthritis ----
+# hrs_samp <-
+#   impute_chronic_condition("arthre", paste0("r", seq(4, 9), "arthre"),
+#                               seq(4, 9), hrs_samp)
+
+# # #---- Old code chunk ----
+# # #---- ** diabetes ----
+# hrs_samp <- chronic_condition("diabetes", paste0("r", seq(1, 13), "diab"),
+#                               c(paste0("diabetes_rx_insulin", seq(4, 9)),
+#                                 paste0("diabetes_rx_swallowed", seq(4, 9))),
+#                               hrs_samp)
+# 
+# # #Sanity check
+# # for(var in c(paste0("r", seq(1, 13), "diab"),
+# #              paste0("diabetes_rx_insulin", seq(4, 9)))){
+# #   print(var)
+# #   print(table(hrs_samp[, var], useNA = "ifany"))
+# # }
+# 
+# #---- **high bp ----
+# hrs_samp <- chronic_condition("hibp", paste0("r", seq(1, 13), "hibp"),
+#                               paste0("bp_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **cancer ----
+# hrs_samp <- chronic_condition("cancer", paste0("r", seq(1, 13), "cancr"),
+#                               NA, hrs_samp)
+# 
+# #---- **lung ----
+# hrs_samp <- chronic_condition("lung", paste0("r", seq(1, 13), "lung"),
+#                               paste0("lung_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **heart ----
+# hrs_samp <- chronic_condition("heart", paste0("r", seq(1, 13), "heart"),
+#                               paste0("heart_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **stroke ----
+# hrs_samp <- chronic_condition("stroke", paste0("r", seq(1, 13), "strok"),
+#                               paste0("stroke_rx", seq(4, 9)), hrs_samp)
+# 
+# #---- **arthritis ----
+# hrs_samp <- chronic_condition("arthritis", paste0("r", seq(2, 13), "arthrs"),
+#                               paste0("arthritis_rx", seq(4, 9)), hrs_samp)
+# ## arthritis is reported from wave 2 to wave 13.
+# 
+# #---- **memory ----
+# hrs_samp <- chronic_condition("mem", paste0("r", seq(4, 9), "memry"),
+#                               NA, hrs_samp)
+# 
+# #---- **sum of conditions ----
+# #We're going to create our own version of r[wave]conde from RAND, but ours will
+# #   not be wave-specific
+# cond_mat <- hrs_samp %>%
+#   dplyr::select(contains("ever"))
+# 
+# #since ever_condition variables are used to derive new conde variable,
+# #it should not vary across waves
+# hrs_samp[, "conde"] <- rowSums(cond_mat, na.rm = TRUE)
+
+# #---- read in HRS Core files ---- 
+# #needed for medication
+# 
+# # '98-'00 medication in section B, 02-later medication in section C
+# # memory problem medication starts from wave 2008; we won't do memory meds
+# # since it starts on the last wave relevant to our analysis
+# 
+# years <- c("98", "00", 
+#            "02", "04", "06", "08") #medication
+# dataframes_list <- vector(mode = "list", length = (length(years)))
+# 
+# for(i in 1:length(years)){
+#   year <- years[i]
+#   if(i == 1 | i == 2){
+#     dataframes_list[[i]] <- 
+#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "da/H", year, "B_R.da"),
+#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "sta/H", year, "B_R.dct"),
+#                   skip_lines = 1,
+#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+#       #select variables of interest
+#       dplyr::select("HHIDPN", 
+#                     #1998 vars         2000 vars
+#                     contains("F1117"), contains("G1248"),
+#                     contains("F1118"), contains("G1249"),
+#                     contains("F1110"), contains("G1239"),
+#                     contains("F1151"), contains("G1284"),
+#                     contains("F1157"), contains("G1290"),
+#                     contains("F1184"), contains("G1317")) %>%
+#       #contains("F1198"), contains("G1331")) 
+#       set_colnames(c("HHIDPN", 
+#                      paste0("diabetes_rx_swallowed", (i + 3)),
+#                      paste0("diabetes_rx_insulin", (i + 3)), 
+#                      paste0("bp_rx", (i + 3)), 
+#                      paste0("lung_rx", (i + 3)), 
+#                      paste0("heart_rx", (i + 3)), 
+#                      paste0("stroke_rx", (i + 3)) 
+#                      #paste0("arthritis_rx", (i + 3))
+#       )) 
+#   } else{
+#     dataframes_list[[i]] <-
+#       read_da_dct(paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "da/H", year, "C_R.da"),
+#                   paste0(path_to_box, "/Box/HRS/core_files/h", year,
+#                          "core/h", year, "sta/H", year, "C_R.dct"), 
+#                   skip_lines = 2, 
+#                   HHIDPN = TRUE) %>% mutate_at("HHIDPN", as.numeric) %>% 
+#       #select variables of interest
+#       dplyr::select("HHIDPN", 
+#                     contains("C011"), contains("C012"), contains("C006"), 
+#                     contains("C032"), contains("C037"), contains("C060")) %>% 
+#       #contains("C074")) %>%
+#       set_colnames(c("HHIDPN", 
+#                      paste0("diabetes_rx_swallowed", (i + 3)),
+#                      paste0("diabetes_rx_insulin", (i + 3)), 
+#                      paste0("bp_rx", (i + 3)), 
+#                      paste0("lung_rx", (i + 3)), 
+#                      paste0("heart_rx", (i + 3)), 
+#                      paste0("stroke_rx", (i + 3))
+#                      #paste0("arthritis_rx", (i + 3))
+#       ))
+#   }
+# }

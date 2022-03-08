@@ -13,13 +13,10 @@ options(scipen = 999)
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
-# Yingyan's directory: C:/Users/yingyan_wu
-#                      C:/Users/yingyan_wu/Dropbox
-# Crystal's directory: /Users/CrystalShaw
-#                     ~/Dropbox/Projects
+# Yingyan's directory: C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu"
 path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- Table 1: characteristics description ----
@@ -134,16 +131,6 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
-# test <- data.table::fread(main_paths[2], fill = TRUE) %>%
-#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for table (for now) ----
@@ -210,12 +197,6 @@ all_paths <-
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for table (for now) ----

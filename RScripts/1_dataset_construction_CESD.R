@@ -12,8 +12,6 @@ if (!require("pacman")){
 }
 p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled",
        "lubridate")
-# p_load("here", "readr", "tidyverse", "magrittr", "plyr", "haven", "labelled", 
-#        "lubridate", "broom", "kableExtra")
 
 #No scientific notation
 options(scipen = 999)

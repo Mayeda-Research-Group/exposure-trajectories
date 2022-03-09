@@ -19,6 +19,9 @@ options(scipen = 999)
 #Changing directories here will change them throughout the script
 path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
+#---- source scripts ----
+source(here::here("RScripts", "functions", "read_results.R"))
+
 #---- Table 1: characteristics description ----
 #---- **read in analytical sample ----
 CESD_data_wide <- 

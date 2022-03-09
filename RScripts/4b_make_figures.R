@@ -20,7 +20,7 @@ path_to_box <- "/Users/CrystalShaw"
 path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- load scripts ----
-#put read_results function here
+source(here::here("RScripts", "functions", "read_results.R"))
 
 #---- color palette ----
 # The palette with grey:
@@ -40,12 +40,6 @@ main_paths <- all_paths[!str_detect(all_paths, "sens")]
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
   #making sure only one copy of each seed
   na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
@@ -144,16 +138,6 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
-# test <- data.table::fread(main_paths[2], fill = TRUE) %>%
-#   set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-#                  "Percent", "Mechanism", "Truth Capture", "Time")) %>% na.omit()
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 # #test for invalid rows
@@ -306,12 +290,6 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
@@ -368,12 +346,6 @@ all_paths <-
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **group data ----
@@ -499,12 +471,6 @@ all_paths <-
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time", "Seed"))
-}
-
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
@@ -552,12 +518,6 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
-}
-
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----
@@ -853,12 +813,6 @@ all_paths <-
 sens_paths <- all_paths[str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-read_results <- function(paths){
-  data.table::fread(paths, fill = TRUE) %>% na.omit() %>%
-    set_colnames(c("Exposure", "Beta", "SE", "LCI", "UCI", "Method",
-                   "Percent", "Mechanism", "Truth Capture", "Time"))
-}
-
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% na.omit()
 
 #---- **limit runs for figure (for now) ----

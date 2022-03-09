@@ -1,3 +1,8 @@
+# This function masks the truth dataset according to different mechanisms 
+# and different proportion of missingness.In the function, a missngness check
+# will be performed in the end to make sure no one is missing every cesd measure
+# A masked dataset will be returned.
+
 #---- Expit function ----
 expit <- function(x) {
   output <- (exp(x)/(1+exp(x)))

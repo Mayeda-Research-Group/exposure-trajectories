@@ -1,4 +1,4 @@
-# to read in results setting colnames
+# This function is to read in results with colnames set.
 # Created by Crystal
 
 

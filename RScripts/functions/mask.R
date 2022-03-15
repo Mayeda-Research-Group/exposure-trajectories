@@ -111,8 +111,10 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
                        mutate_all(function(x) is.na(x)))) %>%
     filter(CESD_missing < 6) %>% dplyr::select(-CESD_missing)
   
+  #For testing
+  #return(mask_index)
+  
   # Return the dataset
-  # return(mask_index)
   return(data_wide)
 }
 

@@ -1,5 +1,12 @@
+#This is the main analysis function, formatted for runs on the Hoffman cluster
+#
+#Input: CESD_data_wide.csv
+#Output: filename depends on arguments
+# format for filename [mechanism]_[method]_[percent]_([sens]).csv
+
 # #for testing
 # directory <- "/Users/CrystalShaw/Dropbox/Projects/"
+
 mask_impute_pool <- 
   function(mechanism, method, mask_percent, directory, seed, save = "no", 
            sens = "no"){

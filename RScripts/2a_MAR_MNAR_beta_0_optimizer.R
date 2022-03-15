@@ -172,6 +172,7 @@ for(mechanism in c("MAR", "MNAR")){
 }
 
 #---- run sims ----
+#Check the optimized values using simulation
 replicate = 1000
 set.seed(20210507)
 # Missing proportion

@@ -1,9 +1,8 @@
 # Aim: to simulate many missing datasets to ensure that we are achieving our 
 #   desired levels of missingness when masking data
 # Created by: Yingyan Wu
-# 05.07.2021
-# Edited by: Crystal Shaw
-# 05.21.2021
+# Date created: 05.07.2021
+# Edited by: Crystal Shaw (05.21.2021)
 # 
 # Data input: CESD_data_wide.csv
 # Data output: 6 RDS objects containing optimized, one for each com
@@ -17,19 +16,19 @@ p_load("here", "tidyverse", "magrittr", "kableExtra")
 
 #---- custom functions ----
 expit <- function(x) {
-  output <- (exp(x)/(1+exp(x)))
+  output <- (exp(x)/(1 + exp(x)))
   return(output)
 }
 
 logit <- function(x){
-  output <- log(x/(1-x))
+  output <- log(x/(1 - x))
   return(output)
 }
 
 estimate_df <- function(dataframe){
   estimate <- function(x){
-    stats <- c(length(x), mean(x,na.rm = T), 
-               quantile(x,c(0.025, 0.975),na.rm = T))
+    stats <- c(length(x), mean(x, na.rm = TRUE), 
+               quantile(x, c(0.025, 0.975), na.rm = TRUE))
     names(stats) <- c("N", "Mean", "p2.5th", "p97.5th")
     return(round(stats, 4))
   }
@@ -48,7 +47,7 @@ estimate_df <- function(dataframe){
 # Crystal's directory: ~/Dropbox/Projects 
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- read in analytical sample ----
 data_wide <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/data/", 

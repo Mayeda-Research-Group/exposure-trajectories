@@ -1,6 +1,8 @@
-#This script creates all the parameter tables needed for the simulations:
-#-- optimized betas for masking function
-#-- 
+#This script creates the truth tables for analytic models 
+# (main and sensitivity analyses)
+# 
+# Input:CESD_data_wide.csv
+# Output:truth.csv, truth_sens.csv
 
 #---- package loading + options ----
 if (!require("pacman")){
@@ -27,8 +29,6 @@ CESD_data_wide <-
                   "/exposure_trajectories/data/", 
                   "CESD_data_wide.csv"), 
            col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
-
-
 
 #---- truth table ----
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 

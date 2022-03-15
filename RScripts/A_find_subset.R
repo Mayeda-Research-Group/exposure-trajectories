@@ -144,6 +144,7 @@ hrs_samp <-
 
 #---- Data cleaning ----
 hrs_samp %<>% mutate("death2018" = ifelse(is.na(raddate), 0, 1))
+
 #---- **age ----
 age_m <- hrs_samp %>% dplyr::select(contains("agem_e")) %>% 
   apply(., 1, impute_ages) %>% t() 

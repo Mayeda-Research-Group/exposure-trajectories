@@ -1,4 +1,4 @@
-#This is the main analysis function, formatted for runs on the Hoffman cluster
+#This is the main analysis function, formatted for runs on the UCLA Hoffman cluster
 #
 #Input: CESD_data_wide.csv
 #Output: filename depends on arguments

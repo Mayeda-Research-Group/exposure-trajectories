@@ -1,6 +1,6 @@
 #This is the main analysis function, formatted for runs on the UCLA Hoffman cluster
 #
-#Input: CESD_data_wide.csv
+#Input: CESD_data_wide.csv, beta_0_table.csv, beta_mat.csv, truth(_sens).csv
 #Output: filename depends on arguments
 # format for filename [mechanism]_[method]_[percent]_([sens]).csv
 
@@ -102,23 +102,6 @@ mask_impute_pool <-
                     dplyr::select("HHIDPN", all_of(time_invariant_vars))) %>% 
         mutate_at("HHIDPN", as.integer)
     }
-    
-    # #Sanity check-- table of num missings per masking proportion
-    # missings <- as.data.frame(matrix(nrow = length(mask_props), ncol = 8)) %>%
-    #   set_colnames(c("Mask Prop", seq(0, 6)))
-    # missings[, "Mask Prop"] <- 100*mask_props
-    # 
-    # for(mask in 100*mask_props){
-    #   data <- get(paste0("mask", mask)) %>%
-    #     dplyr::select(paste0("r", seq(4, 9), "cesd"))
-    #   missing_count <- table(rowSums(is.na(data)))
-    #   missings[which(missings$`Mask Prop` == mask), names(missing_count)] <-
-    #     missing_count
-    # }
-    # 
-    # write_csv(missings, path = paste0(path_to_dropbox,
-    #                                   "/exposure_trajectories/manuscript/",
-    #                                   "tables/missing_counts.csv"))
     
     #---- imputation ----
     #---- **predictor matrix ----

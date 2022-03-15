@@ -77,14 +77,12 @@ hrs_tracker <-
 ##         reports heart problems this wave，
 ##         report memory prob this wv(4-9), 
 ##         report lung disease this wv,
-##         No(report arthritis since last wv (2-13),)
 ##         count of chronic conditions
 ##         CESD (depression; from wave 2-13)
 ##         Self-reported health
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
 ##                   number of drinks per day (waves 3+)
-##                   frequency of vigr/modr/light physical activity (waves 7+)
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
@@ -116,19 +114,10 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "lunge"),
                     paste0("r", seq(4 ,9 , by = 1), "memry"),
                     paste0("r", seq(4 ,9 , by = 1), "memrye"),
-                    #We don't think this is an important confounder of 
-                    # CESD --> Mortality
-                    # paste0("r", seq(2, 13, by = 1), "arthrs"),
-                    # paste0("r", seq(2, 13, by = 1), "arthre"),
                     paste0("r", number_waves, "conde"),
                     paste0("r", number_waves, "smoken"), 
                     paste0("r", seq(3, 13, by = 1), "drinkd"),
                     paste0("r", seq(3, 13, by = 1), "drinkn"),
-                    #We don't think this is an important confounder of 
-                    # CESD --> Mortality
-                    # paste0("r", seq(7, 13, by = 1), "vgactx"),
-                    # paste0("r", seq(7, 13, by = 1), "mdactx"), 
-                    # paste0("r", seq(7, 13, by = 1), "ltactx"),
                     paste0("r", seq(2, 13, by = 1), "cesd"),
                     paste0("r", number_waves, "shlt"))
 

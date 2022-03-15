@@ -1,4 +1,4 @@
-# A. Find the optimal subset (which will have most measures as our truth dataset)
+# A. Find the optimal subset (dataset with most people with complete CES-D data)
 # Data input: trk2018tr_r.sas7bdat, randhrs1992_2018v1.dta, cses_measures.dta
 # Data output: CESD_complete_subsets.csv
 # Author: CS & YW
@@ -20,8 +20,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu/Box"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "functions", "impute_ages.R"))

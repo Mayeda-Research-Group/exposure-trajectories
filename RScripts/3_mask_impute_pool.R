@@ -384,6 +384,7 @@ mask_impute_pool <-
         set_names(exposures)
       
       for(i in 1:(as.numeric(sub("%","", mask_percent)))){
+        #for testing
         #for(i in 1:2){
         #---- **complete data ----
         if(method %in% c("JMVN", "PMM")){
@@ -534,7 +535,7 @@ mask_impute_pool <-
     
     #---- pooling models ----
     for(exposure in exposures){
-      if(method %in% c("CC", "Exposed", "Unexposed")){
+      if(method == "CC"){
         pooled_model <- broom::tidy(model_list[[exposure]])
       } else{
         pooled_model <- summary(mice::pool(model_list[[exposure]]))

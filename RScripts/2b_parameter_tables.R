@@ -79,7 +79,6 @@ table_effect_ests_sens <-
   set_colnames(c("Exposure", "Method")) %>% 
   mutate("beta" = NA, "SE" = NA, "LCI_beta" = NA, "UCI_beta" = NA)
 
-#---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
   coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 

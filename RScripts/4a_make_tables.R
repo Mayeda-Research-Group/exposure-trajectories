@@ -1,5 +1,8 @@
 # Aim: Make tables for results
 # Authors: Crystal Shaw, Yingyan Wu
+# 
+# Input: CESD_data_wide.csv, truth(_sens).csv, all sims results
+# Output: Table 1, Table 2 (RMSE), eTable 2 (sensitivity RMSE)
 
 #---- package loading + options ----
 if (!require("pacman")){

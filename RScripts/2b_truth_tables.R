@@ -1,6 +1,8 @@
-#This script creates all the parameter tables needed for the simulations:
-#-- optimized betas for masking function
-#-- 
+#This script creates the truth tables for analytic models 
+# (main and sensitivity analyses)
+# 
+# Input:CESD_data_wide.csv
+# Output:truth.csv, truth_sens.csv
 
 #---- package loading + options ----
 if (!require("pacman")){
@@ -28,43 +30,6 @@ CESD_data_wide <-
                   "CESD_data_wide.csv"), 
            col_types = cols(HHIDPN = col_character())) %>% as.data.frame() 
 
-#---- masking: optimized betas table ----
-#don't need MCAR
-mechanisms <- c("MAR", "MNAR")
-percents <- c(10, 20, 30)
-
-beta_0_table <- expand_grid(mechanisms, percents) %>% 
-  mutate("beta0" = 0)
-
-for(mechanism in mechanisms){
-  for(percent in percents){
-    optimized <- 
-      read_rds(file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                             "optimized_masking_intercepts/optim_", mechanism, 
-                             percent, ".RDS"))
-    
-    beta_0_table[which(beta_0_table$mechanisms == mechanism & 
-                         beta_0_table$percents == percent), "beta0"] <- 
-      optimized$minimum
-  }
-}
-
-write_csv(beta_0_table, paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                               "beta_0_table.csv"))
-
-#---- masking: beta matrix ----
-beta_mat <- #effect sizes
-  matrix(c(log(1.10), log(1.05), log(1.05), log(1.25), log(1.10), log(1.25)), 
-         nrow = 1) %>% 
-  #MAR
-  set_colnames(c("cesdpre", "condepre", "cesdpre_condepre",
-                 #MNAR
-                 "death2018", "cesdcurrent", "death2018_cesdcurrent")) %>% 
-  set_rownames(c("beta"))
-
-write_csv(as.data.frame(beta_mat), 
-          paste0(path_to_dropbox, "/exposure_trajectories/data/beta_mat.csv"))
-
 #---- truth table ----
 exposures <- c("CES-D Wave 4", "CES-D Wave 9", "Elevated Average CES-D", 
                "Elevated CES-D Prop")
@@ -79,7 +44,6 @@ table_effect_ests_sens <-
   set_colnames(c("Exposure", "Method")) %>% 
   mutate("beta" = NA, "SE" = NA, "LCI_beta" = NA, "UCI_beta" = NA)
 
-#---- truth ----
 #---- **CES-D Wave 4 ----
 TTEmodel_CESD4 <- 
   coxph(Surv(survtime, observed) ~ r4not_married_partnered + r4widowed + 

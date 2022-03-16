@@ -1,7 +1,7 @@
-# This function masks the truth dataset according to different mechanisms 
-# and different proportion of missingness.In the function, a missngness check
-# will be performed in the end to make sure no one is missing every cesd measure
-# A masked dataset will be returned.
+# This function masks the complete analytic dataset according to different mechanisms 
+#   and different proportions of missingness. In the function, a check
+#   is performed in the end to drop individuals missing every CES-D measure.
+#   The function returns the masked dataset.
 
 #---- Expit function ----
 expit <- function(x) {
@@ -111,16 +111,18 @@ mask <- function(data_wide, mechanism, mask_percent, beta_0_table, beta_mat){
                        mutate_all(function(x) is.na(x)))) %>%
     filter(CESD_missing < 6) %>% dplyr::select(-CESD_missing)
   
+  #For testing
+  #return(mask_index)
+  
   # Return the dataset
-  # return(mask_index)
   return(data_wide)
 }
 
-# # Test
+# #---- code testing ----
 # path_to_box <- "C:/Users/yingyan_wu"
 # path_to_dropbox <- "C:/Users/yingyan_wu/Dropbox"
 # 
-# #---- read in analytical sample ----
+# #---- **read in analytical sample ----
 # CESD_data_wide <-
 #   read_csv(paste0(path_to_dropbox,
 #                   "/exposure_trajectories/data/",

@@ -1,11 +1,12 @@
-# Aim: to simulate many missing datasets to ensure that we are achieving our 
-#   desired levels of missingness when masking data
+# Aim: to optimize the value of beta_0 for fixed values of other coefficients
+#   in our masking models so that we get the desired level of missingness from
+#   our masking function
 # Created by: Yingyan Wu
 # Date created: 05.07.2021
 # Edited by: Crystal Shaw (05.21.2021)
 # 
 # Data input: CESD_data_wide.csv
-# Data output: 6 RDS objects containing optimized, one for each com
+# Data output: beta_0_table.csv, beta_mat.csv
 
 #---- Package loading + options ----
 if (!require("pacman")){
@@ -65,7 +66,7 @@ for(wave in seq(4, 9)){
 #---- beta and expected values matrix ----
 beta_mat <- #effect sizes: fixed at what we thought were reasonable values
   matrix(c(log(1.1), log(1.05), log(1.05), log(1.25), log(1.1), log(1.25),
-           #expected values: used to calculuate balancing intercept for warm start
+           #expected values: used to calculate balancing intercept for warm start
            #  for optimizer
            #MAR variables
            mean(unlist(data_wide[, paste0("r", seq(3, 8, by = 1), "cesd")]), 
@@ -172,6 +173,7 @@ for(mechanism in c("MAR", "MNAR")){
 }
 
 #---- run sims ----
+#Check the optimized values using simulation
 replicate = 1000
 set.seed(20210507)
 # Missing proportion
@@ -187,13 +189,29 @@ set.seed(20210507)
     kable_classic(full_width = F, html_font = "Arial")
 }
 
-#---- **save optimized beta_0 ----
-for(mechanism in c("MAR", "MNAR")){
-  for(percent in c(10, 20, 30)){
-    write_rds(get(paste0("optim_", mechanism, percent)), 
-              file = paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                            "optimized_masking_intercepts/optim_", mechanism, 
-                            percent, ".RDS"))
+#---- save results ----
+#---- **optimized betas table ----
+#don't need MCAR
+mechanisms <- c("MAR", "MNAR")
+percents <- c(10, 20, 30)
+
+beta_0_table <- expand_grid(mechanisms, percents) %>% 
+  mutate("beta0" = 0)
+
+for(mechanism in mechanisms){
+  for(percent in percents){
+    optimized <- get(paste0("optim_", mechanism, percent))
+    
+    beta_0_table[which(beta_0_table$mechanisms == mechanism & 
+                         beta_0_table$percents == percent), "beta0"] <- 
+      optimized$minimum
   }
 }
+
+write_csv(beta_0_table, paste0(path_to_dropbox, "/exposure_trajectories/data/", 
+                               "beta_0_table.csv"))
+
+#---- **beta matrix ----
+write_csv(as.data.frame(t(beta_mat["beta", ])), 
+          paste0(path_to_dropbox, "/exposure_trajectories/data/beta_mat.csv"))
 

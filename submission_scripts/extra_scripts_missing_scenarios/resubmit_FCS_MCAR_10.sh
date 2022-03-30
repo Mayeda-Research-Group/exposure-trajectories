@@ -15,7 +15,7 @@
 # Notify when
 #$ -m bea #sends you an email (b) when the job begins (e) when job ends (a) when job is aborted (error)
 # Run a job array on the 150 cases that did not complete (need to save the task id that failed in an array)
-#$ -t 1-150:1
+#$ -t 1-8:1
 # testing on 3 cases:
 ##$ -t 1-3:1
 
@@ -35,7 +35,7 @@ echo ""
 # SET THE ARRAY WITH THE $SGE_TASK_IDs that failed 
 ### (note: UPDATE line "#$ -t 1-3:1" ACCORDINGLY!!!) 
 
-array=(1 3 10)
+array=(1315 2251 2647 5725 5797 6373 8020 8731)
 
 # SET THE SEED
 ###(note: array index starts at 0 so we need to scale back the current $SGE_TASK_ID)
@@ -44,8 +44,8 @@ seed=${array[$SGE_TASK_ID-1]}
 
 
 # run R code
-echo "R CMD BATCH --no-save --no-restore "--args mechanism=\"MAR\" method=\"FCS\" mask_percent=\"30%\" seed=$seed save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID"
-R CMD BATCH --no-save --no-restore "--args mechanism=\"MAR\" method=\"FCS\" mask_percent=\"30%\" seed=$seed save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+echo "R CMD BATCH --no-save --no-restore "--args mechanism=\"MCAR\" method=\"FCS\" mask_percent=\"10%\" seed=$seed save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID"
+R CMD BATCH --no-save --no-restore "--args mechanism=\"MCAR\" method=\"FCS\" mask_percent=\"10%\" seed=$seed save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
 
 echo ""
 echo "TASK $SGE_TASK_ID of JOB $JOB_ID run on " `hostname`

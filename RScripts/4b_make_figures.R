@@ -130,6 +130,15 @@ sens_analyses %>% filter(Method == "PMM") %>% ungroup() %>%
                     "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
                     "PMM_sens_missing.xlsx"), overwrite = TRUE)
 
+#---- ****FCS sens ----
+sens_analyses %>% filter(Method == "FCS") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+  as.data.frame() %>% set_colnames("Seed") %>% 
+  mutate("Diff" = Seed - lag(Seed)) %>% 
+  write.xlsx(paste0(path_to_dropbox,
+                    "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
+                    "FCS_sens_missing.xlsx"), overwrite = TRUE)
+
 #---- **check seeds by scenario ----
 MCAR_10_seeds <- seq(1, 9000, by = 9)
 MCAR_20_seeds <- seq(2, 9000, by = 9)

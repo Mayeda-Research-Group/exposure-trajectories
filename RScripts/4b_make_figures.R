@@ -64,7 +64,7 @@ main_results %>% group_by(Method) %>%
 sens_analyses %>% group_by(Method) %>% 
   summarise_at(.vars = c("Seed"), .funs = max)
 
-#---- **check seeds ----
+#---- **check seeds overall ----
 seeds <- seq(1, 9000, by = 1)
 
 #---- ****CC main ----
@@ -129,6 +129,55 @@ sens_analyses %>% filter(Method == "PMM") %>% ungroup() %>%
   write.xlsx(paste0(path_to_dropbox,
                     "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
                     "PMM_sens_missing.xlsx"), overwrite = TRUE)
+
+#---- **check seeds by scenario ----
+MCAR_10_seeds <- seq(1, 9000, by = 9)
+MCAR_20_seeds <- seq(2, 9000, by = 9)
+MCAR_30_seeds <- seq(3, 9000, by = 9)
+
+MAR_10_seeds <- seq(4, 9000, by = 9)
+MAR_20_seeds <- seq(5, 9000, by = 9)
+MAR_30_seeds <- seq(6, 9000, by = 9)
+
+MNAR_10_seeds <- seq(7, 9000, by = 9)
+MNAR_20_seeds <- seq(8, 9000, by = 9)
+MNAR_30_seeds <- seq(9, 9000, by = 9)
+
+#---- ****FCS main ----
+for(mechanism in c("MCAR", "MAR", "MNAR")){
+  for(percent in c(10, 20, 30)){
+    main_results %>% 
+      filter(Method == "FCS" & Mechanism == mechanism & 
+               Percent == paste0(percent, "%")) %>% ungroup() %>% 
+      dplyr::select("Seed") %>% unique() %>% unlist() %>% 
+      setdiff(get(paste0(mechanism, "_", percent, "_seeds")), .) %>% 
+      as.data.frame() %>% set_colnames("Seed") %>% 
+      mutate("Diff" = Seed - lag(Seed)) %>% 
+      write.xlsx(paste0(path_to_dropbox,
+                        "/exposure_trajectories/data/hoffman_transfer/", 
+                        "missing_seeds/FCS_main_missing_", mechanism, "_", 
+                        percent, ".xlsx"), 
+                 overwrite = TRUE)
+  }
+}
+
+#---- ****FCS sens ----
+for(mechanism in c("MCAR", "MAR", "MNAR")){
+  for(percent in c(10, 20, 30)){
+    sens_analyses %>% 
+      filter(Method == "FCS" & Mechanism == mechanism & 
+               Percent == paste0(percent, "%")) %>% ungroup() %>% 
+      dplyr::select("Seed") %>% unique() %>% unlist() %>% 
+      setdiff(get(paste0(mechanism, "_", percent, "_seeds")), .) %>% 
+      as.data.frame() %>% set_colnames("Seed") %>% 
+      mutate("Diff" = Seed - lag(Seed)) %>% 
+      write.xlsx(paste0(path_to_dropbox,
+                        "/exposure_trajectories/data/hoffman_transfer/", 
+                        "missing_seeds/FCS_sens_missing_", mechanism, "_", 
+                        percent, ".xlsx"), 
+                 overwrite = TRUE)
+  }
+}
 
 #---- Figure 2: results ----
 #---- **get filepaths ----
@@ -366,7 +415,7 @@ results_summary <- sens_analyses %>%
 
 #---- **read in truth table ----
 truth_sens <- read_csv(paste0(path_to_dropbox, 
-                         "/exposure_trajectories/data/truth_sens.csv")) %>%
+                              "/exposure_trajectories/data/truth_sens.csv")) %>%
   dplyr::rename("LCI" = "LCI_beta", 
                 "UCI" = "UCI_beta",
                 "Beta" = "beta") %>%

@@ -1,5 +1,5 @@
-# This function is to read in results with colnames set.
-# Created by Crystal
+# This function reads in results and sets column names
+# Author: Crystal Shaw
 
 
 read_results <- function(paths){

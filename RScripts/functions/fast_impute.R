@@ -1,3 +1,16 @@
+#This function is a wrapper around functions from the miceFast R package 
+# (optimized versions of mice imputation functions) so that we can perform MI by 
+# cycling through all variables that need to be imputed (just like regular mice). 
+# The mice package currently (as of March 2022) has these same fast imputation 
+# functions, but they cannot be specified in the mice function (i.e., you can
+# only use them to impute a single column, not in a chain of imputations)
+# 
+# The first cycle uses mean imputation for all variables to create the initial 
+# complete dataset and the imputation functions thereafter. The function outputs
+# a list of imputed datasets. If save = "yes", then the function also saves the 
+# where matrix indicating where data were imputed and the trace data for 
+# imputation diagnostics.
+
 fast_impute <- 
   function(predictor_matrix, data_wide, method, mechanism, mask_percent, m, 
            maxit, save = "no", directory){

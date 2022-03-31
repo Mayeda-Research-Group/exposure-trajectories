@@ -1,4 +1,4 @@
-#This function creates a derived variable based on variables that can be 
+#This function creates a derived variable based on variables that can be either
 # measured or self-reported within the RAND HRS dataset. The function picks up 
 # all measured variables and fills in missing values with self-reported variables
 # when available. This function also creates a set of columns [measure]_measured

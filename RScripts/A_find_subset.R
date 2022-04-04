@@ -20,8 +20,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu/Box"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "functions", "impute_ages.R"))
@@ -154,9 +154,12 @@ hrs_samp[, paste0("r", number_waves, "age_y")] <- age_m/12
 #Ages rounded down to nearest year
 hrs_samp[, paste0("r", number_waves, "age_y_int")] <- floor(age_m/12)
 
-# #Sanity check
-# View(hrs_samp[, c(paste0(number_waves, "age_y"), 
-#                   paste0(number_waves, "age_y_int"))])
+#Sanity check
+# View(hrs_samp[, c(paste0("r", number_waves, "age_y"),
+#                   paste0("r", number_waves, "age_y_int"))])
+# colSums(is.na(hrs_samp %>% select(paste0("r", number_waves, "age_y_int"))))
+# nrow(hrs_samp %>% select(paste0("r", number_waves, "age_y_int")) %>%
+#        filter(rowSums(is.na(.)) == length( number_waves)))
 
 #Drop RAND age variables
 hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "agem_e"))
@@ -169,8 +172,9 @@ subsets_data <- data.frame(matrix(nrow = 36, ncol = 8)) %>%
                  "prop_dead"))
 
 index = 0
-for(i in 2:9){
-  for(j in (i + 4):13){
+# CESDs are available from wave 2
+for(i in 2:max(number_waves - 4)){
+  for(j in (i + 4):max(number_waves)){
     index = index + 1
     subsets_data[index, c("CESD_start_wave", "CESD_end_wave")] = c(i,j)
     subsets_data[index, "num_measures"] = j - i + 1

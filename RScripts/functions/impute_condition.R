@@ -32,6 +32,8 @@ impute_chronic_condition <-
 # Test
 # test2 <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
 #                                    seq(1, 9), hrs_samp)
+# View(test2[, c(paste0("r", seq(1, 9), "diabe"), 
+#                paste0("r", seq(1, 9), "diabe_impute"))])
 # table(test2$r1diabe_impute, test2$r1diabe, useNA = "ifany")
 # table(test2$r2diabe_impute, test2$r2diabe, useNA = "ifany")
 # table(test2$r3diabe_impute, test2$r3diabe, useNA = "ifany")

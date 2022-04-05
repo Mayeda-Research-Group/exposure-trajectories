@@ -502,11 +502,11 @@ for(wave in seq(4, 9)){
 }
 
 # #Sanity check
-# View(hrs_samp %>% 
-#        dplyr::select("r4mstat_impute", "r4married_partnered", 
+# View(hrs_samp %>%
+#        dplyr::select("r4mstat_impute", "r4married_partnered",
 #                      "r4not_married_partnered", "r4widowed"))
-# View(hrs_samp %>% 
-#        dplyr::select("r9mstat_impute", "r9married_partnered", 
+# View(hrs_samp %>%
+#        dplyr::select("r9mstat_impute", "r9married_partnered",
 #                      "r9not_married_partnered", "r9widowed"))
 
 #---- drinking ----

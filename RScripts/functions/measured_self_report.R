@@ -51,21 +51,21 @@ measured_self_report <- function(data, measured_cols, self_cols,
                             "_measured"))])
 }
 
-#---- unit testing ----
-test <- measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"),
-                             paste0("r", number_waves, "bmi"), "BMI")
-
-colnames(test) == colnames(BMI)
-sum(is.na(test)) == sum(is.na(BMI))
-nrow(test)*ncol(test) == sum(is.na(test)) +
-  sum((test == BMI) == TRUE, na.rm = TRUE)
-
-data = hrs_samp
-measured_cols = paste0("r", seq(8, 13, by = 1), "pmwght")
-self_cols = paste0("r", number_waves, "weight")
-derived_variable = "weight"
-measured_waves_start = 8
-all_waves_end = 13
+# #---- unit testing ----
+# test <- measured_self_report(hrs_samp, paste0("r", number_waves, "pmbmi"),
+#                              paste0("r", number_waves, "bmi"), "BMI")
+# 
+# colnames(test) == colnames(BMI)
+# sum(is.na(test)) == sum(is.na(BMI))
+# nrow(test)*ncol(test) == sum(is.na(test)) +
+#   sum((test == BMI) == TRUE, na.rm = TRUE)
+# 
+# data = hrs_samp
+# measured_cols = paste0("r", seq(8, 13, by = 1), "pmwght")
+# self_cols = paste0("r", number_waves, "weight")
+# derived_variable = "weight"
+# measured_waves_start = 8
+# all_waves_end = 13
 
 
 

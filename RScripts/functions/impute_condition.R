@@ -1,6 +1,6 @@
 # These functions find the most recent non-missing wave value for a variable
 #   for ever/never chronic condition and status variables per wave
-# AUthors: Crystal Shaw & Yingyan Wu
+# Authors: Crystal Shaw & Yingyan Wu
 
 impute_chronic_condition <- 
   function(condition, condition_vars, waves, dataset) {

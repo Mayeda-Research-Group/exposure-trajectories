@@ -591,7 +591,7 @@ hrs_samp %<>% filter(!is.na(height)) %>%
                    paste0("r", number_waves, "height"), 
                    "med_height", "self_height"))
 
-# 7. Drop those missing BMI （weight)
+# 7. Drop those missing BMI（weight)
 sum(hrs_samp$missing_bmi != 0)
 hrs_samp %<>% filter(missing_bmi == 0)
 

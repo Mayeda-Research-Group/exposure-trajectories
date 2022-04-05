@@ -230,7 +230,7 @@ hrs_samp %<>%
 # table(hrs_samp$hispanic, hrs_samp$raracem, hrs_samp$unknown_race_eth,
 #       useNA = "ifany")
 # table(hrs_samp$unknown_race_eth, useNA = "ifany")
-# colSums(is.na(hrs_samp[, c("hispanic", "white", "black", "other", 
+# colSums(is.na(hrs_samp[, c("hispanic", "white", "black", "other",
 #                            "unknown_race_eth")]))
 # table(hrs_samp$white, hrs_samp$raracem, useNA = "ifany")
 # table(hrs_samp$rahispan, hrs_samp$hispanic, useNA = "ifany")

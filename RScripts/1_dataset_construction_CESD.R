@@ -465,7 +465,7 @@ waves <- seq(1, 9)
 for(j in 1:length(waves)){
   wave <- waves[j] 
   cond_mat[, paste0("r", wave , "conde", "_impute")] <- 
-    rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave ))), 
+    rowSums(cond_mat %>% dplyr::select(contains(paste0("r", wave))), 
             na.rm = TRUE)
 }
 

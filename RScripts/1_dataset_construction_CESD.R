@@ -656,7 +656,7 @@ colSums(is.na(hrs_samp))
 
 #---- Exposures ----
 #---- **E1 Def: CESD at HRS wave 4 (1998) ----
-#Effect of E1a on survival to HRS wave 14 (2018) 
+#Effect of E1 on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
   mutate("r4cesd_elevated" = ifelse(r4cesd >= 4, 1, 0), 
          "r4cesd_elevated_sens" = ifelse(r4cesd >= 1, 1, 0)) 
@@ -665,7 +665,7 @@ hrs_samp %<>%
 # table(hrs_samp$r4cesd, hrs_samp$r4cesd_elevated, useNA = "ifany")
 
 #---- **E2 Def: CESD at HRS wave 9 (2008) ----
-#Effect of E1a on survival to HRS wave 14 (2018) 
+#Effect of E2 on survival to HRS wave 14 (2018) 
 hrs_samp %<>% 
   mutate("r9cesd_elevated" = ifelse(r9cesd >= 4, 1, 0), 
          "r9cesd_elevated_sens" = ifelse(r9cesd >= 1, 1, 0))
@@ -724,6 +724,14 @@ for(wave in seq(4, 9)){
                     !!sym(paste0("r", wave - 1, "cesd"))*
                     !!sym(paste0("r", wave - 1, "conde_impute")))
 }
+
+# #code review: Sanity check
+# # evaluating how many times the interaction term != the product of the individual terms
+# sum(hrs_samp$r4cesd_death2018 != hrs_samp$r4cesd*hrs_samp$death2018)
+# sum(hrs_samp$r9cesd_death2018 != hrs_samp$r9cesd*hrs_samp$death2018)
+# 
+# sum(hrs_samp$r4cesd_conde_impute != hrs_samp$r4cesd*hrs_samp$r4conde_impute)
+# sum(hrs_samp$r9cesd_conde_impute != hrs_samp$r9cesd*hrs_samp$r9conde_impute)
 
 #---- save dataset ----
 write_csv(hrs_samp, paste0(path_to_dropbox,

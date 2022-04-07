@@ -298,6 +298,26 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
+#---- **for seminar presentation (delete later) ----
+ggplot(results_summary %>% filter(Mechanism != "MCAR"), 
+       aes(x = Beta, y = Percent, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+                position = position_dodge(-0.8)) +
+  theme_minimal() + ylab("Percent Missing Data") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + 
+  scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
+  geom_vline(data = truth, aes(xintercept = Beta)) + 
+  theme(text = element_text(size = 13))  
+
+ggsave(paste0("~/Dropbox/UCLA/Classes/BIOSTAT 246/Spring 2022/figures/",
+              "effect_ests_mean_CI.jpeg"), 
+       device = "jpeg", dpi = 300, width = 10, height = 5, units = "in")
+
 #---- Figure 3: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -357,12 +377,10 @@ all_paths <-
 main_paths <- all_paths[!str_detect(all_paths, "sens")]
 
 #---- **read in data ----
-main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% na.omit()
-
-#---- **limit runs for figure (for now) ----
-main_results %<>% 
-  group_by(Method, Mechanism, Percent, Exposure) %>% slice_head(n = 1000) %>% 
-  na.omit()
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
+  #making sure only one copy of each seed
+  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
+  group_by(Method, Mechanism, Percent, Exposure)
 
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
@@ -392,6 +410,19 @@ ggplot(data = na.omit(main_results),
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+
+#---- **for seminar presentation (delete later) ----
+ggplot(data = main_results %>% filter(Percent == "30%"), 
+       aes(x = Percent, y = time_hours, color = Method)) + 
+  geom_boxplot() + ylab("Computational Time (Hours)") + 
+  xlab("Percent Missing Data") + theme_bw() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + 
+  theme(text = element_text(size = 13))  
+
+ggsave(paste0("~/Dropbox/UCLA/Classes/BIOSTAT 246/Spring 2022/figures/",
+              "runtimes.jpeg"), 
+       device = "jpeg", dpi = 300, width = 3, height = 5, units = "in")
 
 #---- eFigure 1: kappa plots ----
 #move kappa plot code here

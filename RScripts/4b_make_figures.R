@@ -570,7 +570,7 @@ sens_analyses %<>% mutate("time_hours" = Time/60)
 #---- **plot ----
 ggplot(data = na.omit(sens_analyses), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computational Time (Hours)") + 
+  geom_boxplot() + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette)

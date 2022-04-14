@@ -334,7 +334,7 @@ ggplot(rmse_table,
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
-  facet_grid_sc(
+  facetscales::facet_grid_sc(
     rows = vars(Mechanism), cols = vars(name), 
     scales = list(y = list(
       `MCAR` = scale_y_continuous(limits = c(0.02, 0.09), 

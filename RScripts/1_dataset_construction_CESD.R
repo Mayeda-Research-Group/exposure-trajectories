@@ -23,8 +23,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu/Box"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- source scripts ----
 source(here::here("RScripts", "functions", "impute_ages.R"))
@@ -72,24 +72,18 @@ hrs_tracker <-
 ##         BMI (measured; waves 8+),
 ##         BMI (self-report), 
 ##         waist circumference,
-##         BP (systolic; waves 8+), 
-##         BP (diastolic; waves 8+), 
-##         reports high blood pressure this wave,
-##         reports diabetes this wave,
 ##         diabetes ever/never,
-##         reports cancer this wave,
-##         reports stroke this wave,
-##         reports heart problems this wave，
-##         report memory prob this wv(4-9), 
-##         report lung disease this wv,
-##         No(report arthritis since last wv (2-13),)
+##         cancer ever/never,
+##         stroke ever/never,
+##         heart problems ever/never，
+##         memory prob ever/never(4-9), 
+##         lung disease ever/never,
 ##         count of chronic conditions
 ##         CESD (depression; from wave 2-13)
 ##         Self-reported health
 ## Health Behaviors: current smoker 
 ##                   number of days drinking per week (waves 3+)
 ##                   number of drinks per day (waves 3+)
-##                   frequency of vigr/modr/light physical activity (waves 7+)
 ## 
 # Note: Dates are formatted as SAS dates (days from January 1, 1960)
 
@@ -105,8 +99,6 @@ rand_variables <- c("hhidpn", "ragender", "raracem", "rahispan", "rabmonth",
                     paste0("r", number_waves, "bmi"), 
                     paste0("r", seq(8, 13, by = 1), "pmbmi"),
                     paste0("r", seq(8, 13, by = 1), "pmwaist"),
-                    paste0("r", seq(8, 13, by = 1), "bpsys"), 
-                    paste0("r", seq(8, 13, by = 1), "bpdia"),
                     paste0("r", number_waves, "hibpe"),
                     paste0("r", number_waves, "diabe"),
                     paste0("r", number_waves, "cancre"),
@@ -155,7 +147,7 @@ hrs_samp[, colnames(cesd_mat)] <- cesd_mat
 # CESD missingness proportion
 cesd_missing <- cesd_mat %>%
   select(contains("missing")) %>%
-  colSums(is.na(.))
+  colSums()
 cesd_missing/nrow(hrs_samp) 
 # Sanity check
 # table(cesd_mat$r2cesd, cesd_mat$r2cesd_missing, useNA = "ifany")
@@ -253,12 +245,6 @@ hrs_samp %<>%
 # table(is.na(hrs_samp$raedyrs))
 # table(hrs_samp$raedyrs)
 # table(hrs_samp$raedyrs, hrs_samp$ed_cat, useNA = "ifany")
-
-#---- cSES index ----
-# #Sanity check
-# table(is.na(hrs_samp$cses_index))
-# 
-# # none missing!
 
 #---- height ----
 #Create a "best" height variable by taking the median of measured heights 
@@ -556,6 +542,11 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 #---- Dropping people ----
 # 1. full HRSsample (n = 42233)
 
+# cSES index 
+# table(is.na(hrs_samp$cses_index))
+# 
+# # none missing!
+
 # 2. remove people who were not sampled in 2018
 sum(is.na(hrs_samp$QALIVE))
 hrs_samp %<>% filter(!is.na(QALIVE))
@@ -609,6 +600,9 @@ hrs_samp[, "drop"] <- drop
 # table(hrs_samp$drop, useNA = "ifany")
 hrs_samp %<>% filter(drop == 0)
 
+view(hrs_samp %>% filter(drop == 1) %>%
+       select(-contains(c("r1", "r2", "r3"))))
+
 #9. Drop people missing wave-updated ever/never chronic conditions
 conditions <- c("diabe", "hibpe", "cancre", "lunge", "hearte", "stroke",
                 "memrye")
@@ -624,8 +618,10 @@ hrs_samp %<>% mutate("drop" = rowSums(is.na(subset))) %>% filter(drop == 0)
 # table(hrs_samp$ed_cat, useNA = "ifany")
 
 # #No missing marital status for waves 5-8
-# subset <- hrs_samp %>% dplyr::select(paste0("r", seq(5, 8), "mstat_cat"))
-# drop <- rowSums(is.na(subset))
+# table(rowSums(is.na(hrs_samp %>% dplyr::select(paste0("r", seq(4, 9), 
+#                                                       "married_partnered"),
+#                            paste0("r", seq(4, 9), "not_married_partnered"),
+#                            paste0("r", seq(4, 9), "widowed")))))
 
 #---- select variables ----
 vars <- c("HHIDPN", paste0("r", seq(4, 9), "married_partnered"),

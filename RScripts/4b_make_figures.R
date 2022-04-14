@@ -299,7 +299,9 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- **for seminar presentation (delete later) ----
-ggplot(results_summary %>% filter(Mechanism != "MCAR"), 
+ggplot(results_summary %>% 
+         filter(Exposure %in% c("Elevated Baseline CES-D", 
+                                "Elevated Average CES-D")), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
@@ -311,12 +313,15 @@ ggplot(results_summary %>% filter(Mechanism != "MCAR"),
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta)) + 
+  geom_vline(data = truth %>% 
+               filter(Exposure %in% c("Elevated Baseline CES-D", 
+                                      "Elevated Average CES-D")), 
+             aes(xintercept = Beta)) + 
   theme(text = element_text(size = 13))  
 
 ggsave(paste0("~/Dropbox/UCLA/Classes/BIOSTAT 246/Spring 2022/figures/",
               "effect_ests_mean_CI.jpeg"), 
-       device = "jpeg", dpi = 300, width = 10, height = 5, units = "in")
+       device = "jpeg", dpi = 300, width = 6, height = 7, units = "in")
 
 #---- Figure 3: RMSE ----
 #---- **read in data ----

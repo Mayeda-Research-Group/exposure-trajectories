@@ -20,7 +20,7 @@ options(scipen = 999)
 # Crystal's directory: ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "functions", "read_results.R"))

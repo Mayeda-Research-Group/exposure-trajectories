@@ -25,8 +25,20 @@ path_to_dropbox <- "~/Dropbox/Projects"
 #---- source scripts ----
 source(here::here("RScripts", "functions", "read_results.R"))
 
+#---- manuscript calcs ----
+#---- **read in analytic sample ----
+CESD_data_wide <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", 
+                  "CESD_data_wide.csv"), 
+           col_types = cols(.default = col_double()))
+
+#---- **baseline CES-D ----
+mean(CESD_data_wide$r4cesd_elevated)
+mean(CESD_data_wide$r4cesd_elevated_sens)
+
 #---- Table 1: characteristics description ----
-#---- **read in analytical sample ----
+#---- **read in analytic sample ----
 CESD_data_wide <- 
   read_csv(paste0(path_to_dropbox, 
                   "/exposure_trajectories/data/", 

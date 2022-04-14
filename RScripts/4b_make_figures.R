@@ -383,7 +383,7 @@ main_results %<>% mutate("time_hours" = Time/60)
 #---- **plot ----
 ggplot(data = na.omit(main_results), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computational Time (Hours)") + 
+  geom_boxplot() + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette)
@@ -391,19 +391,6 @@ ggplot(data = na.omit(main_results),
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
-
-#---- **for seminar presentation (delete later) ----
-ggplot(data = main_results %>% filter(Percent == "30%"), 
-       aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computational Time (Hours)") + 
-  xlab("Percent Missing Data") + theme_bw() + 
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + 
-  theme(text = element_text(size = 13))  
-
-ggsave(paste0("~/Dropbox/UCLA/Classes/BIOSTAT 246/Spring 2022/figures/",
-              "runtimes.jpeg"), 
-       device = "jpeg", dpi = 300, width = 3, height = 5, units = "in")
 
 #---- eFigure 1: kappa plots ----
 #move kappa plot code here

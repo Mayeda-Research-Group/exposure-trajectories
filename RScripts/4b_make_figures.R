@@ -490,8 +490,7 @@ rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/etable2/rmse_sens.csv"))
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
-                                                colnames(rmse_table))]) %>% 
-  filter(Method != "LMM")
+                                                colnames(rmse_table))]) 
 
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
@@ -512,6 +511,9 @@ rmse_table$name <-
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
 #---- **plot ----
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
@@ -519,7 +521,15 @@ ggplot(rmse_table,
   theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
-  facet_grid(rows = vars(Mechanism), cols = vars(name), scales = "free_y")
+  facetscales::facet_grid_sc(
+    rows = vars(Mechanism), cols = vars(name), 
+    scales = list(y = list(
+      `MCAR` = scale_y_continuous(limits = c(0, 0.10), 
+                                  breaks = seq(0, 0.10, 0.02)),
+      `MAR` = scale_y_continuous(limits = c(0, 0.10), 
+                                 breaks = seq(0, 0.10, 0.02)),
+      `MNAR` = scale_y_continuous(limits = c(0, 0.6), 
+                                  breaks = seq(0, 0.6, 0.1)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure5/rmse_sens.jpeg"), 

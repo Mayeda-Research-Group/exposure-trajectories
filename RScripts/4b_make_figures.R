@@ -324,8 +324,9 @@ rmse_table$name <-
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
 #---- **plot ----
-p_load("facetscales")
-# devtools::install_github("zeehio/facetscales")
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +

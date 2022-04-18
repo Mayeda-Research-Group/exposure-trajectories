@@ -34,6 +34,7 @@ CESD_data_wide <-
            col_types = cols(.default = col_double()))
 
 #---- **baseline CES-D ----
+sum(CESD_data_wide$r4cesd_elevated)
 mean(CESD_data_wide$r4cesd_elevated)
 mean(CESD_data_wide$r4cesd_elevated_sens)
 

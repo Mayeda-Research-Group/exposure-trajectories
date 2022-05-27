@@ -13,7 +13,7 @@
 # TO TEST MATTER RUN ONLY TWICE:
 ##$ -t 1-2:1
 # FOR THE FULL RUN USE INSTEAD:
-#$ -t 3-1000:1
+#$ -t 1-1000:1
 ## 
 
 # load the job environment:
@@ -26,11 +26,11 @@ export OMP_NUM_THREADS=1 #uses max 1 thread (needs to match -pe shared)
 #The LMM job will just be
 #
 #method = "LMM"
-#mechanism = "MAR"
+#mechanism = "MNAR"
 #mask_percent = "30%"
 
 echo "======"
 echo SGE_TASK_ID=$SGE_TASK_ID      
-R CMD BATCH --no-save --no-restore "--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
-echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MAR\" method=\"LMM\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+R CMD BATCH --no-save --no-restore "--args mechanism=\"MNAR\" method=\"LMM\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" "  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
+echo R CMD BATCH --no-save --no-restore \'--args mechanism=\"MNAR\" method=\"LMM\" mask_percent=\"30%\" seed=$SGE_TASK_ID save=\"no\" sens=\"no\" \'  mask_impute_pool.R output/output.$JOB_ID.$SGE_TASK_ID
 

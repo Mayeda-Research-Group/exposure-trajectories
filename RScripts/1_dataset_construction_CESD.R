@@ -371,7 +371,7 @@ hrs_samp %<>% dplyr::select(-paste0("r", number_waves, "smoken"))
 # }
 
 # Imputing chronic conditions
-#---- ** diabetes ----
+#---- **diabetes ----
 hrs_samp <- impute_chronic_condition("diabe", paste0("r", seq(1, 9), "diabe"),
                                      seq(1, 9), hrs_samp)
 

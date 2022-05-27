@@ -280,7 +280,7 @@ results_summary$Exposure <-
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
-ggplot(results_summary, 
+ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
@@ -327,7 +327,7 @@ rmse_table$name <-
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
-ggplot(rmse_table, 
+ggplot(rmse_table %>% filter(!Method == "LMM"), 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
   geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
@@ -380,8 +380,12 @@ main_results$Percent <- factor(main_results$Percent)
 
 main_results %<>% mutate("time_hours" = Time/60)
 
+#---- **summary stats ----
+main_results %>% group_by(Method, Percent) %>% 
+  summarize_at(.vars = "time_hours", ~mean(.))
+
 #---- **plot ----
-ggplot(data = na.omit(main_results), 
+ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"), 
        aes(x = Percent, y = time_hours, color = Method)) + 
   geom_boxplot() + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
@@ -390,7 +394,7 @@ ggplot(data = na.omit(main_results),
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
-       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- eFigure 1: kappa plots ----
 #move kappa plot code here

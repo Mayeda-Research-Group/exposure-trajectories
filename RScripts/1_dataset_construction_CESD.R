@@ -53,7 +53,7 @@ number_waves <- seq(1, 13, by = 1)
 hrs_tracker <-
   read_sas(paste0(path_to_box, "/HRS/tracker/trk2018v2a/",
                   "trk2018tr_r.sas7bdat")) %>%
-  select("HHID", "PN", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE", 
+  select("HHID", "PN", "FIWTYPE", "PIWTYPE", "PALIVE", "QIWTYPE", "QALIVE", 
          paste0(c("F", "G", "H", "J", "K", "L"), "ALIVE")) %>%
   unite("HHIDPN", c("HHID", "PN"), sep = "", remove = TRUE) %>%
   mutate_at("HHIDPN", as.numeric)
@@ -547,9 +547,11 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # 
 # # none missing!
 
-# 2. remove people who were not sampled in 2018
-sum(is.na(hrs_samp$QALIVE))
-hrs_samp %<>% filter(!is.na(QALIVE))
+# 2. remove people not interviewed in 1998
+hrs_samp %<>% filter(FIWTYPE == 1)
+
+# check mortality follow-up
+table(hrs_samp$death2018, useNA = "ifany")
 
 # 3. drop those with missing CESD observations in wave 4 - 9
 drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 

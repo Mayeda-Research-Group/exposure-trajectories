@@ -23,8 +23,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "C:/Users/Yingyan Wu/Box"
-path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
+path_to_box <- "/Users/crystalshaw/Library/CloudStorage/Box-Box"
+path_to_dropbox <- "~/Dropbox/Projects"
 
 #---- source scripts ----
 source(here::here("RScripts", "functions", "impute_ages.R"))

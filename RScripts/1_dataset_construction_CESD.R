@@ -550,8 +550,9 @@ hrs_samp %<>% cbind(drinking_cat_mat)
 # 2. remove people not interviewed in 1998
 hrs_samp %<>% filter(FIWTYPE == 1)
 
-# check mortality follow-up
-table(hrs_samp$death2018, useNA = "ifany")
+# 2.1 remove people with unknown mortality data in 2018
+table(hrs_samp$QALIVE, useNA = "ifany")
+hrs_samp %<>% filter(!is.na(QALIVE))
 
 # 3. drop those with missing CESD observations in wave 4 - 9
 drop <- hrs_samp %>% dplyr::select(paste0("r", seq(4, 9, by = 1), "cesd")) %>% 

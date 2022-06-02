@@ -127,9 +127,9 @@ table_1 %>% as_flex_table()
 #---- **save the table ----
 # The table will be formatted in a linked excel
 write_xl::write_xlsx(as.tibble(table_1), 
-           paste0(path_to_dropbox,
-                  "/exposure_trajectories/manuscript/tables/", 
-                  "table_1_temp.xlsx"))
+                     paste0(path_to_dropbox,
+                            "/exposure_trajectories/manuscript/tables/", 
+                            "table_1_temp.xlsx"))
 
 #---- Table 2: RMSE ----
 #---- **read in truth table ----
@@ -193,6 +193,22 @@ for(i in 1:nrow(rmse_table)){
 #---- **save results ----
 write_csv(rmse_table, paste0(path_to_dropbox, "/exposure_trajectories/",
                              "manuscript/tables/table2/rmse.csv"))
+
+#---- eTable 1: percent agreement ----
+#---- **read in data ----
+complete_sample <- read_csv(paste0(path_to_dropbox,
+                                   "/exposure_trajectories/data/",
+                                   "CESD_data_wide.csv"))
+
+#---- **compute agreement ----
+sum(diag(table(complete_sample$r4cesd_elevated, 
+               complete_sample$r9cesd_elevated)))/nrow(dataset)*100
+
+sum(diag(table(complete_sample$r4cesd_elevated, 
+               complete_sample$avg_cesd_elevated)))/nrow(dataset)*100
+
+sum(diag(table(complete_sample$r9cesd_elevated, 
+               complete_sample$avg_cesd_elevated)))/nrow(dataset)*100
 
 #---- eTable 2: sensitivity RMSE ----
 #---- **read in truth table ----

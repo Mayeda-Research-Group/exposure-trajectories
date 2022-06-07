@@ -131,7 +131,63 @@ write_xl::write_xlsx(as.tibble(table_1),
                             "/exposure_trajectories/manuscript/tables/", 
                             "table_1_temp.xlsx"))
 
-#---- Table 2: RMSE ----
+#---- Table 2: bias ----
+#---- **read in truth table ----
+truth <- read_csv(paste0(path_to_dropbox, 
+                         "/exposure_trajectories/data/", "truth.csv")) %>%
+  dplyr::rename("LCI" = "LCI_beta", 
+                "UCI" = "UCI_beta",
+                "Beta" = "beta") %>% 
+  mutate("Percent" = "0%", 
+         "Truth Capture" = 1)
+
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+main_paths <- all_paths[!str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
+  #making sure only one copy of each seed
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
+
+#double-checking
+table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
+
+#---- **join data ----
+bias_plot_table <- left_join(main_results, truth, by = c("Exposure")) %>% 
+  mutate("bias" = `Beta.x` - `Beta.y`) %>% 
+  group_by(Exposure, `Method.x`, `Percent.x`, Mechanism) %>% 
+  summarize_at("bias", mean) 
+
+bias_table <- bias_plot_table %>% 
+  pivot_wider(names_from = Exposure, values_from = bias) %>% 
+  set_colnames(c("Method", "Percent", "Mechanism", "Baseline CES-D", 
+                 "End of Exposure CES-D", "Elevated Average CES-D", 
+                 "Proportion Elevated CES-D")) %>% 
+  dplyr::select("Mechanism", "Method", "Percent", everything()) 
+
+bias_table$Mechanism <- 
+  factor(bias_table$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+bias_table$Method <- 
+  factor(bias_table$Method, levels = c("CC", "JMVN", "PMM", "FCS"))
+
+bias_table %<>% arrange(Mechanism, Method)
+
+#---- **save results ----
+write_csv(bias_plot_table, 
+          paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+                 "table2/bias_plot_table.csv"))
+
+write_csv(bias_table, 
+          paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+                 "table2/bias_table.csv"))
+
+#---- Table 3: RMSE ----
 #---- **read in truth table ----
 truth <- read_csv(paste0(path_to_dropbox, 
                          "/exposure_trajectories/data/", "truth.csv")) %>%
@@ -192,7 +248,7 @@ for(i in 1:nrow(rmse_table)){
 
 #---- **save results ----
 write_csv(rmse_table, paste0(path_to_dropbox, "/exposure_trajectories/",
-                             "manuscript/tables/table2/rmse.csv"))
+                             "manuscript/tables/table3/rmse.csv"))
 
 #---- eTable 1: percent agreement ----
 #---- **read in data ----
@@ -210,7 +266,64 @@ sum(diag(table(complete_sample$r4cesd_elevated,
 sum(diag(table(complete_sample$r9cesd_elevated, 
                complete_sample$avg_cesd_elevated)))/nrow(dataset)*100
 
-#---- eTable 2: sensitivity RMSE ----
+#---- eTable 2: sensitivity bias ----
+#---- **read in truth table ----
+truth_sens <- 
+  read_csv(paste0(path_to_dropbox, 
+                  "/exposure_trajectories/data/", "truth_sens.csv")) %>%
+  dplyr::rename("LCI" = "LCI_beta", 
+                "UCI" = "UCI_beta",
+                "Beta" = "beta") %>% 
+  mutate("Percent" = "0%", 
+         "Truth Capture" = 1)
+
+#---- **get filepaths ----
+all_paths <- 
+  list.files(path = paste0(path_to_dropbox,
+                           "/exposure_trajectories/data/hoffman_transfer/",
+                           "results"), full.names = TRUE, pattern = "*.csv")
+
+sens_paths <- all_paths[str_detect(all_paths, "sens")]
+
+#---- **read in data ----
+sens_analysis <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
+  #making sure only one copy of each seed
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
+
+#double-checking
+table(sens_analysis$Mechanism, sens_analysis$Percent, sens_analysis$Method)/4
+
+#---- **join data ----
+bias_plot_table <- left_join(sens_analysis, truth_sens, by = c("Exposure")) %>% 
+  mutate("bias" = `Beta.x` - `Beta.y`) %>% 
+  group_by(Exposure, `Method.x`, `Percent.x`, Mechanism) %>% 
+  summarize_at("bias", mean) 
+
+bias_table <- bias_plot_table %>% 
+  pivot_wider(names_from = Exposure, values_from = bias) %>% 
+  set_colnames(c("Method", "Percent", "Mechanism", "Baseline CES-D", 
+                 "End of Exposure CES-D", "Elevated Average CES-D", 
+                 "Proportion Elevated CES-D")) %>% 
+  dplyr::select("Mechanism", "Method", "Percent", everything()) 
+
+bias_table$Mechanism <- 
+  factor(bias_table$Mechanism, levels = c("MCAR", "MAR", "MNAR"))
+bias_table$Method <- 
+  factor(bias_table$Method, levels = c("CC", "JMVN", "PMM", "FCS"))
+
+bias_table %<>% arrange(Mechanism, Method)
+
+#---- **save results ----
+write_csv(bias_plot_table, 
+          paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+                 "etable2/sens_bias_plot_table.csv"))
+
+write_csv(bias_table, 
+          paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
+                 "etable2/sens_bias_table.csv"))
+
+#---- eTable 3: sensitivity RMSE ----
 #---- **read in truth table ----
 truth_sens <- 
   read_csv(paste0(path_to_dropbox, 
@@ -272,7 +385,7 @@ for(i in 1:nrow(rmse_table)){
 
 #---- **save results ----
 write_csv(rmse_table, paste0(path_to_dropbox, "/exposure_trajectories/",
-                             "manuscript/tables/etable2/rmse_sens.csv"))
+                             "manuscript/tables/etable3/rmse_sens.csv"))
 
 
 

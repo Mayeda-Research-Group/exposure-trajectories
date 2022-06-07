@@ -197,7 +197,7 @@ for(mechanism in c("MCAR", "MAR", "MNAR")){
   }
 }
 
-#---- Figure 2: results ----
+#---- Figure 2 + eFigure 2: results ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -209,7 +209,8 @@ main_paths <- all_paths[!str_detect(all_paths, "sens")]
 #---- **read in data ----
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
+  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure, Seed) %>% 
+  slice_head(n = 1) %>% 
   group_by(Method, Mechanism, Percent, Exposure)
 
 # #test for invalid rows
@@ -243,13 +244,13 @@ truth <- read_csv(paste0(path_to_dropbox,
   mutate(Exposure = 
            case_when(
              Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Follow-up CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D",
              Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated CES-D",
              TRUE ~ Exposure))
 
 truth$Exposure <- 
   factor(truth$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 # truth_multiple <- do.call("rbind", replicate(
@@ -271,15 +272,15 @@ results_summary$Mechanism <-
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
                 "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
-#---- **plot ----
+#---- **figure 2 plot ----
 ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.0, position = position_dodge(-0.8)) + 
@@ -296,6 +297,25 @@ ggplot(results_summary %>% filter(!Method == "LMM"),
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **efigure 2 plot ----
+ggplot(results_summary, 
+       aes(x = Beta, y = Percent, color = Method, shape = Method)) +
+  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
+  scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+                position = position_dodge(-0.8)) +
+  theme_minimal() + ylab("Percent Missing Data") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + 
+  scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
+  facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
+  geom_vline(data = truth, aes(xintercept = Beta))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- Figure 3: RMSE ----
@@ -315,12 +335,12 @@ rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
   "Elevated Baseline CES-D"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Follow-up CES-D"
+  "Elevated End of Exposure CES-D"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
   "Proportion Elevated CES-D"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
 #---- **plot ----
@@ -441,13 +461,13 @@ truth_sens <- read_csv(paste0(path_to_dropbox,
   mutate(Exposure = 
            case_when(
              Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Follow-up CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D",
              Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated CES-D",
              TRUE ~ Exposure))
 
 truth_sens$Exposure <- 
   factor(truth_sens$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **format data ----
@@ -461,12 +481,12 @@ results_summary$Mechanism <-
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
                 "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
@@ -506,12 +526,12 @@ rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
   "Elevated Baseline CES-D"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Follow-up CES-D"
+  "Elevated End of Exposure CES-D"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
   "Proportion Elevated CES-D"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
 #---- **plot ----
@@ -622,12 +642,12 @@ results_summary$Percent <- factor(results_summary$Percent)
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
                 "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----
@@ -917,12 +937,12 @@ results_summary$Percent <- factor(results_summary$Percent)
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
                 "Exposure"] <- "Elevated Baseline CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Follow-up CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
                 "Exposure"] <- "Proportion Elevated CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Follow-up CES-D", 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D")) 
 
 #---- **plot ----

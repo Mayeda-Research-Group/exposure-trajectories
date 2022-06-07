@@ -318,7 +318,7 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3: RMSE ----
+#---- Figure 3 + eFigure 3: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/table2/rmse.csv"))
@@ -343,7 +343,7 @@ rmse_table$name <-
          levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
-#---- **plot ----
+#---- **figure 3 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
@@ -368,6 +368,31 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure3/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
+#---- **efigure 3 plot ----
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
+ggplot(rmse_table, 
+       mapping = aes(x = `Missing Percent`, y = value, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + ylab("RMSE") + 
+  facetscales::facet_grid_sc(
+    rows = vars(Mechanism), cols = vars(name), 
+    scales = list(y = list(
+      `MCAR` = scale_y_continuous(limits = c(0.02, 0.09), 
+                                  breaks = seq(0.02, 0.09, 0.02)),
+      `MAR` = scale_y_continuous(limits = c(0.02, 0.09), 
+                                 breaks = seq(0.02, 0.09, 0.02)),
+      `MNAR` = scale_y_continuous(limits = c(0, 1.5), 
+                                  breaks = seq(0, 1.5, 0.5)))))
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure3/rmse.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
 #---- Figure 4: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
@@ -380,8 +405,8 @@ main_paths <- all_paths[!str_detect(all_paths, "sens")]
 #---- **read in data ----
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4

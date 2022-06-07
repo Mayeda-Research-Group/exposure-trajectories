@@ -321,7 +321,7 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #---- Figure 3 + eFigure 3: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
-                              "manuscript/tables/table2/rmse.csv"))
+                              "manuscript/tables/table3/rmse.csv"))
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
                                                 colnames(rmse_table))]) 
@@ -393,7 +393,7 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure3/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 4: runtimes ----
+#---- Figure 4 + eFigure 4: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -429,7 +429,7 @@ main_results %<>% mutate("time_hours" = Time/60)
 main_results %>% group_by(Method, Percent) %>% 
   summarize_at(.vars = "time_hours", ~mean(.))
 
-#---- **plot ----
+#---- **figure 4 plot ----
 ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"), 
        aes(x = Percent, y = time_hours, color = Method)) + 
   geom_boxplot() + ylab("Computation Time (Hours)") + 
@@ -441,17 +441,19 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 1: kappa plots ----
-#move kappa plot code here
+#---- **efigure 4 plot ----
+ggplot(data = na.omit(main_results), 
+       aes(x = Percent, y = time_hours, color = Method)) + 
+  geom_boxplot() + ylab("Computation Time (Hours)") + 
+  xlab("Percent Missing Data") + theme_bw() + 
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette)
 
-#---- eFigure 2: traceplots ----
-#---- **read in data ----
-test <- readRDS(paste0(path_to_dropbox, "/exposure_trajectories/data/", 
-                       "hoffman_transfer/results/MI_datasets/jmvn_mcar10"))
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure4/run_times.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 3: observed vs. imputed ----
-
-#---- eFigure 4: sensitivity analyses ----
+#---- eFigure 5: sensitivity analyses ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -463,8 +465,8 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 #---- **read in data ----
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
@@ -530,13 +532,13 @@ ggplot(results_summary,
   geom_vline(data = truth_sens, aes(xintercept = Beta))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure4/effect_ests_mean_CI_sens.jpeg"), 
+              "manuscript/figures/efigure5/effect_ests_mean_CI_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 5: sensitivity RMSE ----
+#---- eFigure 6: sensitivity RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
-                              "manuscript/tables/etable2/rmse_sens.csv"))
+                              "manuscript/tables/etable3/rmse_sens.csv"))
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
                                                 colnames(rmse_table))]) 
@@ -581,10 +583,10 @@ ggplot(rmse_table,
                                   breaks = seq(0, 0.6, 0.1)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure5/rmse_sens.jpeg"), 
+              "manuscript/figures/efigure6/rmse_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 6: runtimes ----
+#---- eFigure 7: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -596,8 +598,8 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 #---- **read in data ----
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
@@ -625,7 +627,7 @@ ggplot(data = na.omit(sens_analyses),
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure6/run_times_sens.jpeg"), 
+              "manuscript/figures/efigure7/run_times_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- OLD ----

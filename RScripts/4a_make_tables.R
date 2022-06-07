@@ -152,8 +152,8 @@ main_paths <- all_paths[!str_detect(all_paths, "sens")]
 #---- **read in data ----
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4

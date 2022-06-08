@@ -354,7 +354,7 @@ ggplot(bias_table %>% filter(!Method == "LMM"),
   theme_bw() + 
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + ylab("Bias") + 
+  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -372,7 +372,7 @@ ggplot(bias_table,
   theme_bw() + 
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + ylab("Bias") + 
+  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",

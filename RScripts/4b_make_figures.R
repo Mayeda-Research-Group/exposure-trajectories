@@ -318,6 +318,67 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
+#---- Figure 3 + eFigure 3: bias ----
+#---- **read in data ----
+bias_table <- 
+  read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
+                  "manuscript/tables/table2/bias_plot_table.csv")) %>%
+  set_colnames(c("Exposure", "Method", "Missing Percent", "Mechanism", "Bias"))
+  
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
+bias_table$Method <- factor(bias_table$Method, levels = methods)
+bias_table$Mechanism <- factor(bias_table$Mechanism, 
+                               levels = c("MCAR", "MAR", "MNAR"))
+bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
+
+bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
+  "Elevated Baseline CES-D"
+bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
+  "Elevated End of Exposure CES-D"
+bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
+  "Proportion Elevated CES-D"
+bias_table$Exposure <- 
+  factor(bias_table$Exposure, 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+
+#---- **figure 3 plot ----
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
+ggplot(bias_table %>% filter(!Method == "LMM"), 
+       mapping = aes(x = `Missing Percent`, y = Bias, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + ylab("Bias") + 
+  facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/figure3/bias.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- **efigure 3 plot ----
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
+ggplot(bias_table, 
+       mapping = aes(x = `Missing Percent`, y = Bias, 
+                     color = Method)) +
+  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
+  theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + ylab("Bias") + 
+  facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure3/bias.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
 #---- Figure 3 + eFigure 3: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",

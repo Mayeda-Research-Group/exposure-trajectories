@@ -317,11 +317,11 @@ bias_table %<>% arrange(Mechanism, Method)
 #---- **save results ----
 write_csv(bias_plot_table, 
           paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-                 "etable2/sens_bias_plot_table.csv"))
+                 "etable4/sens_bias_plot_table.csv"))
 
 write_csv(bias_table, 
           paste0(path_to_dropbox, "/exposure_trajectories/manuscript/tables/", 
-                 "etable2/sens_bias_table.csv"))
+                 "etable4/sens_bias_table.csv"))
 
 #---- eTable 3: sensitivity RMSE ----
 #---- **read in truth table ----

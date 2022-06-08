@@ -197,7 +197,7 @@ for(mechanism in c("MCAR", "MAR", "MNAR")){
   }
 }
 
-#---- Figure 2 + eFigure 2: results ----
+#---- Figure 2 + eFigure 6: results ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -283,42 +283,44 @@ results_summary$Exposure <-
 #---- **figure 2 plot ----
 ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
+  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
-  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
                 position = position_dodge(-0.8)) +
   theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta))
+  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 2 plot ----
+#---- **efigure 6 plot ----
 ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
+  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
-  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
                 position = position_dodge(-0.8)) +
   theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta))
+  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure2/effect_ests_mean_CI.jpeg"), 
+              "manuscript/figures/efigure6/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3 + eFigure 3: bias ----
+#---- Figure 3 + eFigure 7: bias ----
 #---- **read in data ----
 bias_table <- 
   read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -350,9 +352,10 @@ devtools::install_github("zeehio/facetscales")
 ggplot(bias_table %>% filter(!Method == "LMM"), 
        mapping = aes(x = `Missing Percent`, y = Bias, 
                      color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() + 
-  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
@@ -361,25 +364,26 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure3/bias.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 3 plot ----
+#---- **efigure 7 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
 ggplot(bias_table, 
        mapping = aes(x = `Missing Percent`, y = Bias, 
                      color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() + 
-  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure3/bias.jpeg"), 
+              "manuscript/figures/efigure7/bias.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3 + eFigure 3: RMSE ----
+#---- Figure 4 + eFigure 8: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/table3/rmse.csv"))
@@ -404,57 +408,57 @@ rmse_table$name <-
          levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
                     "Elevated Average CES-D", "Proportion Elevated CES-D"))
 
-#---- **figure 3 plot ----
+#---- **figure 4 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
 ggplot(rmse_table %>% filter(!Method == "LMM"), 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facetscales::facet_grid_sc(
     rows = vars(Mechanism), cols = vars(name), 
     scales = list(y = list(
-      `MCAR` = scale_y_continuous(limits = c(0.02, 0.09), 
-                                  breaks = seq(0.02, 0.09, 0.02)),
-      `MAR` = scale_y_continuous(limits = c(0.02, 0.09), 
-                                 breaks = seq(0.02, 0.09, 0.02)),
+      `MCAR` = scale_y_continuous(limits = c(0.00, 0.10), 
+                                  breaks = seq(0.00, 0.10, 0.02)),
+      `MAR` = scale_y_continuous(limits = c(0.00, 0.10), 
+                                 breaks = seq(0.00, 0.10, 0.02)),
       `MNAR` = scale_y_continuous(limits = c(0, 1.5), 
                                   breaks = seq(0, 1.5, 0.5)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure3/rmse.jpeg"), 
+              "manuscript/figures/figure4/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 3 plot ----
+#---- **efigure 8 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) + 
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facetscales::facet_grid_sc(
     rows = vars(Mechanism), cols = vars(name), 
     scales = list(y = list(
-      `MCAR` = scale_y_continuous(limits = c(0.02, 0.09), 
-                                  breaks = seq(0.02, 0.09, 0.02)),
-      `MAR` = scale_y_continuous(limits = c(0.02, 0.09), 
-                                 breaks = seq(0.02, 0.09, 0.02)),
-      `MNAR` = scale_y_continuous(limits = c(0, 1.5), 
-                                  breaks = seq(0, 1.5, 0.5)))))
+      `MCAR` = scale_y_continuous(limits = c(0.00, 0.10), 
+                                  breaks = seq(0.00, 0.10, 0.02)),
+      `MAR` = scale_y_continuous(limits = c(0.00, 0.10), 
+                                 breaks = seq(0.00, 0.10, 0.02)),
+      `MNAR` = scale_y_continuous(limits = c(0, 1.75), 
+                                  breaks = seq(0, 1.75, 0.5)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure3/rmse.jpeg"), 
+              "manuscript/figures/efigure8/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 4 + eFigure 4: runtimes ----
+#---- Figure 5 + eFigure 9: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -490,31 +494,31 @@ main_results %<>% mutate("time_hours" = Time/60)
 main_results %>% group_by(Method, Percent) %>% 
   summarize_at(.vars = "time_hours", ~mean(.))
 
-#---- **figure 4 plot ----
+#---- **figure 5 plot ----
 ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computation Time (Hours)") + 
+  geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure4/run_times.jpeg"), 
+              "manuscript/figures/figure5/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 4 plot ----
+#---- **efigure 9 plot ----
 ggplot(data = na.omit(main_results), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computation Time (Hours)") + 
+  geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure4/run_times.jpeg"), 
+              "manuscript/figures/efigure9/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 5: sensitivity analyses ----
+#---- eFigure 2: sensitivity results ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -580,23 +584,68 @@ results_summary$Exposure <-
 #---- **plot ----
 ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.0, position = position_dodge(-0.8)) + 
+  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
   scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
-  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .3,
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
                 position = position_dodge(-0.8)) +
   theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
-  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth_sens, aes(xintercept = Beta))
+  geom_vline(data = truth_sens, aes(xintercept = Beta), size = 0.75)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure5/effect_ests_mean_CI_sens.jpeg"), 
+              "manuscript/figures/efigure2/effect_ests_mean_CI_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 6: sensitivity RMSE ----
+#---- eFigure 3: sensitivity bias ----
+#---- **read in data ----
+bias_table <- 
+  read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
+                  "manuscript/tables/etable4/sens_bias_plot_table.csv")) %>%
+  set_colnames(c("Exposure", "Method", "Missing Percent", "Mechanism", "Bias"))
+
+#---- **format data ----
+methods <- c("CC", "JMVN", "PMM", "FCS")
+bias_table$Method <- factor(bias_table$Method, levels = methods)
+bias_table$Mechanism <- factor(bias_table$Mechanism, 
+                               levels = c("MCAR", "MAR", "MNAR"))
+bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
+
+bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
+  "Elevated Baseline CES-D"
+bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
+  "Elevated End of Exposure CES-D"
+bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
+  "Proportion Elevated CES-D"
+bias_table$Exposure <- 
+  factor(bias_table$Exposure, 
+         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
+                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+
+#---- **plot ----
+p_load("devtools")
+devtools::install_github("zeehio/facetscales")
+
+ggplot(bias_table, 
+       mapping = aes(x = `Missing Percent`, y = Bias, 
+                     color = Method)) +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
+             size = 0.75) +
+  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
+  facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "manuscript/figures/efigure3/bias_sens.jpeg"), 
+       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+#---- eFigure 4: sensitivity RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/etable3/rmse_sens.csv"))
@@ -629,8 +678,8 @@ devtools::install_github("zeehio/facetscales")
 ggplot(rmse_table, 
        mapping = aes(x = `Missing Percent`, y = value, 
                      color = Method)) +
-  geom_point(alpha = 0.75) + geom_line(aes(group = Method), alpha = 0.75) + 
-  theme_bw() +
+  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) + 
+  geom_point(alpha = 0.75, size = 2.25) + theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facetscales::facet_grid_sc(
@@ -644,10 +693,10 @@ ggplot(rmse_table,
                                   breaks = seq(0, 0.6, 0.1)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure6/rmse_sens.jpeg"), 
+              "manuscript/figures/efigure4/rmse_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 7: runtimes ----
+#---- eFigure 5: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -682,13 +731,13 @@ sens_analyses %<>% mutate("time_hours" = Time/60)
 #---- **plot ----
 ggplot(data = na.omit(sens_analyses), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot() + ylab("Computation Time (Hours)") + 
+  geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
   xlab("Percent Missing Data") + theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure7/run_times_sens.jpeg"), 
+              "manuscript/figures/efigure5/run_times_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- OLD ----

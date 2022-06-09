@@ -243,15 +243,18 @@ truth <- read_csv(paste0(path_to_dropbox,
   #        "Truth Capture" = 1) 
   mutate(Exposure = 
            case_when(
-             Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D",
-             Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated CES-D",
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline (1998) CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure (2008) CES-D",
+             Exposure == 
+               "Elevated CES-D Prop" ~ "Proportion Elevated (1998-2008) CES-D",
              TRUE ~ Exposure))
 
 truth$Exposure <- 
   factor(truth$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", 
+                    "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", 
+                    "Proportion Elevated (1998-2008) CES-D")) 
 
 # truth_multiple <- do.call("rbind", replicate(
 #   3, truth, simplify = FALSE)) %>%
@@ -270,15 +273,15 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline (1998) CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure CES-D"
+                "Exposure"] <- "Elevated End of Exposure (2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated CES-D"
+                "Exposure"] <- "Proportion Elevated (1998-2008) CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D")) 
 
 #---- **figure 2 plot ----
 ggplot(results_summary %>% filter(!Method == "LMM"), 
@@ -335,15 +338,15 @@ bias_table$Mechanism <- factor(bias_table$Mechanism,
 bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
 
 bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
-  "Elevated Baseline CES-D"
+  "Elevated Baseline (1998) CES-D"
 bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated End of Exposure CES-D"
+  "Elevated End of Exposure (2008) CES-D"
 bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
-  "Proportion Elevated CES-D"
+  "Proportion Elevated (1998-2008) CES-D"
 bias_table$Exposure <- 
   factor(bias_table$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D"))
 
 #---- **figure 3 plot ----
 p_load("devtools")
@@ -398,15 +401,15 @@ rmse_table$Mechanism <- factor(rmse_table$Mechanism,
 rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
-  "Elevated Baseline CES-D"
+  "Elevated Baseline (1998) CES-D"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Exposure CES-D"
+  "Elevated End of Exposure (2008) CES-D"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
-  "Proportion Elevated CES-D"
+  "Proportion Elevated (1998-2008) CES-D"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D"))
 
 #---- **figure 4 plot ----
 p_load("devtools")
@@ -552,15 +555,15 @@ truth_sens <- read_csv(paste0(path_to_dropbox,
   #        "Truth Capture" = 1) 
   mutate(Exposure = 
            case_when(
-             Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D",
-             Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated CES-D",
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline (1998) CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure (2008) CES-D",
+             Exposure == "Elevated CES-D Prop" ~ "Proportion Elevated (1998-2008) CES-D",
              TRUE ~ Exposure))
 
 truth_sens$Exposure <- 
   factor(truth_sens$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D")) 
 
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS")
@@ -571,15 +574,15 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline (1998) CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure CES-D"
+                "Exposure"] <- "Elevated End of Exposure (2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated CES-D"
+                "Exposure"] <- "Proportion Elevated (1998-2008) CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D")) 
 
 #---- **plot ----
 ggplot(results_summary, 
@@ -616,15 +619,15 @@ bias_table$Mechanism <- factor(bias_table$Mechanism,
 bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
 
 bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
-  "Elevated Baseline CES-D"
+  "Elevated Baseline (1998) CES-D"
 bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated End of Exposure CES-D"
+  "Elevated End of Exposure (2008) CES-D"
 bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
-  "Proportion Elevated CES-D"
+  "Proportion Elevated (1998-2008) CES-D"
 bias_table$Exposure <- 
   factor(bias_table$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D"))
 
 #---- **plot ----
 p_load("devtools")
@@ -661,15 +664,15 @@ rmse_table$Mechanism <- factor(rmse_table$Mechanism,
 rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
-  "Elevated Baseline CES-D"
+  "Elevated Baseline (1998) CES-D"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Exposure CES-D"
+  "Elevated End of Exposure (2008) CES-D"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
-  "Proportion Elevated CES-D"
+  "Proportion Elevated (1998-2008) CES-D"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D"))
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D"))
 
 #---- **plot ----
 p_load("devtools")
@@ -777,15 +780,15 @@ results_summary$Mechanism <-
 results_summary$Percent <- factor(results_summary$Percent)
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline (1998) CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure CES-D"
+                "Exposure"] <- "Elevated End of Exposure (2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated CES-D"
+                "Exposure"] <- "Proportion Elevated (1998-2008) CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D")) 
 
 #---- **plot ----
 ggplot(results_summary %>% filter(!Method == "Truth"), 
@@ -1072,15 +1075,15 @@ results_summary$Mechanism <-
 results_summary$Percent <- factor(results_summary$Percent)
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline CES-D"
+                "Exposure"] <- "Elevated Baseline (1998) CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure CES-D"
+                "Exposure"] <- "Elevated End of Exposure (2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated CES-D"
+                "Exposure"] <- "Proportion Elevated (1998-2008) CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline CES-D", "Elevated End of Exposure CES-D", 
-                    "Elevated Average CES-D", "Proportion Elevated CES-D")) 
+         levels = c("Elevated Baseline (1998) CES-D", "Elevated End of Exposure (2008) CES-D", 
+                    "Elevated Average (1998-2008) CES-D", "Proportion Elevated (1998-2008) CES-D")) 
 
 #---- **plot ----
 ggplot(results_summary %>% filter(!Method == "Truth"), 

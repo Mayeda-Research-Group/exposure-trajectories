@@ -103,14 +103,15 @@ main_results %>% filter(Method == "FCS") %>% ungroup() %>%
                     "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
                     "FCS_main_missing.xlsx"), overwrite = TRUE)
 
-#---- ****LMM main ----
-main_results %>% filter(Method == "LMM") %>% ungroup() %>% 
-  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(seeds, .) %>% 
+#---- ****LMM main (MNAR 30%) ----
+LMM_seeds <- seq(1, 1000, by = 1)
+main_results %>% filter(Method == "LMM" & Mechanism == "MNAR") %>% ungroup() %>% 
+  dplyr::select("Seed") %>% unique() %>% unlist() %>% setdiff(LMM_seeds, .) %>% 
   as.data.frame() %>% set_colnames("Seed") %>% 
   mutate("Diff" = Seed - lag(Seed)) %>% 
   write.xlsx(paste0(path_to_dropbox,
                     "/exposure_trajectories/data/hoffman_transfer/missing_seeds/", 
-                    "LMM_main_missing.xlsx"), overwrite = TRUE)
+                    "LMM_main_MNAR_30_missing.xlsx"), overwrite = TRUE)
 
 #---- ****CC sens ----
 sens_analyses %>% filter(Method == "CC") %>% ungroup() %>% 

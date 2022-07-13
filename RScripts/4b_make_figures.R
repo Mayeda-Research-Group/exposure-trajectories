@@ -302,7 +302,8 @@ ggplot(results_summary %>% filter(!Method == "LMM"),
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75)
+  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75) + 
+  xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
@@ -322,7 +323,8 @@ ggplot(results_summary,
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75)
+  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75) + 
+  xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure6/effect_ests_mean_CI.jpeg"), 
@@ -618,7 +620,8 @@ ggplot(results_summary,
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) + 
   facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth_sens, aes(xintercept = Beta), size = 0.75)
+  geom_vline(data = truth_sens, aes(xintercept = Beta), size = 0.75) + 
+  xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/efigure2/effect_ests_mean_CI_sens.jpeg"), 

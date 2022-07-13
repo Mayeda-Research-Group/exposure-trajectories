@@ -44,13 +44,13 @@ sens_paths <- all_paths[str_detect(all_paths, "sens")]
 #---- **read in data ----
 main_results <- do.call(rbind, lapply(main_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure, Seed) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>% 
   #making sure only one copy of each seed
-  na.omit() %>% group_by(Method, Exposure, Seed) %>% slice_head(n = 1) %>% 
-  group_by(Method, Mechanism, Percent, Exposure)
+  na.omit() %>% group_by(Method, Mechanism, Percent, Exposure, Seed) %>% 
+  slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
 #---- **check scenario counts ----
 #should be 1000 in each cell (divide by 4 for number of exposures)

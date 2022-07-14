@@ -312,10 +312,10 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
 #---- **efigure 6 plot ----
 ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
-  scale_shape_manual(values = c(rep("square", (nrow(results_summary))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
                 position = position_dodge(-0.8)) +
+  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
+  scale_shape_manual(values = c(rep("square", 4), rep("asterisk", 1))) + 
   theme_minimal() + ylab("Percent Missing Data") +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + 
@@ -383,10 +383,11 @@ p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
 ggplot(bias_table, 
-       mapping = aes(x = `Missing Percent`, y = Bias, 
-                     color = Method)) +
+       mapping = aes(x = `Missing Percent`, y = Bias, color = Method, 
+                     shape = Method)) +
   geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
   geom_point(alpha = 0.75, size = 2.25) + theme_bw() + 
+  scale_shape_manual(values = c(rep("circle", 4), rep("asterisk", 1))) + 
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
@@ -456,10 +457,12 @@ p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
 ggplot(rmse_table, 
-       mapping = aes(x = `Missing Percent`, y = value, 
-                     color = Method)) +
+       mapping = aes(x = `Missing Percent`, y = value, color = Method, 
+                     shape = Method)) +
   geom_line(aes(group = Method), alpha = 0.75, size = 0.75) + 
-  geom_point(alpha = 0.75, size = 2.25) + theme_bw() +
+  geom_point(alpha = 0.75, size = 2.25) + 
+  scale_shape_manual(values = c(rep("circle", 4), rep("asterisk", 1))) + 
+  theme_bw() +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
   scale_color_manual(values = cbPalette) + ylab("RMSE") + 
   facetscales::facet_grid_sc(

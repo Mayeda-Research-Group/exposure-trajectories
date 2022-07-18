@@ -57,12 +57,12 @@ sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>%
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
 
-#---- **check max seeds for paused jobs ----
-main_results %>% group_by(Method) %>% 
-  summarise_at(.vars = c("Seed"), .funs = max)
-
-sens_analyses %>% group_by(Method) %>% 
-  summarise_at(.vars = c("Seed"), .funs = max)
+# #---- **check max seeds for paused jobs ----
+# main_results %>% group_by(Method) %>% 
+#   summarise_at(.vars = c("Seed"), .funs = max)
+# 
+# sens_analyses %>% group_by(Method) %>% 
+#   summarise_at(.vars = c("Seed"), .funs = max)
 
 #---- **check seeds overall ----
 seeds <- seq(1, 9000, by = 1)
@@ -198,7 +198,7 @@ for(mechanism in c("MCAR", "MAR", "MNAR")){
   }
 }
 
-#---- Figure 2 + eFigure 6: results ----
+#---- Figure 1 + eFigure 7: results ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -257,14 +257,6 @@ truth$Exposure <-
                     "Elevated Average (1998-2008)\nCES-D", 
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
-# truth_multiple <- do.call("rbind", replicate(
-#   3, truth, simplify = FALSE)) %>%
-#   mutate(Mechanism = c(rep("MCAR", length(unique(truth$Exposure))), 
-#                        rep("MAR", length(unique(truth$Exposure))), 
-#                        rep("MNAR", length(unique(truth$Exposure)))))
-
-# results_summary %<>% rbind(truth_multiple)
-
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "FCS", "LMM")
 results_summary$Method <- 
@@ -288,7 +280,7 @@ results_summary$Exposure <-
                     "Elevated Average (1998-2008)\nCES-D", 
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
-#---- **figure 2 plot ----
+#---- **figure 1 plot ----
 ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.25, position = position_dodge(-0.8)) + 
@@ -306,10 +298,10 @@ ggplot(results_summary %>% filter(!Method == "LMM"),
   xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure2/effect_ests_mean_CI.jpeg"), 
+              "manuscript/figures/figure1/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 6 plot ----
+#---- **efigure 7 plot ----
 ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
@@ -327,10 +319,10 @@ ggplot(results_summary,
   xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure6/effect_ests_mean_CI.jpeg"), 
+              "manuscript/figures/efigure7/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 3 + eFigure 7: bias ----
+#---- Figure 2 + eFigure 8: bias ----
 #---- **read in data ----
 bias_table <- 
   read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -359,7 +351,7 @@ bias_table$Exposure <-
                     "Elevated Average (1998-2008)\nCES-D", 
                     "Proportion Elevated (1998-2008)\nCES-D"))
 
-#---- **figure 3 plot ----
+#---- **figure 2 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
@@ -375,10 +367,10 @@ ggplot(bias_table %>% filter(!Method == "LMM"),
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure3/bias.jpeg"), 
+              "manuscript/figures/figure2/bias.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 7 plot ----
+#---- **efigure 8 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
@@ -395,10 +387,10 @@ ggplot(bias_table,
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure7/bias.jpeg"), 
+              "manuscript/figures/efigure8/bias.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 4 + eFigure 8: RMSE ----
+#---- Figure 3 + eFigure 9: RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/table3/rmse.csv"))
@@ -427,7 +419,7 @@ rmse_table$name <-
                     "Elevated Average (1998-2008)\nCES-D", 
                     "Proportion Elevated (1998-2008)\nCES-D"))
 
-#---- **figure 4 plot ----
+#---- **figure 3 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
@@ -449,10 +441,10 @@ ggplot(rmse_table %>% filter(!Method == "LMM"),
                                   breaks = seq(0, 1.5, 0.5)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure4/rmse.jpeg"), 
+              "manuscript/figures/figure3/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 8 plot ----
+#---- **efigure 9 plot ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 
@@ -476,10 +468,10 @@ ggplot(rmse_table,
                                   breaks = seq(0, 1.75, 0.5)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure8/rmse.jpeg"), 
+              "manuscript/figures/efigure9/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- Figure 5 + eFigure 9: runtimes ----
+#---- Figure 4 + eFigure 10: runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -515,7 +507,7 @@ main_results %<>% mutate("time_hours" = Time/60)
 main_results %>% group_by(Method, Percent) %>% 
   summarize_at(.vars = "time_hours", ~mean(.))
 
-#---- **figure 5 plot ----
+#---- **figure 4 plot ----
 ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"), 
        aes(x = Percent, y = time_hours, color = Method)) + 
   geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
@@ -524,10 +516,10 @@ ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"),
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/figure5/run_times.jpeg"), 
+              "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- **efigure 9 plot ----
+#---- **efigure 10 plot ----
 ggplot(data = na.omit(main_results), 
        aes(x = Percent, y = time_hours, color = Method)) + 
   geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
@@ -536,10 +528,10 @@ ggplot(data = na.omit(main_results),
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure9/run_times.jpeg"), 
+              "manuscript/figures/efigure10/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 2: sensitivity results ----
+#---- eFigure 3: sensitivity results ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -627,10 +619,10 @@ ggplot(results_summary,
   xlab("Beta (ln(hazard ratio))")
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure2/effect_ests_mean_CI_sens.jpeg"), 
+              "manuscript/figures/efigure3/effect_ests_mean_CI_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 3: sensitivity bias ----
+#---- eFigure 4: sensitivity bias ----
 #---- **read in data ----
 bias_table <- 
   read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
@@ -675,10 +667,10 @@ ggplot(bias_table,
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure3/bias_sens.jpeg"), 
+              "manuscript/figures/efigure4/bias_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 4: sensitivity RMSE ----
+#---- eFigure 5: sensitivity RMSE ----
 #---- **read in data ----
 rmse_table <- read_csv(paste0(path_to_dropbox, "/exposure_trajectories/",
                               "manuscript/tables/etable3/rmse_sens.csv"))
@@ -730,10 +722,10 @@ ggplot(rmse_table,
                                   breaks = seq(0, 0.6, 0.1)))))
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure4/rmse_sens.jpeg"), 
+              "manuscript/figures/efigure5/rmse_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
-#---- eFigure 5: runtimes ----
+#---- eFigure 6: sensitivity runtimes ----
 #---- **get filepaths ----
 all_paths <- 
   list.files(path = paste0(path_to_dropbox,
@@ -774,7 +766,7 @@ ggplot(data = na.omit(sens_analyses),
   scale_color_manual(values = cbPalette)
 
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
-              "manuscript/figures/efigure5/run_times_sens.jpeg"), 
+              "manuscript/figures/efigure6/run_times_sens.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- OLD ----

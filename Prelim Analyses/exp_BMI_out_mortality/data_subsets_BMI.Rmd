@@ -1,0 +1,59 @@
+---
+title: "Exposure Trajectories"
+subtitle: "Data Subsets: BMI --> Mortality"
+date: "`r format(Sys.time(), '%m/%d/%y')`"
+output: 
+rmarkdown::html:
+  theme: paper
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r packages}
+if (!require("pacman")){
+  install.packages("pacman", repos='http://cran.us.r-project.org')
+}
+
+p_load("here", "tidyverse", "magrittr", "broom", "kableExtra")
+
+#No scientific notation
+options(scipen = 9)
+```
+
+```{r import data}
+#Changing directories here will change them throughout the script
+# Yingyan's directory: C:/Users/yingyan_wu
+#                      C:/Users/yingyan_wu/Dropbox
+# Crystal's directory: /Users/CrystalShaw
+#                     ~/Dropbox/Projects
+path_to_dropbox <- "~/Dropbox/Projects"
+
+hrs_samp <- read_csv(paste0(path_to_dropbox,
+                            "/exposure_trajectories/data/",
+                            "E1_BMI_data_wide.csv")) 
+```
+
+### Models
+Sample size: n = `r nrow(hrs_samp)`  
+Proportion dead by 2018: `r round(mean(hrs_samp$death2018), 2)`
+
+```{r models}
+model1_avg_BMI_cat <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          as.factor(avg_BMI_cat), family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(model1_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+  kableExtra::kable_styling()
+
+model2_avg_BMI_cat <- 
+  glm(death2018 ~ `9age_y` + female + hispanic + black + other + 
+          as.factor(avg_BMI_cat) + smoker + as.factor(drinking9_cat) + 
+        as.factor(r9mstat_cat), family = poisson(link = "log"), 
+      data = hrs_samp)
+  
+kable(tidy(model2_avg_BMI_cat, exponentiate = TRUE, conf.int = TRUE)) %>% 
+  kableExtra::kable_styling()
+```

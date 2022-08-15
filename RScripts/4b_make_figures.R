@@ -18,8 +18,8 @@ options(scipen = 999)
 #                     ~/Dropbox/Projects
 
 #Changing directories here will change them throughout the script
-path_to_box <- "/Users/CrystalShaw"
-path_to_dropbox <- "~/Dropbox/Projects"
+path_to_box <- "C:/Users/Yingyan Wu"
+path_to_dropbox <- "C:/Users/Yingyan Wu/Dropbox"
 
 #---- load scripts ----
 source(here::here("RScripts", "functions", "read_results.R"))
@@ -301,6 +301,10 @@ ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure1/effect_ests_mean_CI.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
 
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "submission/figures/figure1_effect_ests_mean_CI.eps"), 
+       device = "eps", dpi = 300, width = 9, height = 7, units = "in")
+
 #---- **efigure 7 plot ----
 ggplot(results_summary, 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
@@ -369,6 +373,10 @@ ggplot(bias_table %>% filter(!Method == "LMM"),
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure2/bias.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+# Somehow can't save to EPS
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "submission/figures/figure2_bias.tiff"), 
+       device = "tiff", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- **efigure 8 plot ----
 p_load("devtools")
@@ -443,6 +451,10 @@ ggplot(rmse_table %>% filter(!Method == "LMM"),
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure3/rmse.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+# Somehow can't save to EPS
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "submission/figures/figure3_rmse.tiff"), 
+       device = "tiff", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- **efigure 9 plot ----
 p_load("devtools")
@@ -518,6 +530,10 @@ ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"),
 ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+
+ggsave(paste0(path_to_dropbox, "/exposure_trajectories/",
+              "submission/figures/figure4_run_times.eps"), 
+       device = "eps", dpi = 300, width = 9, height = 7, units = "in")
 
 #---- **efigure 10 plot ----
 ggplot(data = na.omit(main_results), 

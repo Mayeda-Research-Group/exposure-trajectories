@@ -335,6 +335,9 @@ bias_table <-
                   "manuscript/tables/table2/bias_plot_table.csv")) %>%
   set_colnames(c("Exposure", "Method", "Missing Percent", "Mechanism", "Bias"))
 
+#rename FCS --> VTS
+bias_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
 bias_table$Method <- factor(bias_table$Method, levels = methods)
@@ -369,7 +372,7 @@ ggplot(bias_table %>% filter(!Method == "LMM"),
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
+  scale_color_manual(values = cbPalette) + ylab("Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
@@ -393,7 +396,7 @@ ggplot(bias_table,
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
+  scale_color_manual(values = cbPalette) + ylab("Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
@@ -407,6 +410,9 @@ rmse_table <- read_csv(paste0(path_to_box, "/exposure_trajectories/",
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
                                                 colnames(rmse_table))]) 
+#rename FCS --> VTS
+rmse_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
 rmse_table$Method <- factor(rmse_table$Method, levels = methods)
@@ -500,6 +506,9 @@ main_results <- do.call(rbind, lapply(main_paths, read_results)) %>%
   na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
   slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
 
+#Rename FCS --> VTS
+main_results %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
 
@@ -563,6 +572,9 @@ sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>%
   #making sure only one copy of each seed
   na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
   slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
+
+#Rename FCS --> VTS
+sens_analyses %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
@@ -647,6 +659,9 @@ bias_table <-
                   "manuscript/tables/etable4/sens_bias_plot_table.csv")) %>%
   set_colnames(c("Exposure", "Method", "Missing Percent", "Mechanism", "Bias"))
 
+#Rename FCS --> VTS
+bias_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "VTS")
 bias_table$Method <- factor(bias_table$Method, levels = methods)
@@ -681,7 +696,7 @@ ggplot(bias_table,
   geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) +
   theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette) + ylab("Mean Bias") + 
+  scale_color_manual(values = cbPalette) + ylab("Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
@@ -695,6 +710,8 @@ rmse_table <- read_csv(paste0(path_to_box, "/exposure_trajectories/",
 rmse_table %<>% 
   pivot_longer(cols = colnames(rmse_table)[grep("CES-D", 
                                                 colnames(rmse_table))]) 
+#Rename FCS --> VTS
+rmse_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
 
 #---- **format data ----
 methods <- c("CC", "JMVN", "PMM", "VTS")
@@ -757,6 +774,9 @@ sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>%
   #making sure only one copy of each seed
   na.omit() %>% group_by(Method, Exposure, Seed, Mechanism, Percent) %>% 
   slice_head(n = 1) %>% group_by(Method, Mechanism, Percent, Exposure)
+
+#Rename FCS --> VTS
+sens_analyses %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4

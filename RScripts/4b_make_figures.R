@@ -215,6 +215,8 @@ main_results <- do.call(rbind, lapply(main_paths, read_results)) %>%
 
 #rename FCS --> VTS
 main_results %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+main_results %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 # #test for invalid rows
 # colSums(is.na(main_results))
@@ -260,7 +262,7 @@ truth$Exposure <-
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
+methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
 results_summary$Method <- 
   factor(results_summary$Method, levels = c("Truth", methods))
 results_summary$Percent <- factor(results_summary$Percent)
@@ -337,9 +339,11 @@ bias_table <-
 
 #rename FCS --> VTS
 bias_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+bias_table %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
+methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
 bias_table$Method <- factor(bias_table$Method, levels = methods)
 bias_table$Mechanism <- factor(bias_table$Mechanism, 
                                levels = c("MCAR", "MAR", "MNAR"))
@@ -412,9 +416,11 @@ rmse_table %<>%
                                                 colnames(rmse_table))]) 
 #rename FCS --> VTS
 rmse_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+rmse_table %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
+methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
 rmse_table$Method <- factor(rmse_table$Method, levels = methods)
 rmse_table$Mechanism <- factor(rmse_table$Mechanism, 
                                levels = c("MCAR", "MAR", "MNAR"))
@@ -508,6 +514,8 @@ main_results <- do.call(rbind, lapply(main_paths, read_results)) %>%
 
 #Rename FCS --> VTS
 main_results %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+main_results %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #double-checking
 table(main_results$Mechanism, main_results$Percent, main_results$Method)/4
@@ -517,7 +525,7 @@ main_run_times <- main_results %>%
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS", "LMM")
+methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
 main_results$Method <- factor(main_results$Method, 
                               levels = c("Truth", methods))
 main_results$Mechanism <- 
@@ -575,6 +583,8 @@ sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>%
 
 #Rename FCS --> VTS
 sens_analyses %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+sens_analyses %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
@@ -609,7 +619,7 @@ truth_sens$Exposure <-
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS")
+methods <- c("CC", "NORM", "PMM", "VTS")
 results_summary$Method <- 
   factor(results_summary$Method, levels = c("Truth", methods))
 results_summary$Percent <- factor(results_summary$Percent)
@@ -661,9 +671,11 @@ bias_table <-
 
 #Rename FCS --> VTS
 bias_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+bias_table %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS")
+methods <- c("CC", "NORM", "PMM", "VTS")
 bias_table$Method <- factor(bias_table$Method, levels = methods)
 bias_table$Mechanism <- factor(bias_table$Mechanism, 
                                levels = c("MCAR", "MAR", "MNAR"))
@@ -712,9 +724,11 @@ rmse_table %<>%
                                                 colnames(rmse_table))]) 
 #Rename FCS --> VTS
 rmse_table %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+rmse_table %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS")
+methods <- c("CC", "NORM", "PMM", "VTS")
 rmse_table$Method <- factor(rmse_table$Method, levels = methods)
 rmse_table$Mechanism <- factor(rmse_table$Mechanism, 
                                levels = c("MCAR", "MAR", "MNAR"))
@@ -777,6 +791,8 @@ sens_analyses <- do.call(rbind, lapply(sens_paths, read_results)) %>%
 
 #Rename FCS --> VTS
 sens_analyses %<>% mutate("Method" = ifelse(Method == "FCS", "VTS", Method))
+#rename JMVN --> NORM
+sens_analyses %<>% mutate("Method" = ifelse(Method == "JMVN", "NORM", Method))
 
 #double-checking
 table(sens_analyses$Mechanism, sens_analyses$Percent, sens_analyses$Method)/4
@@ -786,7 +802,7 @@ sens_run_times <- sens_analyses %>%
   group_by(Method) %>% summarize_at(.vars = c("Time"), ~mean(., na.rm = TRUE)) 
 
 #---- **format data ----
-methods <- c("CC", "JMVN", "PMM", "VTS")
+methods <- c("CC", "NORM", "PMM", "VTS")
 sens_analyses$Method <- factor(sens_analyses$Method, 
                                levels = c("Truth", methods))
 sens_analyses$Mechanism <- 
@@ -834,9 +850,9 @@ results_summary <- main_results %>%
   summarize_at(.vars = c("Truth Capture"), ~mean(., na.rm = TRUE))
 
 #---- **format data ----
-# Somehow this way, we got a plot with the order: "Truth, CC, JMVN in the plot
+# Somehow this way, we got a plot with the order: "Truth, CC, NORM in the plot
 # but not in the legend
-methods <- c("CC", "JMVN", "PMM", "VTS")
+methods <- c("CC", "NORM", "PMM", "VTS")
 results_summary$Method <- factor(results_summary$Method, 
                                  levels = c("Truth", methods))
 results_summary$Mechanism <- 

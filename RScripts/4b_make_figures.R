@@ -286,6 +286,7 @@ results_summary$Exposure <-
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
 #---- **figure 1 plot ----
+#cowplot
 plot_vars <- 
   expand.grid(unique(results_summary$Exposure), 
               unique(results_summary$Mechanism)) %>% 
@@ -347,6 +348,7 @@ figure1_panel <-
 
 
 #---- **figure 1 plot OLD ----
+#using lemon package
 ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.25, position = position_dodge(-0.8)) + 
@@ -617,7 +619,7 @@ ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"),
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "submission/AJE/figures/figure4_run_times.eps"), 

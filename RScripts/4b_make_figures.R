@@ -345,8 +345,6 @@ figure1_panel <-
             ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.5)
 
 
-
-
 #---- **figure 1 plot OLD ----
 #using lemon package
 ggplot(results_summary %>% filter(!Method == "LMM"), 
@@ -436,27 +434,76 @@ bias_table$Exposure <-
                     "Proportion Elevated (1998-2008)\nCES-D"))
 
 #---- **figure 2 plot ----
-p_load("devtools")
-devtools::install_github("zeehio/facetscales")
+#cowplot
+plot_vars <- 
+  expand.grid(unique(bias_table$Exposure), 
+              unique(bias_table$Mechanism)) %>% 
+  set_colnames(c("Exposure", "Mechanism")) %>% arrange(Mechanism) %>% 
+  mutate("Label" = paste0(LETTERS[1:12], ")"))
 
+plot_data <- bias_table %>% filter(!Method == "LMM")
+plot_data$Percent <- str_remove(plot_data$`Missing Percent`, "%")
+plot_data$Percent <- factor(plot_data$Percent)
+
+figure2_plot_list <- list()
+
+for(row in 1:nrow(plot_vars)){
+  mech = plot_vars[row, "Mechanism"]
+  exp = plot_vars[row, "Exposure"]
+  label = plot_vars[row, "Label"]
+  
+  figure2_plot_list[[row]] <- 
+    ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
+           aes(x = Percent, y = Bias, color = Method)) +
+    geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
+    theme_minimal() + ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+    theme(text = element_text(size = 12, color = "black"), 
+          axis.text = element_text(size = 12, color = "black"),
+          panel.border = element_blank(), axis.line = element_line(), 
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          legend.position = "none") +
+    scale_color_manual(values = cbPalette) + 
+    ylab("Bias") + xlab("Missing Data, %")  
+  
+  if(mech == "MCAR"){
+    figure2_plot_list[[row]] <-  
+      figure2_plot_list[[row]] + 
+      ggtitle(exp) + theme(plot.title = element_text(size = 12, hjust = 0.5))
+  }
+}
+
+figure2_panel <- 
+  plot_grid(plotlist = figure2_plot_list, align = "vh", 
+            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = 0)  
+
+#---- figure 2 OLD ----
 ggplot(bias_table %>% filter(!Method == "LMM"), 
        mapping = aes(x = `Missing Percent`, y = Bias, 
                      color = Method)) +
-  geom_line(aes(group = Method), alpha = 0.75, size = 0.75) +
-  geom_point(alpha = 0.75, size = 2.25) + theme_bw() + 
-  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey", 
-             size = 0.75) +
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
+  geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
+  theme_bw() + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
+  theme(text = element_text(size = 12, color = "black"), 
+        axis.text = element_text(size = 12, color = "black"),
+        panel.border = element_blank(), axis.line = element_line(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        legend.position = "bottom", legend.direction = "horizontal",
+        legend.background = 
+          element_rect(fill = "white", linetype = "solid", colour ="black"), 
+        legend.title.align = 0.5) +
   scale_color_manual(values = cbPalette) + ylab("Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
 
+
+
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure2/bias.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 # Somehow can't save to EPS
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "submission/AJE/figures/figure2_bias.tiff"), 
-       device = "tiff", dpi = 300, width = 9, height = 7, units = "in")
+       device = "tiff", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- **efigure 8 plot ----
 p_load("devtools")

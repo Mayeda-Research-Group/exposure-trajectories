@@ -5,7 +5,8 @@ if (!require("pacman")){
   install.packages("pacman", repos='http://cran.us.r-project.org')
 }
 
-p_load("here", "tidyverse", "magrittr", "data.table", "stringr", "openxlsx")
+p_load("here", "tidyverse", "magrittr", "data.table", "stringr", "openxlsx", 
+       "lemon", "cowplot")
 
 #No scientific notation
 options(scipen = 999)
@@ -285,6 +286,67 @@ results_summary$Exposure <-
                     "Proportion Elevated (1998-2008)\nCES-D")) 
 
 #---- **figure 1 plot ----
+plot_vars <- 
+  expand.grid(unique(results_summary$Exposure), 
+              unique(results_summary$Mechanism)) %>% 
+  set_colnames(c("Exposure", "Mechanism")) %>% arrange(Mechanism) %>% 
+  mutate("Label" = paste0(LETTERS[1:12], ")"))
+
+plot_data <- results_summary %>% filter(!Method == "LMM")
+plot_data$Percent <- str_remove(plot_data$Percent, "%")
+plot_data$Percent <- factor(plot_data$Percent)
+
+figure1_plot_list <- list()
+
+for(row in 1:nrow(plot_vars)){
+  mech = plot_vars[row, "Mechanism"]
+  exp = plot_vars[row, "Exposure"]
+  label = plot_vars[row, "Label"]
+  
+  figure1_plot_list[[row]] <- 
+    ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
+           aes(x = Beta, y = Percent, color = Method, shape = Method)) +
+    geom_point(size = 2.25, position = position_dodge(-0.8)) + 
+    scale_shape_manual(values = 
+                         c(rep("square", (nrow(results_summary))))) + 
+    geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
+                  position = position_dodge(-0.8)) +
+    theme_minimal() + ylab("Missing Data, %") +
+    #theme(legend.position = "bottom", legend.direction = "horizontal") + 
+    theme(legend.position = "none") +
+    scale_color_manual(values = cbPalette) + 
+    scale_y_discrete(limits = rev(levels(plot_data$Percent))) + 
+    scale_x_continuous(limits = c(min(results_summary$LCI), 
+                                  max(results_summary$UCI))) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
+               size = 0.75) + 
+    geom_vline(data = truth %>% filter(Exposure == exp), 
+               linetype = "dashed", aes(xintercept = Beta), 
+               size = 0.75) + 
+    xlab("\u03B2 (ln(hazard ratio))") + 
+    theme(text = element_text(size = 9, color = "black"), 
+          axis.text.x = element_text(color = "black"), 
+          axis.text.y = element_text(color = "black")) + 
+    theme(panel.border = element_blank(), axis.line = element_line(), 
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+  
+  if(mech == "MCAR"){
+    figure1_plot_list[[row]] <-  
+      figure1_plot_list[[row]] + 
+      ggtitle(exp) + 
+      theme(plot.title = element_text(size = 9, hjust = 0.5))
+  }
+}
+
+figure1_panel <- 
+  plot_grid(plotlist = figure1_plot_list, align = "vh", 
+            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.5)
+
+
+
+
+#---- **figure 1 plot OLD ----
 ggplot(results_summary %>% filter(!Method == "LMM"), 
        aes(x = Beta, y = Percent, color = Method, shape = Method)) +
   geom_point(size = 2.25, position = position_dodge(-0.8)) + 
@@ -297,17 +359,24 @@ ggplot(results_summary %>% filter(!Method == "LMM"),
   scale_y_discrete(limits = rev(levels(results_summary$Percent))) + 
   geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
              size = 0.75) + 
-  facet_grid(rows = vars(Mechanism), cols = vars(Exposure)) + 
-  geom_vline(data = truth, aes(xintercept = Beta), size = 0.75) + 
-  xlab("Beta (ln(hazard ratio))")
+  facet_rep_grid(rows = vars(Mechanism), cols = vars(Exposure), 
+                 repeat.tick.labels = TRUE) + 
+  geom_vline(data = truth, linetype = "dashed", aes(xintercept = Beta), 
+             size = 0.75) + 
+  xlab("\u03B2 (ln(hazard ratio))") + 
+  theme(text = element_text(size = 9, color = "black"), 
+        axis.text.x = element_text(color = "black"), 
+        axis.text.y = element_text(color = "black")) + 
+  theme(panel.border = element_blank(), axis.line = element_line(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure1/effect_ests_mean_CI.jpeg"), 
-       device = "jpeg", dpi = 300, width = 9, height = 7, units = "in")
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "submission/AJE/figures/figure1_effect_ests_mean_CI.eps"), 
-       device = "eps", dpi = 300, width = 9, height = 7, units = "in")
+       device = "eps", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- **efigure 7 plot ----
 ggplot(results_summary, 

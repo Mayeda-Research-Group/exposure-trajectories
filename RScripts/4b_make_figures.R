@@ -609,21 +609,41 @@ main_results %<>% mutate("time_hours" = Time/60)
 main_results %>% group_by(Method, Percent) %>% 
   summarize_at(.vars = "time_hours", ~mean(.))
 
+main_results$Percent <- str_remove(main_results$Percent, "%")
+main_results$Percent <- factor(main_results$Percent)
+
 #---- **figure 4 plot ----
 ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"), 
        aes(x = Percent, y = time_hours, color = Method)) + 
-  geom_boxplot(size = 0.75) + ylab("Computation Time (Hours)") + 
-  xlab("Percent Missing Data") + theme_bw() + 
-  theme(legend.position = "bottom", legend.direction = "horizontal") + 
-  scale_color_manual(values = cbPalette)
+  geom_boxplot() + ylim(c(0, 20)) +
+  ylab("Computation Time, hours") + 
+  xlab("Missing Data, percent") + theme_bw() + 
+  scale_color_manual(values = cbPalette) + 
+  theme(text = element_text(size = 12, color = "black"), 
+        axis.text = element_text(size = 12, color = "black"),
+        panel.border = element_blank(), axis.line = element_line(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        legend.position = c(0.10, 0.75), 
+        legend.background = 
+          element_rect(fill = "white", linetype = "solid", colour ="black"), 
+        legend.title.align = 0.5) + 
+  guides(color = guide_legend(title = expression(underline(Method))))
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure4/run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
-              "submission/AJE/figures/figure4_run_times.eps"), 
-       device = "eps", dpi = 300, width = 9, height = 7, units = "in")
+              "manuscript/figures/figure4/run_times.pdf"), 
+       device = "pdf", dpi = 300, width = 7, height = 5, units = "in")
+
+ggsave(paste0(path_to_box, "/exposure_trajectories/",
+              "manuscript/figures/figure4/run_times.eps"), 
+       device = "eps", dpi = 300, width = 7, height = 5, units = "in")
+
+# ggsave(paste0(path_to_box, "/exposure_trajectories/",
+#               "submission/AJE/figures/figure4_run_times.eps"), 
+#        device = "eps", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- **efigure 10 plot ----
 ggplot(data = na.omit(main_results), 

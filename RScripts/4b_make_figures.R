@@ -475,7 +475,7 @@ for(row in 1:nrow(plot_vars)){
 
 figure2_panel <- 
   plot_grid(plotlist = figure2_plot_list, align = "vh", 
-            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = 0)  
+            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.1)  
 
 #---- figure 2 OLD ----
 ggplot(bias_table %>% filter(!Method == "LMM"), 

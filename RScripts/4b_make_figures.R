@@ -13,7 +13,7 @@ options(scipen = 999)
 
 #---- note ----
 # Since the difference between win and OS, put substituted directory here
-# Yingyan's directory: C:/Users/yingyan_wu
+# Yingyan's directory: "C:/Users/Yingyan Wu/Box"
 #                      
 # Crystal's directory: /Users/crystalshaw/Library/CloudStorage/Box-Box/Projects
 #                     
@@ -249,18 +249,18 @@ truth <- read_csv(paste0(path_to_box,
   #        "Truth Capture" = 1) 
   mutate(Exposure = 
            case_when(
-             Exposure == "CES-D Wave 4" ~ "Elevated Baseline (1998)\nCES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure (2008)\nCES-D",
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline\n(1998) CES-D",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure\n(2008) CES-D",
              Exposure == 
-               "Elevated CES-D Prop" ~ "Proportion Elevated (1998-2008)\nCES-D",
-             TRUE ~ "Elevated Average (1998-2008)\nCES-D"))
+               "Elevated CES-D Prop" ~ "Proportion Elevated\n(1998-2008) CES-D",
+             TRUE ~ "Elevated Average\n(1998-2008) CES-D"))
 
 truth$Exposure <- 
   factor(truth$Exposure, 
-         levels = c("Elevated Baseline (1998)\nCES-D", 
-                    "Elevated End of Exposure (2008)\nCES-D", 
-                    "Elevated Average (1998-2008)\nCES-D", 
-                    "Proportion Elevated (1998-2008)\nCES-D")) 
+         levels = c("Elevated Baseline\n(1998) CES-D", 
+                    "Elevated End of Exposure\n(2008) CES-D", 
+                    "Elevated Average\n(1998-2008) CES-D", 
+                    "Proportion Elevated\n(1998-2008) CES-D")) 
 
 #---- **format data ----
 methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
@@ -271,19 +271,19 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline (1998)\nCES-D"
+                "Exposure"] <- "Elevated Baseline\n(1998) CES-D"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure (2008)\nCES-D"
+                "Exposure"] <- "Elevated End of Exposure\n(2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated Average CES-D"), 
-                "Exposure"] <- "Elevated Average (1998-2008)\nCES-D"
+                "Exposure"] <- "Elevated Average\n(1998-2008) CES-D"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated (1998-2008)\nCES-D"
+                "Exposure"] <- "Proportion Elevated\n(1998-2008) CES-D"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline (1998)\nCES-D", 
-                    "Elevated End of Exposure (2008)\nCES-D", 
-                    "Elevated Average (1998-2008)\nCES-D", 
-                    "Proportion Elevated (1998-2008)\nCES-D")) 
+         levels = c("Elevated Baseline\n(1998) CES-D", 
+                    "Elevated End of Exposure\n(2008) CES-D", 
+                    "Elevated Average\n(1998-2008) CES-D", 
+                    "Proportion Elevated\n(1998-2008) CES-D")) 
 
 #---- **figure 1 plot ----
 #cowplot
@@ -298,7 +298,7 @@ plot_data$Percent <- str_remove(plot_data$Percent, "%")
 plot_data$Percent <- factor(plot_data$Percent)
 
 figure1_plot_list <- list()
-
+# for(row in 12:12){
 for(row in 1:nrow(plot_vars)){
   mech = plot_vars[row, "Mechanism"]
   exp = plot_vars[row, "Exposure"]
@@ -307,43 +307,153 @@ for(row in 1:nrow(plot_vars)){
   figure1_plot_list[[row]] <- 
     ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
            aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-    geom_point(size = 2.25, position = position_dodge(-0.8)) + 
+    geom_point(
+      # size = 2.25, 
+      position = position_dodge(-0.8)) +
     scale_shape_manual(values = 
                          c(rep("square", (nrow(results_summary))))) + 
-    geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
+    geom_errorbar(aes(xmin = LCI, xmax = UCI), 
+                  # width = .5, size = 0.75,
                   position = position_dodge(-0.8)) +
     theme_minimal() + ylab("Missing Data, %") +
-    #theme(legend.position = "bottom", legend.direction = "horizontal") + 
+    # theme(legend.position = "bottom", legend.direction = "horizontal") +
     theme(legend.position = "none") +
     scale_color_manual(values = cbPalette) + 
     scale_y_discrete(limits = rev(levels(plot_data$Percent))) + 
     scale_x_continuous(limits = c(min(results_summary$LCI), 
                                   max(results_summary$UCI))) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey", 
-               size = 0.75) + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey"
+               # size = 0.75
+    ) + 
     geom_vline(data = truth %>% filter(Exposure == exp), 
-               linetype = "dashed", aes(xintercept = Beta), 
-               size = 0.75) + 
+               linetype = "dashed", aes(xintercept = Beta) 
+               # size = 0.75
+    ) + 
     xlab("\u03B2 (ln(hazard ratio))") + 
-    theme(text = element_text(size = 9, color = "black"), 
+    theme(text = element_text(size = 8, color = "black"), 
           axis.text.x = element_text(color = "black"), 
           axis.text.y = element_text(color = "black")) + 
     theme(panel.border = element_blank(), axis.line = element_line(), 
           panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          plot.margin = unit(c(t = 13, r = 0, b = 0, l = 13), unit = "pt"))
   
-  if(mech == "MCAR"){
-    figure1_plot_list[[row]] <-  
-      figure1_plot_list[[row]] + 
-      ggtitle(exp) + 
-      theme(plot.title = element_text(size = 9, hjust = 0.5))
-  }
+  # if(mech == "MCAR"){
+  #   figure1_plot_list[[row]] <-  
+  #     figure1_plot_list[[row]] + 
+  #     ggtitle(exp) + 
+  #     theme(plot.title = element_text(size = 8, hjust = 0.5))
+  # }
+  # 
+  # if(exp == "Proportion Elevated (1998-2008)\nCES-D"){
+  #   figure1_plot_list[[row]] <-
+  #     figure1_plot_list[[row]] +
+  #     theme(plot.margin = unit(c(t = 13, r = 10, b = 0, l = 13), unit = "pt"))
+  # }
+  
+  figure1_plot_list[[row]] <- 
+    plot_grid(figure1_plot_list[[row]], labels = plot_vars$Label[[row]], 
+              align = "vh", label_size = 8, hjust = 0, vjust = 1, 
+              label_fontface = "plain")
+  
+  ggsave(plot = figure1_plot_list[[row]],
+         filename = paste0(path_to_box, "/exposure_trajectories/",
+                           "manuscript/figures/figure1/figure1_panel_", 
+                           substr(plot_vars$Label, 1, 1)[[row]], ".pdf"),
+         device = "pdf", dpi = 300, width = 7/4, height = 5/3, units = "in")
+  
+  ggsave(plot = figure1_plot_list[[row]],
+         filename = paste0(path_to_box, "/exposure_trajectories/",
+                           "manuscript/figures/figure1/figure1_panel_", 
+                           substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
+         device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
+  
 }
+
+figure1_plot_forlegend <- 
+  ggplot(plot_data, 
+         aes(x = Beta, y = Percent, color = Method, shape = Method)) +
+  geom_point(size = 2.25, position = position_dodge(-0.8)) + 
+  scale_shape_manual(values = 
+                       c(rep("square", (nrow(results_summary))))) + 
+  geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
+                position = position_dodge(-0.8)) +
+  theme_minimal() + ylab("Missing Data, %") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") +
+  scale_color_manual(values = cbPalette) + 
+  theme(text = element_text(size = 8, color = "black"), 
+        axis.text.x = element_text(color = "black"), 
+        axis.text.y = element_text(color = "black"),
+        legend.background = 
+          element_rect(fill = "white", linetype = "solid", colour ="black"), 
+        legend.title.align = 0.5) + 
+  guides(shape = guide_legend(title = expression(underline(Method))),
+         color = guide_legend(title = expression(underline(Method))))
+figure1_plot_forlegend
+
+# figure1_plot_list[[4]] <- figure1_plot_list[[4]] +
+#   geom_text(aes(x = 0.99, y = 0.5, label = "MCAR"),
+#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
+# figure1_plot_list[[8]] <- figure1_plot_list[[8]] +
+#   geom_text(aes(x = 0.99, y = 0.5, label = "MAR"),
+#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
+# figure1_plot_list[[12]] <- figure1_plot_list[[12]] +
+#   geom_text(aes(x = 0.99, y = 0.5, label = "MNAR"),
+#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
+
+
+# figure1_plot_list[[2]] <- 
+#   plot_grid(figure1_plot_list[[2]], labels = c('B)'), align = "vh",
+#             label_size = 12, hjust = 0, vjust = 1)
+
+legend_b <- get_legend(
+  figure1_plot_forlegend + 
+    guides(color = guide_legend(nrow = 1),
+           shape = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")
+)
+# 
+# prow <- plot_grid(figure1_plot_list[[4]] + theme(legend.position="none"),
+#                   figure1_plot_list[[5]] + theme(legend.position="none"),
+#                   align = 'vh',
+#                   hjust = -1,
+#                   nrow = 1)
+# 
+# plot_grid(prow, 
+#           legend_b,  
+#           ncol = 1, rel_heights = c(1, .1))
 
 figure1_panel <- 
   plot_grid(plotlist = figure1_plot_list, align = "vh", 
-            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.5)
+            ncol = 4) +
+  theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
+# plot(figure1_panel)
+# figure1_panel <- 
+#   plot_grid(plotlist = figure1_plot_list, align = "vh", 
+#             ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.5)
 
+figure1_panel_final <- plot_grid(figure1_panel, 
+                                 legend_b,
+                                 ncol = 1, rel_heights = c(1, .1)) +
+  theme(plot.margin = unit(c(t = 21, r = 10, b = 0, l = 0), unit = "pt")) +
+  geom_text(data = data.frame(
+    x = seq(0.13, 0.91, by = 0.26), y = rep(1, 4),
+    label = paste0(levels(plot_vars$Exposure), "\n\n")),
+    # This is stupid and I didn't figure out how to solve this without putting two \ns
+    mapping = aes(x = x, y = y, label = label),
+    size = 5/14*8, inherit.aes = FALSE) + 
+  geom_text(data = data.frame(x = rep(1, 3), y = c(0.9, 0.6, 0.3),
+                              label = paste0(levels(plot_vars$Mechanism), "\n")),
+            mapping = aes(x = x, y = y, label = label),
+            size = 5/14*8, angle = -90L, inherit.aes = FALSE)
+
+ggsave(plot = figure1_panel_final,
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure1/figure1_panel.pdf"),
+       device = "pdf", dpi = 300, width = 7, height = 5, units = "in")
+ggsave(paste0(path_to_box, "/exposure_trajectories/",
+              "manuscript/figures/figure1/figure1_panel.eps"),
+       device = "eps", dpi = 300, width = 7, height = 5, units = "in")
 
 #---- **figure 1 plot OLD ----
 #using lemon package

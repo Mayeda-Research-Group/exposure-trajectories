@@ -464,19 +464,38 @@ for(row in 1:nrow(plot_vars)){
           panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
           legend.position = "none") +
     scale_color_manual(values = cbPalette) + 
-    ylab("Bias") + xlab("Missing Data, %")  
+    ylab("Bias") + xlab("Missing Data, %")  + 
+    theme(plot.margin = margin(t = 0.25, r = 0.25, b = 0.25, l = 0.5, "cm"))
   
   if(mech == "MCAR"){
-    figure2_plot_list[[row]] <-  
-      figure2_plot_list[[row]] + 
+    figure2_plot_list[[row]] <-
+      figure2_plot_list[[row]] +
       ggtitle(exp) + theme(plot.title = element_text(size = 12, hjust = 0.5))
   }
 }
 
 figure2_panel <- 
   plot_grid(plotlist = figure2_plot_list, align = "vh", 
-            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.1)  
+            ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = 0) + 
+  geom_text(data =
+              data.frame(x = rep(0.999, 3),
+                         y = c(0.197, 0.524, 0.863),
+                         label = c("MNAR", "MAR", "MCAR")),
+            mapping = aes(x = x, y = y, label = label),
+            #stupid geom_text scaling
+            size = 5/14*12, angle = -90L, hjust = 0.15, vjust = 0.75,
+            inherit.aes = FALSE) 
 
+ggsave(figure2_panel, paste0(path_to_box, "/exposure_trajectories/",
+              "manuscript/figures/figure2/bias.jpeg"), 
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+
+# Somehow can't save to EPS
+ggsave(paste0(path_to_box, "/exposure_trajectories/",
+              "submission/AJE/figures/figure2_bias.tiff"), 
+       device = "tiff", dpi = 300, width = 7, height = 5, units = "in")
+
+  
 #---- figure 2 OLD ----
 ggplot(bias_table %>% filter(!Method == "LMM"), 
        mapping = aes(x = `Missing Percent`, y = Bias, 

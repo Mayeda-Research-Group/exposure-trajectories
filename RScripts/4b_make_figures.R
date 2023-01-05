@@ -312,7 +312,7 @@ for(row in 1:nrow(plot_vars)){
                          c(rep("square", (nrow(results_summary))))) + 
     geom_errorbar(aes(xmin = LCI, xmax = UCI), 
                   position = position_dodge(-0.8)) +
-    theme_minimal() + ylab("Missing Data, %") +
+    theme_bw() + ylab("Missing Data, %") +
     theme(legend.position = "none") +
     scale_color_manual(values = cbPalette) + 
     scale_y_discrete(limits = rev(levels(plot_data$Percent))) + 
@@ -357,7 +357,7 @@ figure1_plot_forlegend <-
                        c(rep("square", (nrow(results_summary))))) + 
   geom_errorbar(aes(xmin = LCI, xmax = UCI), width = .5, size = 0.75,
                 position = position_dodge(-0.8)) +
-  theme_minimal() + ylab("Missing Data, %") +
+  theme_bw() + ylab("Missing Data, %") +
   theme(legend.position = "bottom", legend.direction = "horizontal") +
   scale_color_manual(values = cbPalette) + 
   theme(text = element_text(size = 8, color = "black"), 
@@ -515,7 +515,7 @@ for(row in 1:nrow(plot_vars)){
     ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
            aes(x = Percent, y = Bias, color = Method)) +
     geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-    theme_minimal() + ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
+    theme_bw() + ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
     theme(text = element_text(size = 8, color = "black"), 
           axis.text = element_text(size = 8, color = "black"),
@@ -524,14 +524,7 @@ for(row in 1:nrow(plot_vars)){
           legend.position = "none") +
     scale_color_manual(values = cbPalette) + 
     ylab("Bias") + xlab("Missing Data, %")  + 
-    # theme(plot.margin = margin(t = 0.25, r = 0.25, b = 0.25, l = 0.5, "cm"))
     theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
-  
-  # if(mech == "MCAR"){
-  #   figure2_plot_list[[row]] <-
-  #     figure2_plot_list[[row]] +
-  #     ggtitle(exp) + theme(plot.title = element_text(size = 12, hjust = 0.5))
-  # }
   
   figure2_plot_list[[row]] <- 
     plot_grid(figure2_plot_list[[row]], labels = plot_vars$Label[[row]], 
@@ -547,17 +540,15 @@ for(row in 1:nrow(plot_vars)){
   ggsave(plot = figure2_plot_list[[row]],
          filename = paste0(path_to_box, "/exposure_trajectories/",
                            "manuscript/figures/figure2/figure2_panel_",
-                           substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
-         device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
+                           substr(plot_vars$Label, 1, 1)[[row]], ".tiff"),
+         device = "tiff", dpi = 300, width = 7/4, height = 5/3, units = "in")
 }
-
-figure2_plot_list[[1]]
 
 figure2_plot_forlegend <- 
   ggplot(plot_data, 
          aes(x = Percent, y = Bias, color = Method)) +
   geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-  theme_minimal() + 
+  theme_bw() + 
   scale_color_manual(values = cbPalette) +
   theme(text = element_text(size = 8, color = "black"), 
         axis.text.x = element_text(color = "black"), 
@@ -565,7 +556,7 @@ figure2_plot_forlegend <-
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
         legend.title.align = 0.5,
-        legend.position = "bottom", legend.direction = "horizontal")) + 
+        legend.position = "bottom", legend.direction = "horizontal") + 
   guides(shape = guide_legend(title = expression(underline(Method))),
          color = guide_legend(title = expression(underline(Method)))) +
   ylab("Bias") + xlab("Missing Data, %")
@@ -713,7 +704,7 @@ for(row in 1:nrow(plot_vars)){
     ggplot(plot_data %>% filter(Mechanism == mech & name == exp), 
            aes(x = Percent, y = value, color = Method)) +
     geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-    theme_minimal() + 
+    theme_bw() + 
     scale_y_continuous(
       limits = case_when(mech %in% c("MCAR", "MAR") ~ c(0.00, 0.10),
                          mech == "MNAR" ~ c(0, 1.5)),
@@ -747,15 +738,15 @@ for(row in 1:nrow(plot_vars)){
   ggsave(plot = figure3_plot_list[[row]],
          filename = paste0(path_to_box, "/exposure_trajectories/",
                            "manuscript/figures/figure3/figure3_panel_",
-                           substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
-         device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
+                           substr(plot_vars$Label, 1, 1)[[row]], ".tiff"),
+         device = "tiff", dpi = 300, width = 7/4, height = 5/3, units = "in")
 }
 
 figure3_plot_forlegend <- 
   ggplot(plot_data, 
          aes(x = Percent, y = value, color = Method)) +
   geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-  theme_minimal() + 
+  theme_bw() + 
   theme(legend.position = "bottom", legend.direction = "horizontal") +
   scale_color_manual(values = cbPalette) +
   theme(text = element_text(size = 8, color = "black"), 
@@ -792,7 +783,7 @@ figure3_panel_final <- plot_grid(figure3_panel,
                               label = paste0(levels(plot_vars$Mechanism), "\n")),
             mapping = aes(x = x, y = y, label = label),
             size = 5/14*8, angle = -90L, inherit.aes = FALSE)
-figure3_panel_final
+# figure3_panel_final
 
 ggsave(plot = figure3_panel_final, 
        filename = paste0(path_to_box, "/exposure_trajectories/",

@@ -298,7 +298,7 @@ plot_data$Percent <- str_remove(plot_data$Percent, "%")
 plot_data$Percent <- factor(plot_data$Percent)
 
 figure1_plot_list <- list()
-# for(row in 12:12){
+
 for(row in 1:nrow(plot_vars)){
   mech = plot_vars[row, "Mechanism"]
   exp = plot_vars[row, "Exposure"]
@@ -307,28 +307,20 @@ for(row in 1:nrow(plot_vars)){
   figure1_plot_list[[row]] <- 
     ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
            aes(x = Beta, y = Percent, color = Method, shape = Method)) +
-    geom_point(
-      # size = 2.25, 
-      position = position_dodge(-0.8)) +
+    geom_point(position = position_dodge(-0.8)) +
     scale_shape_manual(values = 
                          c(rep("square", (nrow(results_summary))))) + 
     geom_errorbar(aes(xmin = LCI, xmax = UCI), 
-                  # width = .5, size = 0.75,
                   position = position_dodge(-0.8)) +
     theme_minimal() + ylab("Missing Data, %") +
-    # theme(legend.position = "bottom", legend.direction = "horizontal") +
     theme(legend.position = "none") +
     scale_color_manual(values = cbPalette) + 
     scale_y_discrete(limits = rev(levels(plot_data$Percent))) + 
     scale_x_continuous(limits = c(min(results_summary$LCI), 
                                   max(results_summary$UCI))) +
-    geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey"
-               # size = 0.75
-    ) + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
     geom_vline(data = truth %>% filter(Exposure == exp), 
-               linetype = "dashed", aes(xintercept = Beta) 
-               # size = 0.75
-    ) + 
+               linetype = "dashed", aes(xintercept = Beta)) + 
     xlab("\u03B2 (ln(hazard ratio))") + 
     theme(text = element_text(size = 8, color = "black"), 
           axis.text.x = element_text(color = "black"), 
@@ -337,19 +329,6 @@ for(row in 1:nrow(plot_vars)){
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
           plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
-  
-  # if(mech == "MCAR"){
-  #   figure1_plot_list[[row]] <-  
-  #     figure1_plot_list[[row]] + 
-  #     ggtitle(exp) + 
-  #     theme(plot.title = element_text(size = 8, hjust = 0.5))
-  # }
-  # 
-  # if(exp == "Proportion Elevated\n(1998-2008) CES-D"){
-  #   figure1_plot_list[[row]] <-
-  #     figure1_plot_list[[row]] +
-  #     theme(plot.margin = unit(c(t = 13, r = 10, b = 0, l = 13), unit = "pt"))
-  # }
   
   figure1_plot_list[[row]] <- 
     plot_grid(figure1_plot_list[[row]], labels = plot_vars$Label[[row]], 
@@ -389,48 +368,13 @@ figure1_plot_forlegend <-
         legend.title.align = 0.5) + 
   guides(shape = guide_legend(title = expression(underline(Method))),
          color = guide_legend(title = expression(underline(Method))))
-figure1_plot_forlegend
 
-# figure1_plot_list[[4]] <- figure1_plot_list[[4]] +
-#   geom_text(aes(x = 0.99, y = 0.5, label = "MCAR"),
-#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
-# figure1_plot_list[[8]] <- figure1_plot_list[[8]] +
-#   geom_text(aes(x = 0.99, y = 0.5, label = "MAR"),
-#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
-# figure1_plot_list[[12]] <- figure1_plot_list[[12]] +
-#   geom_text(aes(x = 0.99, y = 0.5, label = "MNAR"),
-#             angle = -90L, inherit.aes = FALSE, size = 5/14*8)
-
-
-# figure1_plot_list[[2]] <- 
-#   plot_grid(figure1_plot_list[[2]], labels = c('B)'), align = "vh",
-#             label_size = 12, hjust = 0, vjust = 1)
-
-legend_b <- get_legend(
-  figure1_plot_forlegend + 
-    guides(color = guide_legend(nrow = 1),
-           shape = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom")
-)
-# 
-# prow <- plot_grid(figure1_plot_list[[4]] + theme(legend.position="none"),
-#                   figure1_plot_list[[5]] + theme(legend.position="none"),
-#                   align = 'vh',
-#                   hjust = -1,
-#                   nrow = 1)
-# 
-# plot_grid(prow, 
-#           legend_b,  
-#           ncol = 1, rel_heights = c(1, .1))
+legend_b <- ggpubr::get_legend(figure1_plot_forlegend)
 
 figure1_panel <- 
   plot_grid(plotlist = figure1_plot_list, align = "vh", 
             ncol = 4) +
   theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
-# plot(figure1_panel)
-# figure1_panel <- 
-#   plot_grid(plotlist = figure1_plot_list, align = "vh", 
-#             ncol = 4, labels = plot_vars$Label, label_size = 12, hjust = -0.5)
 
 figure1_panel_final <- plot_grid(figure1_panel, 
                                  legend_b,
@@ -613,31 +557,21 @@ figure2_plot_forlegend <-
   ggplot(plot_data, 
          aes(x = Percent, y = Bias, color = Method)) +
   geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-  theme_minimal() + ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
-  theme(text = element_text(size = 8, color = "black"), 
-        axis.text = element_text(size = 8, color = "black"),
-        panel.border = element_blank(), axis.line = element_line(), 
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        legend.position = "bottom", legend.direction = "horizontal") +
+  theme_minimal() + 
   scale_color_manual(values = cbPalette) +
   theme(text = element_text(size = 8, color = "black"), 
         axis.text.x = element_text(color = "black"), 
         axis.text.y = element_text(color = "black"),
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
-        legend.title.align = 0.5) + 
+        legend.title.align = 0.5,
+        legend.position = "bottom", legend.direction = "horizontal")) + 
   guides(shape = guide_legend(title = expression(underline(Method))),
          color = guide_legend(title = expression(underline(Method)))) +
   ylab("Bias") + xlab("Missing Data, %")
-figure2_plot_forlegend
 
-legend_b <- get_legend(
-  figure2_plot_forlegend + 
-    guides(color = guide_legend(nrow = 1),
-           shape = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom")
-)
+legend_b <- ggpubr::get_legend(figure2_plot_forlegend)
+# plot(legend_b)
 
 figure2_panel <- 
   plot_grid(plotlist = figure2_plot_list, align = "vh", 
@@ -659,7 +593,7 @@ figure2_panel_final <- plot_grid(figure2_panel,
                               label = paste0(levels(plot_vars$Mechanism), "\n")),
             mapping = aes(x = x, y = y, label = label),
             size = 5/14*8, angle = -90L, inherit.aes = FALSE)
-figure2_panel_final
+# figure2_panel_final
 
 ggsave(plot = figure2_panel_final, 
        filename = paste0(path_to_box, "/exposure_trajectories/",
@@ -692,8 +626,6 @@ ggplot(bias_table %>% filter(!Method == "LMM"),
         legend.title.align = 0.5) +
   scale_color_manual(values = cbPalette) + ylab("Bias") + 
   facetscales::facet_grid_sc(rows = vars(Mechanism), cols = vars(Exposure)) 
-
-
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure2/bias.jpeg"), 
@@ -787,36 +719,36 @@ for(row in 1:nrow(plot_vars)){
                          mech == "MNAR" ~ c(0, 1.5)),
       breaks = case_when(mech %in% c("MCAR", "MAR") ~ seq(0.00, 0.10, 0.02),
                          mech == "MNAR" ~ seq(0, 1.5, 0.3))) +
-  theme(text = element_text(size = 8, color = "black"), 
-        axis.text = element_text(size = 8, color = "black"),
-        panel.border = element_blank(), axis.line = element_line(), 
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        legend.position = "none") +
-  scale_color_manual(values = cbPalette) + 
-  ylab("RMSE") + xlab("Missing Data, %")  + 
-  theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
+    theme(text = element_text(size = 8, color = "black"), 
+          axis.text = element_text(size = 8, color = "black"),
+          panel.border = element_blank(), axis.line = element_line(), 
+          panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+          legend.position = "none") +
+    scale_color_manual(values = cbPalette) + 
+    ylab("RMSE") + xlab("Missing Data, %")  + 
+    theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
   
-if(mech == "MNAR"){
-  figure3_plot_list[[row]] <- figure3_plot_list[[row]] + 
-    scale_y_continuous(limits = c(0, 1.5), breaks = seq(0, 1.5, 0.5))
-}
+  if(mech == "MNAR"){
+    figure3_plot_list[[row]] <- figure3_plot_list[[row]] + 
+      scale_y_continuous(limits = c(0, 1.5), breaks = seq(0, 1.5, 0.5))
+  }
   
-figure3_plot_list[[row]] <- 
-  plot_grid(figure3_plot_list[[row]], labels = plot_vars$Label[[row]], 
-            align = "vh", label_size = 8, hjust = 0, vjust = 1, 
-            label_fontface = "plain")
-
-ggsave(plot = figure3_plot_list[[row]],
-       filename = paste0(path_to_box, "/exposure_trajectories/",
-                         "manuscript/figures/figure3/figure3_panel_",
-                         substr(plot_vars$Label, 1, 1)[[row]], ".pdf"),
-       device = "pdf", dpi = 300, width = 7/4, height = 5/3, units = "in")
-
-ggsave(plot = figure3_plot_list[[row]],
-       filename = paste0(path_to_box, "/exposure_trajectories/",
-                         "manuscript/figures/figure3/figure3_panel_",
-                         substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
-       device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
+  figure3_plot_list[[row]] <- 
+    plot_grid(figure3_plot_list[[row]], labels = plot_vars$Label[[row]], 
+              align = "vh", label_size = 8, hjust = 0, vjust = 1, 
+              label_fontface = "plain")
+  
+  ggsave(plot = figure3_plot_list[[row]],
+         filename = paste0(path_to_box, "/exposure_trajectories/",
+                           "manuscript/figures/figure3/figure3_panel_",
+                           substr(plot_vars$Label, 1, 1)[[row]], ".pdf"),
+         device = "pdf", dpi = 300, width = 7/4, height = 5/3, units = "in")
+  
+  ggsave(plot = figure3_plot_list[[row]],
+         filename = paste0(path_to_box, "/exposure_trajectories/",
+                           "manuscript/figures/figure3/figure3_panel_",
+                           substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
+         device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
 }
 
 figure3_plot_forlegend <- 
@@ -824,11 +756,7 @@ figure3_plot_forlegend <-
          aes(x = Percent, y = value, color = Method)) +
   geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
   theme_minimal() + 
-  theme(text = element_text(size = 8, color = "black"), 
-        axis.text = element_text(size = 8, color = "black"),
-        panel.border = element_blank(), axis.line = element_line(), 
-        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
-        legend.position = "bottom", legend.direction = "horizontal") +
+  theme(legend.position = "bottom", legend.direction = "horizontal") +
   scale_color_manual(values = cbPalette) +
   theme(text = element_text(size = 8, color = "black"), 
         axis.text.x = element_text(color = "black"), 
@@ -841,18 +769,14 @@ figure3_plot_forlegend <-
   ylab("RMSE") + xlab("Missing Data, %")
 figure3_plot_forlegend
 
-legend_b <- get_legend(
-  figure3_plot_forlegend + 
-    guides(color = guide_legend(nrow = 1),
-           shape = guide_legend(nrow = 1)) +
-    theme(legend.position = "bottom")
-)
+legend_b <- ggpubr::get_legend(figure3_plot_forlegend)
+# plot(legend_b)
 
 figure3_panel <- 
   plot_grid(plotlist = figure3_plot_list, align = "vh", 
             ncol = 4) + 
   theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
-figure3_panel
+# figure3_panel
 
 figure3_panel_final <- plot_grid(figure3_panel, 
                                  legend_b,

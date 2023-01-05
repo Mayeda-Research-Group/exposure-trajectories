@@ -336,7 +336,7 @@ for(row in 1:nrow(plot_vars)){
     theme(panel.border = element_blank(), axis.line = element_line(), 
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
-          plot.margin = unit(c(t = 13, r = 0, b = 0, l = 13), unit = "pt"))
+          plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
   
   # if(mech == "MCAR"){
   #   figure1_plot_list[[row]] <-  
@@ -452,7 +452,7 @@ ggsave(plot = figure1_panel_final,
                          "manuscript/figures/figure1/figure1_panel.pdf"),
        device = "pdf", dpi = 300, width = 7, height = 5, units = "in")
 ggsave(plot = figure1_panel_final,
-  paste0(path_to_box, "/exposure_trajectories/",
+       paste0(path_to_box, "/exposure_trajectories/",
               "manuscript/figures/figure1/figure1_panel.eps"),
        device = "eps", dpi = 300, width = 7, height = 5, units = "in")
 ggsave(plot = figure1_panel_final,
@@ -581,7 +581,7 @@ for(row in 1:nrow(plot_vars)){
     scale_color_manual(values = cbPalette) + 
     ylab("Bias") + xlab("Missing Data, %")  + 
     # theme(plot.margin = margin(t = 0.25, r = 0.25, b = 0.25, l = 0.5, "cm"))
-    theme(plot.margin = unit(c(t = 13, r = 0, b = 0, l = 13), unit = "pt"))
+    theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
   
   # if(mech == "MCAR"){
   #   figure2_plot_list[[row]] <-
@@ -599,7 +599,7 @@ for(row in 1:nrow(plot_vars)){
                            "manuscript/figures/figure2/figure2_panel_",
                            substr(plot_vars$Label, 1, 1)[[row]], ".pdf"),
          device = "pdf", dpi = 300, width = 7/4, height = 5/3, units = "in")
-
+  
   ggsave(plot = figure2_plot_list[[row]],
          filename = paste0(path_to_box, "/exposure_trajectories/",
                            "manuscript/figures/figure2/figure2_panel_",
@@ -663,7 +663,7 @@ figure2_panel_final
 
 ggsave(plot = figure2_panel_final, 
        filename = paste0(path_to_box, "/exposure_trajectories/",
-              "manuscript/figures/figure2/figure2_panel.jpeg"), 
+                         "manuscript/figures/figure2/figure2_panel.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 ggsave(plot = figure2_panel_final, 
        filename = paste0(path_to_box, "/exposure_trajectories/",
@@ -758,6 +758,133 @@ rmse_table$name <-
                     "Proportion Elevated\n(1998-2008) CES-D"))
 
 #---- **figure 3 plot ----
+#cowplot
+plot_vars <- 
+  expand.grid(unique(rmse_table$name),
+              unique(rmse_table$Mechanism)) %>%
+  set_colnames(c("name", "Mechanism")) %>%
+  arrange("Mechanism") %>%
+  mutate("Label" = paste0(LETTERS[1:12], ")"))
+
+plot_data <- rmse_table %>% filter(!Method == "LMM")
+plot_data$Percent <- str_remove(plot_data$`Missing Percent`, "%")
+plot_data$Percent <- factor(plot_data$Percent)
+
+figure3_plot_list <- list()
+
+for(row in 1:nrow(plot_vars)){
+  mech = plot_vars[row, "Mechanism"]
+  exp = plot_vars[row, "name"]
+  label = plot_vars[row, "Label"]
+  
+  figure3_plot_list[[row]] <-
+    ggplot(plot_data %>% filter(Mechanism == mech & name == exp), 
+           aes(x = Percent, y = value, color = Method)) +
+    geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
+    theme_minimal() + 
+    scale_y_continuous(
+      limits = case_when(mech %in% c("MCAR", "MAR") ~ c(0.00, 0.10),
+                         mech == "MNAR" ~ c(0, 1.5)),
+      breaks = case_when(mech %in% c("MCAR", "MAR") ~ seq(0.00, 0.10, 0.02),
+                         mech == "MNAR" ~ seq(0, 1.5, 0.3))) +
+  theme(text = element_text(size = 8, color = "black"), 
+        axis.text = element_text(size = 8, color = "black"),
+        panel.border = element_blank(), axis.line = element_line(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        legend.position = "none") +
+  scale_color_manual(values = cbPalette) + 
+  ylab("RMSE") + xlab("Missing Data, %")  + 
+  theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
+  
+if(mech == "MNAR"){
+  figure3_plot_list[[row]] <- figure3_plot_list[[row]] + 
+    scale_y_continuous(limits = c(0, 1.5), breaks = seq(0, 1.5, 0.5))
+}
+  
+figure3_plot_list[[row]] <- 
+  plot_grid(figure3_plot_list[[row]], labels = plot_vars$Label[[row]], 
+            align = "vh", label_size = 8, hjust = 0, vjust = 1, 
+            label_fontface = "plain")
+
+ggsave(plot = figure3_plot_list[[row]],
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure3/figure3_panel_",
+                         substr(plot_vars$Label, 1, 1)[[row]], ".pdf"),
+       device = "pdf", dpi = 300, width = 7/4, height = 5/3, units = "in")
+
+ggsave(plot = figure3_plot_list[[row]],
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure3/figure3_panel_",
+                         substr(plot_vars$Label, 1, 1)[[row]], ".eps"),
+       device = "eps", dpi = 300, width = 7/4, height = 5/3, units = "in")
+}
+
+figure3_plot_forlegend <- 
+  ggplot(plot_data, 
+         aes(x = Percent, y = value, color = Method)) +
+  geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
+  theme_minimal() + 
+  theme(text = element_text(size = 8, color = "black"), 
+        axis.text = element_text(size = 8, color = "black"),
+        panel.border = element_blank(), axis.line = element_line(), 
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        legend.position = "bottom", legend.direction = "horizontal") +
+  scale_color_manual(values = cbPalette) +
+  theme(text = element_text(size = 8, color = "black"), 
+        axis.text.x = element_text(color = "black"), 
+        axis.text.y = element_text(color = "black"),
+        legend.background = 
+          element_rect(fill = "white", linetype = "solid", colour ="black"), 
+        legend.title.align = 0.5) + 
+  guides(shape = guide_legend(title = expression(underline(Method))),
+         color = guide_legend(title = expression(underline(Method)))) +
+  ylab("RMSE") + xlab("Missing Data, %")
+figure3_plot_forlegend
+
+legend_b <- get_legend(
+  figure3_plot_forlegend + 
+    guides(color = guide_legend(nrow = 1),
+           shape = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")
+)
+
+figure3_panel <- 
+  plot_grid(plotlist = figure3_plot_list, align = "vh", 
+            ncol = 4) + 
+  theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
+figure3_panel
+
+figure3_panel_final <- plot_grid(figure3_panel, 
+                                 legend_b,
+                                 ncol = 1, rel_heights = c(1, .1)) +
+  theme(plot.margin = unit(c(t = 21, r = 10, b = 0, l = 0), unit = "pt")) +
+  geom_text(data = data.frame(
+    x = seq(0.13, 0.91, by = 0.26), y = rep(1, 4),
+    label = paste0(levels(plot_vars$name), "\n\n")),
+    # This is stupid and I didn't figure out how to solve this without putting two \ns
+    mapping = aes(x = x, y = y, label = label),
+    size = 5/14*8, inherit.aes = FALSE) + 
+  geom_text(data = data.frame(x = rep(1, 3), y = c(0.9, 0.6, 0.3),
+                              label = paste0(levels(plot_vars$Mechanism), "\n")),
+            mapping = aes(x = x, y = y, label = label),
+            size = 5/14*8, angle = -90L, inherit.aes = FALSE)
+figure3_panel_final
+
+ggsave(plot = figure3_panel_final, 
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure3/figure3_panel.jpeg"), 
+       device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
+ggsave(plot = figure3_panel_final, 
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure3/figure3_panel.pdf"), 
+       device = "pdf", dpi = 300, width = 7, height = 5, units = "in")
+# Somehow can't save to EPS
+ggsave(plot = figure3_panel_final, 
+       filename = paste0(path_to_box, "/exposure_trajectories/",
+                         "manuscript/figures/figure3/figure3_panel.tiff"), 
+       device = "tiff", dpi = 300, width = 7, height = 5, units = "in")
+
+#---- **figure 3 plot OLD ----
 p_load("devtools")
 devtools::install_github("zeehio/facetscales")
 

@@ -904,7 +904,7 @@ ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"),
        aes(x = Percent, y = time_hours, color = Method)) + 
   geom_boxplot() + ylim(c(0, 20)) +
   ylab("Computation Time, hours") + 
-  xlab("Missing Data, percent") + theme_bw() + 
+  xlab("Missing Data, %") + theme_bw() + 
   scale_color_manual(values = cbPalette) + 
   theme(text = element_text(size = 12, color = "black"), 
         axis.text = element_text(size = 12, color = "black"),

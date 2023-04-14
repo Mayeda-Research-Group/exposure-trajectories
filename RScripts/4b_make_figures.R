@@ -771,7 +771,7 @@ figure3_plot_forlegend <-
                               title.position = "top",
                               title.vjust = -1.3)) +
   ylab("RMSE") + xlab("Missing Data, %")
-figure3_plot_forlegend
+# figure3_plot_forlegend
 
 legend_b <- ggpubr::get_legend(figure3_plot_forlegend)
 # plot(legend_b)
@@ -919,26 +919,27 @@ ggplot(data = na.omit(main_results) %>% filter(!Method == "LMM"),
   ylab("Computation Time, hours") + 
   xlab("Missing Data, %") + theme_bw() + 
   scale_color_manual(values = cbPalette) + 
-  theme(text = element_text(size = 12, color = "black"), 
-        axis.text = element_text(size = 12, color = "black"),
+  theme(text = element_text(size = 14, color = "black"), 
+        axis.text = element_text(size = 14, color = "black"),
         panel.border = element_blank(), axis.line = element_line(), 
         panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
         legend.position = c(0.10, 0.75), 
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
-        legend.title.align = 0.5) + 
+        legend.title.align = 0.5,
+        legend.text = element_text(size = 14)) + 
   guides(color = guide_legend(title = expression(underline(Method))))
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
-              "manuscript/figures/figure4/run_times.jpeg"), 
+              "manuscript/figures/figure4/figure4_run_times.jpeg"), 
        device = "jpeg", dpi = 300, width = 7, height = 5, units = "in")
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
-              "manuscript/figures/figure4/run_times.pdf"), 
+              "manuscript/figures/figure4/figure4_run_times.pdf"), 
        device = "pdf", dpi = 300, width = 7, height = 5, units = "in")
 
 ggsave(paste0(path_to_box, "/exposure_trajectories/",
-              "manuscript/figures/figure4/run_times.eps"), 
+              "manuscript/figures/figure4/figure4_run_times.eps"), 
        device = "eps", dpi = 300, width = 7, height = 5, units = "in")
 
 # ggsave(paste0(path_to_box, "/exposure_trajectories/",

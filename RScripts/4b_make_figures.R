@@ -582,7 +582,7 @@ figure2_panel <-
 figure2_panel_final <- plot_grid(figure2_panel, 
                                  legend_b,
                                  ncol = 1, rel_heights = c(1, .1)) +
-  theme(plot.margin = unit(c(t = 21, r = 10, b = 0, l = 0), unit = "pt")) +
+  theme(plot.margin = unit(c(t = 21, r = 10, b = 8, l = 0), unit = "pt")) +
   geom_text(data = data.frame(
     x = seq(0.13, 0.91, by = 0.26), y = rep(1, 4),
     label = paste0(levels(plot_vars$Exposure), "\n\n")),
@@ -593,7 +593,7 @@ figure2_panel_final <- plot_grid(figure2_panel,
                               label = paste0(levels(plot_vars$Mechanism), "\n")),
             mapping = aes(x = x, y = y, label = label),
             size = 5/14*8, angle = -90L, inherit.aes = FALSE)
-# figure2_panel_final
+figure2_panel_final
 
 ggsave(plot = figure2_panel_final, 
        filename = paste0(path_to_box, "/exposure_trajectories/",
@@ -785,7 +785,7 @@ figure3_panel <-
 figure3_panel_final <- plot_grid(figure3_panel, 
                                  legend_b,
                                  ncol = 1, rel_heights = c(1, .1)) +
-  theme(plot.margin = unit(c(t = 21, r = 10, b = 0, l = 0), unit = "pt")) +
+  theme(plot.margin = unit(c(t = 21, r = 10, b = 10, l = 0), unit = "pt")) +
   geom_text(data = data.frame(
     x = seq(0.13, 0.91, by = 0.26), y = rep(1, 4),
     label = paste0(levels(plot_vars$name), "\n\n")),

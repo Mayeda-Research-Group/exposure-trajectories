@@ -249,18 +249,18 @@ truth <- read_csv(paste0(path_to_box,
   #        "Truth Capture" = 1) 
   mutate(Exposure = 
            case_when(
-             Exposure == "CES-D Wave 4" ~ "Elevated Baseline\n(1998) CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure\n(2008) CES-D",
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D,\n1998",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D, \n2008",
              Exposure == 
-               "Elevated CES-D Prop" ~ "Proportion Elevated\n(1998-2008) CES-D",
-             TRUE ~ "Elevated Average\n(1998-2008) CES-D"))
+               "Elevated CES-D Prop" ~ "Proportion Elevated CES-D,\n1998-2008",
+             TRUE ~ "Elevated Average CES-D,\n1998-2008"))
 
 truth$Exposure <- 
   factor(truth$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D")) 
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008")) 
 
 #---- **format data ----
 methods <- c("CC", "NORM", "PMM", "VTS", "LMM")
@@ -271,19 +271,19 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline\n(1998) CES-D"
+                "Exposure"] <- "Elevated Baseline CES-D,\n1998"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure\n(2008) CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D, \n2008"
 results_summary[which(results_summary$Exposure == "Elevated Average CES-D"), 
-                "Exposure"] <- "Elevated Average\n(1998-2008) CES-D"
+                "Exposure"] <- "Elevated Average CES-D,\n1998-2008"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated\n(1998-2008) CES-D"
+                "Exposure"] <- "Proportion Elevated CES-D,\n1998-2008"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D")) 
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008")) 
 
 #---- **figure 1 plot ----
 #cowplot
@@ -321,7 +321,7 @@ for(row in 1:nrow(plot_vars)){
     geom_vline(xintercept = 0, linetype = "dashed", color = "dark grey") + 
     geom_vline(data = truth %>% filter(Exposure == exp), 
                linetype = "dashed", aes(xintercept = Beta)) + 
-    xlab("\u03B2 (ln(hazard ratio))") + 
+    xlab(expression(beta)) + 
     theme(text = element_text(size = 8, color = "black"), 
           axis.text.x = element_text(color = "black"), 
           axis.text.y = element_text(color = "black")) + 
@@ -366,20 +366,25 @@ figure1_plot_forlegend <-
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
         legend.title.align = 0.5) + 
-  guides(shape = guide_legend(title = expression(underline(Method))),
-         color = guide_legend(title = expression(underline(Method))))
+  guides(shape = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3),
+         color = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3))
 
 legend_b <- ggpubr::get_legend(figure1_plot_forlegend)
+# plot(legend_b)
 
 figure1_panel <- 
   plot_grid(plotlist = figure1_plot_list, align = "vh", 
             ncol = 4) +
-  theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
+  theme(plot.margin = unit(c(t = 0, r = 0, b = 10, l = 0), unit = "pt"))
 
 figure1_panel_final <- plot_grid(figure1_panel, 
                                  legend_b,
                                  ncol = 1, rel_heights = c(1, .1)) +
-  theme(plot.margin = unit(c(t = 21, r = 10, b = 0, l = 0), unit = "pt")) +
+  theme(plot.margin = unit(c(t = 21, r = 10, b = 10, l = 0), unit = "pt")) +
   geom_text(data = data.frame(
     x = seq(0.13, 0.91, by = 0.26), y = rep(1, 4),
     label = paste0(levels(plot_vars$Exposure), "\n\n")),
@@ -478,19 +483,19 @@ bias_table$Mechanism <- factor(bias_table$Mechanism,
 bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
 
 bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
-  "Elevated Baseline\n(1998) CES-D"
+  "Elevated Baseline CES-D,\n1998"
 bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated End of Exposure\n(2008) CES-D"
+  "Elevated End of Exposure CES-D, \n2008"
 bias_table[which(bias_table$Exposure == "Elevated Average CES-D"), "Exposure"] <- 
-  "Elevated Average\n(1998-2008) CES-D"
+  "Elevated Average CES-D,\n1998-2008"
 bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
-  "Proportion Elevated\n(1998-2008) CES-D"
+  "Proportion Elevated CES-D,\n1998-2008"
 bias_table$Exposure <- 
   factor(bias_table$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D"))
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008"))
 
 #---- **figure 2 plot ----
 #cowplot
@@ -557,8 +562,12 @@ figure2_plot_forlegend <-
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
         legend.title.align = 0.5,
         legend.position = "bottom", legend.direction = "horizontal") + 
-  guides(shape = guide_legend(title = expression(underline(Method))),
-         color = guide_legend(title = expression(underline(Method)))) +
+  guides(shape = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3),
+         color = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3)) +
   ylab("Bias") + xlab("Missing Data, %")
 
 legend_b <- ggpubr::get_legend(figure2_plot_forlegend)
@@ -666,19 +675,19 @@ rmse_table$Mechanism <- factor(rmse_table$Mechanism,
 rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
-  "Elevated Baseline\n(1998) CES-D"
+  "Elevated Baseline CES-D,\n1998"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Exposure\n(2008) CES-D"
+  "Elevated End of Exposure CES-D, \n2008"
 rmse_table[which(rmse_table$name == "Elevated Average CES-D"), "name"] <- 
-  "Elevated Average\n(1998-2008) CES-D"
+  "Elevated Average CES-D,\n1998-2008"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
-  "Proportion Elevated\n(1998-2008) CES-D"
+  "Proportion Elevated CES-D,\n1998-2008"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D"))
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008"))
 
 #---- **figure 3 plot ----
 #cowplot
@@ -755,8 +764,12 @@ figure3_plot_forlegend <-
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
         legend.title.align = 0.5) + 
-  guides(shape = guide_legend(title = expression(underline(Method))),
-         color = guide_legend(title = expression(underline(Method)))) +
+  guides(shape = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3),
+         color = guide_legend(title = expression(underline(Method)), 
+                              title.position = "top",
+                              title.vjust = -1.3)) +
   ylab("RMSE") + xlab("Missing Data, %")
 figure3_plot_forlegend
 
@@ -983,18 +996,18 @@ truth_sens <- read_csv(paste0(path_to_box,
   #        "Truth Capture" = 1) 
   mutate(Exposure = 
            case_when(
-             Exposure == "CES-D Wave 4" ~ "Elevated Baseline\n(1998) CES-D",
-             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure\n(2008) CES-D",
+             Exposure == "CES-D Wave 4" ~ "Elevated Baseline CES-D,\n1998",
+             Exposure == "CES-D Wave 9" ~ "Elevated End of Exposure CES-D, \n2008",
              Exposure == "Elevated CES-D Prop" ~ 
-               "Proportion Elevated\n(1998-2008) CES-D",
-             TRUE ~ "Elevated Average\n(1998-2008) CES-D"))
+               "Proportion Elevated CES-D,\n1998-2008",
+             TRUE ~ "Elevated Average CES-D,\n1998-2008"))
 
 truth_sens$Exposure <- 
   factor(truth_sens$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D")) 
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008")) 
 
 #---- **format data ----
 methods <- c("CC", "NORM", "PMM", "VTS")
@@ -1005,19 +1018,19 @@ results_summary$Mechanism <-
   factor(results_summary$Mechanism, levels = c("MCAR", "MAR", "MNAR")) 
 
 results_summary[which(results_summary$Exposure == "CES-D Wave 4"), 
-                "Exposure"] <- "Elevated Baseline\n(1998) CES-D"
+                "Exposure"] <- "Elevated Baseline CES-D,\n1998"
 results_summary[which(results_summary$Exposure == "CES-D Wave 9"), 
-                "Exposure"] <- "Elevated End of Exposure\n(2008) CES-D"
+                "Exposure"] <- "Elevated End of Exposure CES-D, \n2008"
 results_summary[which(results_summary$Exposure == "Elevated Average CES-D"), 
-                "Exposure"] <- "Elevated Average\n(1998-2008) CES-D"
+                "Exposure"] <- "Elevated Average CES-D,\n1998-2008"
 results_summary[which(results_summary$Exposure == "Elevated CES-D Prop"), 
-                "Exposure"] <- "Proportion Elevated\n(1998-2008) CES-D"
+                "Exposure"] <- "Proportion Elevated CES-D,\n1998-2008"
 results_summary$Exposure <- 
   factor(results_summary$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D")) 
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008")) 
 
 #---- **plot ----
 ggplot(results_summary, 
@@ -1060,19 +1073,19 @@ bias_table$Mechanism <- factor(bias_table$Mechanism,
 bias_table$`Missing Percent` <- factor(bias_table$`Missing Percent`)
 
 bias_table[which(bias_table$Exposure == "CES-D Wave 4"), "Exposure"] <- 
-  "Elevated Baseline\n(1998) CES-D"
+  "Elevated Baseline CES-D,\n1998"
 bias_table[which(bias_table$Exposure == "CES-D Wave 9"), "Exposure"] <- 
-  "Elevated End of Exposure\n(2008) CES-D"
+  "Elevated End of Exposure CES-D, \n2008"
 bias_table[which(bias_table$Exposure == "Elevated Average CES-D"), "Exposure"] <- 
-  "Elevated Average\n(1998-2008) CES-D"
+  "Elevated Average CES-D,\n1998-2008"
 bias_table[which(bias_table$Exposure == "Elevated CES-D Prop"), "Exposure"] <- 
-  "Proportion Elevated\n(1998-2008) CES-D"
+  "Proportion Elevated CES-D,\n1998-2008"
 bias_table$Exposure <- 
   factor(bias_table$Exposure, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D"))
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008"))
 
 #---- **plot ----
 p_load("devtools")
@@ -1113,19 +1126,19 @@ rmse_table$Mechanism <- factor(rmse_table$Mechanism,
 rmse_table$`Missing Percent` <- factor(rmse_table$`Missing Percent`)
 
 rmse_table[which(rmse_table$name == "CES-D Wave 4"), "name"] <- 
-  "Elevated Baseline\n(1998) CES-D"
+  "Elevated Baseline CES-D,\n1998"
 rmse_table[which(rmse_table$name == "CES-D Wave 9"), "name"] <- 
-  "Elevated End of Exposure\n(2008) CES-D"
+  "Elevated End of Exposure CES-D, \n2008"
 rmse_table[which(rmse_table$name == "Elevated Average CES-D"), "name"] <- 
-  "Elevated Average\n(1998-2008) CES-D"
+  "Elevated Average CES-D,\n1998-2008"
 rmse_table[which(rmse_table$name == "Elevated CES-D Prop"), "name"] <- 
-  "Proportion Elevated\n(1998-2008) CES-D"
+  "Proportion Elevated CES-D,\n1998-2008"
 rmse_table$name <- 
   factor(rmse_table$name, 
-         levels = c("Elevated Baseline\n(1998) CES-D", 
-                    "Elevated End of Exposure\n(2008) CES-D", 
-                    "Elevated Average\n(1998-2008) CES-D", 
-                    "Proportion Elevated\n(1998-2008) CES-D"))
+         levels = c("Elevated Baseline CES-D,\n1998", 
+                    "Elevated End of Exposure CES-D, \n2008", 
+                    "Elevated Average CES-D,\n1998-2008", 
+                    "Proportion Elevated CES-D,\n1998-2008"))
 
 #---- **plot ----
 p_load("devtools")

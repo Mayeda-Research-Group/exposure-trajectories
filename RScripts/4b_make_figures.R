@@ -330,6 +330,22 @@ for(row in 1:nrow(plot_vars)){
           panel.grid.minor = element_blank(),
           plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
   
+  if (row %in% c(4, 8)){
+    # for plot D and H, label the far right X axis.
+    figure1_plot_list[[row]] <- figure1_plot_list[[row]] +
+      scale_x_continuous(limits = c(min(results_summary$LCI), 
+                                    max(results_summary$UCI)),
+                         breaks = c(-1.0, -0.5, 0.0, 0.5, 0.7))
+  }
+  
+  if (row %in% c(11, 12)){
+    # for plot K and L, label the far left X axis.
+    figure1_plot_list[[row]] <- figure1_plot_list[[row]] +
+      scale_x_continuous(limits = c(min(results_summary$LCI), 
+                                    max(results_summary$UCI)),
+                         breaks = c(-1.4, -1.0, -0.5, 0.0, 0.5))
+  }
+  
   figure1_plot_list[[row]] <- 
     plot_grid(figure1_plot_list[[row]], labels = plot_vars$Label[[row]], 
               align = "vh", label_size = 8, hjust = 0, vjust = 1, 
@@ -379,7 +395,7 @@ legend_b <- ggpubr::get_legend(figure1_plot_forlegend)
 figure1_panel <- 
   plot_grid(plotlist = figure1_plot_list, align = "vh", 
             ncol = 4) +
-  theme(plot.margin = unit(c(t = 0, r = 0, b = 10, l = 0), unit = "pt"))
+  theme(plot.margin = unit(c(t = 0, r = 0, b = 8, l = 0), unit = "pt"))
 
 figure1_panel_final <- plot_grid(figure1_panel, 
                                  legend_b,
@@ -395,6 +411,7 @@ figure1_panel_final <- plot_grid(figure1_panel,
                               label = paste0(levels(plot_vars$Mechanism), "\n")),
             mapping = aes(x = x, y = y, label = label),
             size = 5/14*8, angle = -90L, inherit.aes = FALSE)
+figure1_panel_final
 
 ggsave(plot = figure1_panel_final,
        filename = paste0(path_to_box, "/exposure_trajectories/",
@@ -520,7 +537,9 @@ for(row in 1:nrow(plot_vars)){
     ggplot(plot_data %>% filter(Mechanism == mech & Exposure == exp), 
            aes(x = Percent, y = Bias, color = Method)) +
     geom_line(aes(group = Method), alpha = 0.75) + geom_point(alpha = 0.75) + 
-    theme_bw() + ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
+    theme_bw() + 
+    scale_y_continuous(limits = c(min(plot_data$Bias), max(plot_data$Bias))) +
+    # ylim(c(min(plot_data$Bias), max(plot_data$Bias))) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "dark grey") +
     theme(text = element_text(size = 8, color = "black"), 
           axis.text = element_text(size = 8, color = "black"),
@@ -530,6 +549,14 @@ for(row in 1:nrow(plot_vars)){
     scale_color_manual(values = cbPalette) + 
     ylab("Bias") + xlab("Missing Data, %")  + 
     theme(plot.margin = unit(c(t = 13, r = 1, b = 1, l = 13), unit = "pt"))
+  
+  if (row %in% c(11, 12)){
+    # for plot K and L, label the far left X axis.
+    figure2_plot_list[[row]] <- figure2_plot_list[[row]] +
+      scale_y_continuous(limits = c(-1.5, 
+                                    max(plot_data$Bias)),
+                         breaks = c(-1.5, -1.0, -0.5, 0.0))
+  }
   
   figure2_plot_list[[row]] <- 
     plot_grid(figure2_plot_list[[row]], labels = plot_vars$Label[[row]], 

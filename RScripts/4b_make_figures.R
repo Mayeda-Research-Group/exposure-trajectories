@@ -323,8 +323,8 @@ for(row in 1:nrow(plot_vars)){
                linetype = "dashed", aes(xintercept = Beta)) + 
     xlab(expression(beta)) + 
     theme(text = element_text(size = 8, color = "black"), 
-          axis.text.x = element_text(color = "black"), 
-          axis.text.y = element_text(color = "black")) + 
+          axis.text.x = element_text(size = 8, color = "black"), 
+          axis.text.y = element_text(size = 8, color = "black")) + 
     theme(panel.border = element_blank(), axis.line = element_line(), 
           panel.grid.major = element_blank(), 
           panel.grid.minor = element_blank(),
@@ -377,17 +377,21 @@ figure1_plot_forlegend <-
   theme(legend.position = "bottom", legend.direction = "horizontal") +
   scale_color_manual(values = cbPalette) + 
   theme(text = element_text(size = 8, color = "black"), 
-        axis.text.x = element_text(color = "black"), 
-        axis.text.y = element_text(color = "black"),
+        axis.text.x = element_text(size = 8, color = "black"), 
+        axis.text.y = element_text(size = 8, color = "black"),
         legend.background = 
           element_rect(fill = "white", linetype = "solid", colour ="black"), 
-        legend.title.align = 0.5) + 
+        legend.title.align = 0.5,
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 8)) + 
   guides(shape = guide_legend(title = expression(underline(Method)), 
                               title.position = "top",
-                              title.vjust = -1.3),
+                              title.vjust = -1.3,
+                              title.theme = element_text(size = 8, color = "black")),
          color = guide_legend(title = expression(underline(Method)), 
                               title.position = "top",
-                              title.vjust = -1.3))
+                              title.vjust = -1.3,
+                              title.theme = element_text(size = 8, color = "black")))
 
 legend_b <- ggpubr::get_legend(figure1_plot_forlegend)
 # plot(legend_b)
